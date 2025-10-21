@@ -1,0 +1,1176 @@
+/* ============================================
+   🎨 CLIENT PROFILE CSS - CLEAN PROFESSIONAL DESIGN
+   ============================================ */
+
+/* ROOT VARIABLES - PROFESSIONAL THEME */
+:root {
+  --primary-blue: #1e40af;
+  --primary-blue-hover: #1d4ed8;
+  --primary-blue-light: #eff6ff;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-light: #9ca3af;
+  --border-light: #e5e7eb;
+  --border-medium: #d1d5db;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-light-blue: #f0f9ff;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --transition: all 0.2s ease;
+  --success-green: #059669;
+  --success-light: #d1fae5;
+  --warning-amber: #d97706;
+  --warning-light: #fef3c7;
+  --error-red: #dc2626;
+  --error-light: #fee2e2;
+}
+
+/* MAIN CONTAINER & RESET */
+.professional-profile-container {
+  min-height: 100vh;
+  background: var(--bg-secondary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  display: block;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.professional-profile-container * {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+/* LOADING & ERROR STATES */
+.professional-profile-container .profile-loading,
+.professional-profile-container .profile-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+  gap: 20px;
+  padding: 40px 20px;
+  background: var(--bg-primary);
+  margin: 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.professional-profile-container .profile-loading h3,
+.professional-profile-container .profile-error h3 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.professional-profile-container .profile-loading p,
+.professional-profile-container .profile-error p {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 16px;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* ============================================
+   ✅ FIXED HERO SECTION - CLEAN & SIMPLE
+   ============================================ */
+.professional-profile-container .profile-header-section {
+  background: var(--primary-blue);
+  color: white;
+  padding: 32px 20px;
+  border-bottom: none;
+  margin-bottom: 0;
+  position: relative;
+  overflow: hidden;
+  min-height: auto;
+}
+
+.professional-profile-container .profile-header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* ✅ AVATAR SECTION - PROPER SPACING */
+.professional-profile-container .profile-avatar-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.professional-profile-container .avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 4px;
+}
+
+.professional-profile-container .avatar-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition);
+  display: block;
+}
+
+.professional-profile-container .avatar-image:hover {
+  transform: scale(1.05);
+  border-color: white;
+}
+
+.professional-profile-container .avatar-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-lg);
+  color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.professional-profile-container .avatar-edit-btn {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: white;
+  color: var(--primary-blue);
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-md);
+}
+
+.professional-profile-container .avatar-edit-btn:hover:not(:disabled) {
+  background: var(--bg-secondary);
+  transform: scale(1.1);
+}
+
+/* ✅ PROFILE INFO SECTION - CLEAN LAYOUT */
+.professional-profile-container .profile-info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  color: white;
+  align-items: center;
+}
+
+.professional-profile-container .profile-name-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  text-align: center;
+}
+
+.professional-profile-container .profile-name {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+  line-height: 1.2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.professional-profile-container .profile-company {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* ✅ CLEANED META INFO - ONLY ESSENTIALS */
+.professional-profile-container .profile-meta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.professional-profile-container .meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(10px);
+}
+
+/* ✅ PROPERLY SIZED ACTION BUTTONS */
+.professional-profile-container .profile-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 20px;
+  max-width: 400px;
+}
+
+.professional-profile-container .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-radius: var(--radius-lg);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition);
+  cursor: pointer;
+  border: none;
+  line-height: 1;
+  min-height: 48px;
+  font-family: inherit;
+  width: 100%;
+}
+
+.professional-profile-container .btn-primary {
+  background: white;
+  color: var(--primary-blue);
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+}
+
+.professional-profile-container .btn-primary:hover:not(:disabled) {
+  background: var(--bg-secondary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+}
+
+.professional-profile-container .btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.professional-profile-container .btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* ✅ STATS SECTION - CLEAN DESIGN */
+.professional-profile-container .profile-stats-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+  max-width: 500px;
+}
+
+.professional-profile-container .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.professional-profile-container .stat-item {
+  text-align: center;
+  padding: 16px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  transition: var(--transition);
+}
+
+.professional-profile-container .stat-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.professional-profile-container .stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+  margin-bottom: 6px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.professional-profile-container .stat-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+/* ============================================
+   CONTENT SECTIONS - CLEAN CARDS
+   ============================================ */
+.professional-profile-container .profile-professional-section,
+.professional-profile-container .profile-contact-section,
+.professional-profile-container .profile-portfolio-section,
+.professional-profile-container .profile-applications-section {
+  background: var(--bg-primary);
+  margin: 24px 16px;
+  padding: 24px 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.professional-profile-container .profile-professional-section:hover,
+.professional-profile-container .profile-contact-section:hover,
+.professional-profile-container .profile-portfolio-section:hover,
+.professional-profile-container .profile-applications-section:hover {
+  border-color: var(--primary-blue-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.professional-profile-container .section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.professional-profile-container .section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.professional-profile-container .section-title svg {
+  color: var(--primary-blue);
+  flex-shrink: 0;
+}
+
+.professional-profile-container .section-title h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.professional-profile-container .section-edit-btn {
+  padding: 8px 14px;
+  background: var(--primary-blue-light);
+  color: var(--primary-blue);
+  border: 1px solid var(--primary-blue);
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  align-self: flex-start;
+}
+
+.professional-profile-container .section-edit-btn:hover:not(:disabled) {
+  background: var(--primary-blue);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   PROFESSIONAL INFO GRID
+   ============================================ */
+.professional-profile-container .professional-info-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+.professional-profile-container .info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  transition: var(--transition);
+}
+
+.professional-profile-container .info-item:hover {
+  border-color: var(--primary-blue-light);
+  background: var(--bg-light-blue);
+  transform: translateY(-1px);
+}
+
+.professional-profile-container .info-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.professional-profile-container .info-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ============================================
+   CONTACT INFORMATION
+   ============================================ */
+.professional-profile-container .contact-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.professional-profile-container .contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  transition: var(--transition);
+}
+
+.professional-profile-container .contact-item:hover {
+  border-color: var(--primary-blue-light);
+  background: var(--bg-light-blue);
+  transform: translateY(-1px);
+}
+
+.professional-profile-container .contact-icon {
+  flex-shrink: 0;
+  color: var(--primary-blue);
+  margin-top: 2px;
+}
+
+.professional-profile-container .contact-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.professional-profile-container .contact-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.professional-profile-container .contact-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+  word-break: break-word;
+}
+
+/* ============================================
+   PORTFOLIO & BUSINESS GALLERY
+   ============================================ */
+.professional-profile-container .portfolio-content {
+  margin-top: 8px;
+}
+
+.professional-profile-container .portfolio-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.professional-profile-container .portfolio-item {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  transition: var(--transition);
+  position: relative;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.professional-profile-container .portfolio-item:hover {
+  border-color: var(--primary-blue-light);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.professional-profile-container .portfolio-image {
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-tertiary);
+}
+
+.professional-profile-container .portfolio-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition);
+}
+
+.professional-profile-container .portfolio-item:hover .portfolio-image img {
+  transform: scale(1.05);
+}
+
+.professional-profile-container .portfolio-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.professional-profile-container .portfolio-item:hover .portfolio-actions {
+  opacity: 1;
+}
+
+.professional-profile-container .action-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  backdrop-filter: blur(10px);
+}
+
+.professional-profile-container .action-btn:hover:not(:disabled) {
+  transform: scale(1.1) translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.professional-profile-container .action-btn.view {
+  color: var(--primary-blue);
+  border-color: var(--primary-blue-light);
+}
+
+.professional-profile-container .action-btn.view:hover:not(:disabled) {
+  background: var(--primary-blue);
+  color: white;
+  border-color: var(--primary-blue);
+}
+
+.professional-profile-container .action-btn.delete {
+  color: var(--error-red);
+  border-color: #fecaca;
+}
+
+.professional-profile-container .action-btn.delete:hover:not(:disabled) {
+  background: var(--error-red);
+  color: white;
+  border-color: var(--error-red);
+}
+
+.professional-profile-container .portfolio-info {
+  padding: 16px;
+}
+
+.professional-profile-container .portfolio-info h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.professional-profile-container .portfolio-info p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   APPLICATIONS SECTION (JOB POSTS)
+   ============================================ */
+.professional-profile-container .applications-content {
+  margin-top: 8px;
+}
+
+.professional-profile-container .applications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.professional-profile-container .application-item {
+  padding: 20px 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.professional-profile-container .application-item:hover {
+  border-color: var(--primary-blue-light);
+  background: var(--bg-light-blue);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.professional-profile-container .application-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.professional-profile-container .job-info h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  color: var(--text-primary);
+}
+
+.professional-profile-container .company-name {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 3px 0;
+}
+
+.professional-profile-container .status-badge {
+  padding: 6px 12px;
+  border-radius: var(--radius-xl);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  align-self: flex-start;
+  border: 1px solid;
+  flex-shrink: 0;
+}
+
+.professional-profile-container .status-badge.status-pending {
+  background: var(--warning-light);
+  color: var(--warning-amber);
+  border-color: var(--warning-amber);
+}
+
+.professional-profile-container .status-badge.status-accepted {
+  background: var(--success-light);
+  color: var(--success-green);
+  border-color: var(--success-green);
+}
+
+.professional-profile-container .status-badge.status-rejected {
+  background: var(--error-light);
+  color: var(--error-red);
+  border-color: var(--error-red);
+}
+
+.professional-profile-container .application-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+.professional-profile-container .empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--border-medium);
+}
+
+.professional-profile-container .empty-state svg {
+  margin-bottom: 16px;
+  opacity: 0.6;
+  color: var(--primary-blue);
+}
+
+.professional-profile-container .empty-state h4 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+}
+
+.professional-profile-container .empty-state p {
+  font-size: 14px;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   ✅ FIXED MODAL COMPONENTS
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal {
+  display: block;
+  position: relative;
+  z-index: 10001;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: modalSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--border-light);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 2px solid var(--bg-secondary);
+  background: var(--bg-secondary);
+}
+
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.modal-close:hover {
+  background: var(--error-red);
+  color: white;
+  border-color: var(--error-red);
+  transform: scale(1.1) rotate(90deg);
+}
+
+.modal-content {
+  padding: 20px;
+  max-height: calc(90vh - 120px);
+  overflow-y: auto;
+}
+
+/* ============================================
+   ENHANCED FORM COMPONENTS
+   ============================================ */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-field.form-field-full {
+  grid-column: 1 / -1;
+}
+
+.form-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  padding: 12px 14px;
+  border: 2px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  transition: var(--transition);
+  background: var(--bg-primary);
+  font-family: inherit;
+  width: 100%;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+  background: var(--bg-light-blue);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 2px solid var(--bg-secondary);
+}
+
+/* FILE UPLOAD */
+.file-upload {
+  border: 3px dashed var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: 32px 20px;
+  text-align: center;
+  transition: var(--transition);
+  background: var(--bg-secondary);
+}
+
+.file-upload:hover {
+  border-color: var(--primary-blue-light);
+  background: var(--bg-light-blue);
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.file-label span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.file-label small {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.file-selected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: var(--success-light);
+  border-radius: var(--radius-md);
+  color: var(--success-green);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--success-green);
+}
+
+/* TEXT BUTTON */
+.btn-text {
+  background: transparent;
+  color: var(--primary-blue);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  width: auto;
+  border: 2px solid transparent;
+  transition: var(--transition);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-text:hover:not(:disabled) {
+  background: var(--primary-blue-light);
+  border-color: var(--primary-blue-light);
+  color: var(--primary-blue-hover);
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   ANIMATIONS & KEYFRAMES
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   ✅ ENHANCED RESPONSIVE DESIGN - MOBILE FIRST
+   ============================================ */
+
+/* Large Mobile (480px+) */
+@media (min-width: 480px) {
+  .professional-profile-container .profile-action-buttons {
+    flex-direction: row;
+    max-width: none;
+    gap: 16px;
+  }
+  
+  .professional-profile-container .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .professional-profile-container .professional-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .professional-profile-container .contact-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .professional-profile-container .portfolio-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .professional-profile-container .application-meta {
+    flex-direction: row;
+    gap: 16px;
+  }
+  
+  .professional-profile-container .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Tablet (768px+) */
+@media (min-width: 768px) {
+  .professional-profile-container .profile-header-section {
+    padding: 40px 32px;
+  }
+  
+  .professional-profile-container .profile-header-content {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 40px;
+    align-items: start;
+    text-align: left;
+  }
+  
+  .professional-profile-container .profile-name {
+    font-size: 32px;
+  }
+  
+  .professional-profile-container .profile-company {
+    font-size: 22px;
+  }
+  
+  .professional-profile-container .avatar-image,
+  .professional-profile-container .avatar-placeholder {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .professional-profile-container .professional-info-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .professional-profile-container .contact-info-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .professional-profile-container .section-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .professional-profile-container .profile-action-buttons {
+    align-self: flex-start;
+    margin-top: 0;
+  }
+  
+  .professional-profile-container .profile-meta-info {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  
+  .professional-profile-container .profile-info-section {
+    align-items: flex-start;
+  }
+  
+  .professional-profile-container .profile-name-section {
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+  .professional-profile-container .avatar-image,
+  .professional-profile-container .avatar-placeholder {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .professional-profile-container .profile-name {
+    font-size: 36px;
+  }
+  
+  .professional-profile-container .profile-professional-section,
+  .professional-profile-container .profile-contact-section,
+  .professional-profile-container .profile-portfolio-section,
+  .professional-profile-container .profile-applications-section {
+    margin: 32px auto;
+    max-width: 1200px;
+    padding: 32px;
+  }
+  
+  .professional-profile-container .portfolio-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  
+  .professional-profile-container .professional-info-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Large Desktop (1440px+) */
+@media (min-width: 1440px) {
+  .professional-profile-container .profile-professional-section,
+  .professional-profile-container .profile-contact-section,
+  .professional-profile-container .profile-portfolio-section,
+  .professional-profile-container .profile-applications-section {
+    max-width: 1400px;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY & PERFORMANCE
+   ============================================ */
+.professional-profile-container .btn:focus-visible,
+.professional-profile-container .section-edit-btn:focus-visible,
+.professional-profile-container .action-btn:focus-visible {
+  outline: 3px solid var(--primary-blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.2);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .professional-profile-container {
+    --border-light: #000000;
+    --border-medium: #000000;
+    --text-secondary: #000000;
+    --bg-secondary: #ffffff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .professional-profile-container * {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* DISABLED STATES */
+.professional-profile-container .btn:disabled,
+.professional-profile-container .section-edit-btn:disabled,
+.professional-profile-container .avatar-edit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

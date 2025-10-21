@@ -1,0 +1,18 @@
+.featured-section {
+  background-color: #fff;
+}
+
+.freelancer-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.freelancer-card:hover {
+  transform: translateY(-5px);
+}
+
+.freelancer-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 2px solid #eee;
+}

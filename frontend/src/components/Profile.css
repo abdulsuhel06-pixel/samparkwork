@@ -1,0 +1,1827 @@
+/* ============================================
+   🎨 PROFESSIONAL PROFILE.CSS - WITH LIGHTBOX
+   ============================================
+   Clean • Simple • Professional • Mobile-First
+   ============================================ */
+
+/* ROOT VARIABLES - CLEAN THEME */
+:root {
+  --primary-blue: #1e40af;
+  --primary-blue-hover: #1d4ed8;
+  --primary-blue-light: #eff6ff;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-light: #9ca3af;
+  --border-light: #e5e7eb;
+  --border-medium: #d1d5db;
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-light-blue: #f0f9ff;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.15);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --transition: all 0.2s ease;
+  --success-green: #059669;
+  --success-light: #d1fae5;
+  --warning-amber: #d97706;
+  --warning-light: #fef3c7;
+  --error-red: #dc2626;
+  --error-light: #fee2e2;
+}
+
+/* ============================================
+   MAIN CONTAINER & RESET
+   ============================================ */
+.professional-profile-container {
+  min-height: 100vh !important;
+  background: var(--bg-secondary) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  color: var(--text-primary) !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  position: relative !important;
+  overflow-x: hidden !important;
+}
+
+.professional-profile-container * {
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+}
+
+/* ============================================
+   LOADING & ERROR STATES
+   ============================================ */
+.professional-profile-container .profile-loading,
+.professional-profile-container .profile-error {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 60vh !important;
+  text-align: center !important;
+  gap: 20px !important;
+  padding: 40px 20px !important;
+  background: var(--bg-primary) !important;
+  margin: 20px !important;
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--border-light) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.professional-profile-container .profile-loading h3,
+.professional-profile-container .profile-error h3 {
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  color: var(--text-primary) !important;
+}
+
+.professional-profile-container .profile-loading p,
+.professional-profile-container .profile-error p {
+  color: var(--text-secondary) !important;
+  margin: 0 !important;
+  font-size: 16px !important;
+  max-width: 400px !important;
+  line-height: 1.6 !important;
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+.professional-profile-container .profile-header-section {
+  background: var(--primary-blue) !important;
+  color: white !important;
+  padding: 40px 20px !important;
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  min-height: auto !important;
+}
+
+.professional-profile-container .profile-header-content {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 24px !important;
+  align-items: center !important;
+  text-align: center !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* ============================================
+   AVATAR SECTION
+   ============================================ */
+.professional-profile-container .profile-avatar-section {
+  display: flex !important;
+  justify-content: center !important;
+  margin: 0 0 20px 0 !important;
+  padding: 0 20px !important;
+}
+
+.professional-profile-container .avatar-wrapper {
+  position: relative !important;
+  display: inline-block !important;
+  margin: 0 !important;
+  padding: 4px !important;
+}
+
+.professional-profile-container .avatar-image {
+  width: 100px !important;
+  height: 100px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 4px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: var(--shadow-lg) !important;
+  transition: var(--transition) !important;
+  display: block !important;
+}
+
+.professional-profile-container .avatar-image:hover {
+  transform: scale(1.05) !important;
+  border-color: white !important;
+}
+
+.professional-profile-container .avatar-placeholder {
+  width: 100px !important;
+  height: 100px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 4px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: var(--shadow-lg) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.professional-profile-container .avatar-edit-btn {
+  position: absolute !important;
+  bottom: 0px !important;
+  right: 0px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: white !important;
+  color: var(--primary-blue) !important;
+  border: 2px solid white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: var(--transition) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.professional-profile-container .avatar-edit-btn:hover:not(:disabled) {
+  background: var(--bg-secondary) !important;
+  transform: scale(1.1) !important;
+}
+
+/* ============================================
+   PROFILE INFO SECTION
+   ============================================ */
+.professional-profile-container .profile-info-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+  width: 100% !important;
+  color: white !important;
+  align-items: center !important;
+}
+
+.professional-profile-container .profile-name-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  position: relative !important;
+  align-items: center !important;
+}
+
+.professional-profile-container .profile-name {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  margin: 0 !important;
+  color: white !important;
+  line-height: 1.2 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.professional-profile-container .profile-title {
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+.professional-profile-container .profile-meta-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  align-items: center !important;
+  margin-top: 8px !important;
+}
+
+.professional-profile-container .meta-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 14px !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  padding: 6px 12px !important;
+  border-radius: var(--radius-xl) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.professional-profile-container .profile-bio-section {
+  margin-top: 12px !important;
+}
+
+.professional-profile-container .profile-bio {
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin: 0 !important;
+  text-align: center !important;
+  max-width: 500px !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+.professional-profile-container .profile-action-buttons {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  width: 100% !important;
+  margin-top: 24px !important;
+  max-width: 400px !important;
+}
+
+.professional-profile-container .btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 12px 24px !important;
+  border-radius: var(--radius-lg) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  transition: var(--transition) !important;
+  cursor: pointer !important;
+  border: none !important;
+  line-height: 1 !important;
+  min-height: 44px !important;
+  font-family: inherit !important;
+  width: 100% !important;
+}
+
+.professional-profile-container .btn-primary {
+  background: white !important;
+  color: var(--primary-blue) !important;
+  border: 2px solid white !important;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2) !important;
+}
+
+.professional-profile-container .btn-primary:hover:not(:disabled) {
+  background: var(--bg-secondary) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3) !important;
+}
+
+.professional-profile-container .btn-secondary {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.professional-profile-container .btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ============================================
+   STATS SECTION
+   ============================================ */
+.professional-profile-container .profile-stats-section {
+  margin-top: 24px !important;
+  padding-top: 24px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+  width: 100% !important;
+  max-width: 500px !important;
+}
+
+.professional-profile-container .stats-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 16px !important;
+}
+
+.professional-profile-container .stat-item {
+  text-align: center !important;
+  padding: 16px 12px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+  transition: var(--transition) !important;
+}
+
+.professional-profile-container .stat-item:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-2px) !important;
+}
+
+.professional-profile-container .stat-value {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: white !important;
+  line-height: 1 !important;
+  margin-bottom: 6px !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.professional-profile-container .stat-label {
+  font-size: 11px !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-weight: 500 !important;
+}
+
+/* ============================================
+   CONTENT SECTIONS
+   ============================================ */
+.professional-profile-container .profile-basic-section,
+.professional-profile-container .profile-contact-section,
+.professional-profile-container .profile-skills-section,
+.professional-profile-container .profile-education-section,
+.professional-profile-container .profile-experience-section,
+.professional-profile-container .profile-portfolio-section,
+.professional-profile-container .profile-certificates-section,
+.professional-profile-container .profile-applications-section {
+  background: var(--bg-primary) !important;
+  margin: 24px 16px !important;
+  padding: 24px 20px !important;
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--border-light) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: var(--transition) !important;
+}
+
+.professional-profile-container .profile-basic-section:hover,
+.professional-profile-container .profile-contact-section:hover,
+.professional-profile-container .profile-skills-section:hover,
+.professional-profile-container .profile-education-section:hover,
+.professional-profile-container .profile-experience-section:hover,
+.professional-profile-container .profile-portfolio-section:hover,
+.professional-profile-container .profile-certificates-section:hover,
+.professional-profile-container .profile-applications-section:hover {
+  border-color: var(--primary-blue-light) !important;
+  box-shadow: var(--shadow-md) !important;
+  transform: translateY(-2px) !important;
+}
+
+.professional-profile-container .section-header {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-bottom: 20px !important;
+  padding-bottom: 16px !important;
+  border-bottom: 2px solid var(--border-light) !important;
+}
+
+.professional-profile-container .section-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.professional-profile-container .section-title svg {
+  color: var(--primary-blue) !important;
+  flex-shrink: 0 !important;
+}
+
+.professional-profile-container .section-title h3 {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  color: var(--text-primary) !important;
+}
+
+.professional-profile-container .section-edit-btn {
+  padding: 8px 14px !important;
+  background: var(--primary-blue-light) !important;
+  color: var(--primary-blue) !important;
+  border: 1px solid var(--primary-blue) !important;
+  border-radius: var(--radius-lg) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+  transition: var(--transition) !important;
+  align-self: flex-start !important;
+}
+
+.professional-profile-container .section-edit-btn:hover:not(:disabled) {
+  background: var(--primary-blue) !important;
+  color: white !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* ============================================
+   BASIC INFO GRID
+   ============================================ */
+.professional-profile-container .basic-info-grid {
+  display: grid !important;
+  gap: 16px !important;
+  grid-template-columns: 1fr !important;
+}
+
+.professional-profile-container .info-item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 16px !important;
+  background: var(--bg-secondary) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-light) !important;
+  transition: var(--transition) !important;
+}
+
+.professional-profile-container .info-item:hover {
+  border-color: var(--primary-blue-light) !important;
+  background: var(--bg-light-blue) !important;
+  transform: translateY(-1px) !important;
+}
+
+.professional-profile-container .info-label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.professional-profile-container .info-value {
+  font-size: 14px !important;
+  color: var(--text-primary) !important;
+  font-weight: 500 !important;
+}
+
+/* ============================================
+   CONTACT INFORMATION
+   ============================================ */
+.professional-profile-container .contact-info-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.professional-profile-container .contact-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  background: var(--bg-secondary) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-light) !important;
+  transition: var(--transition) !important;
+}
+
+.professional-profile-container .contact-item:hover {
+  border-color: var(--primary-blue-light) !important;
+  background: var(--bg-light-blue) !important;
+  transform: translateY(-1px) !important;
+}
+
+.professional-profile-container .contact-icon {
+  flex-shrink: 0 !important;
+  color: var(--primary-blue) !important;
+  margin-top: 2px !important;
+}
+
+.professional-profile-container .contact-details {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+
+.professional-profile-container .contact-label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.professional-profile-container .contact-value {
+  font-size: 14px !important;
+  color: var(--text-primary) !important;
+  font-weight: 500 !important;
+  word-break: break-word !important;
+}
+
+.professional-profile-container .contact-link {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: var(--primary-blue) !important;
+  text-decoration: none !important;
+  font-weight: 500 !important;
+  transition: var(--transition) !important;
+  word-break: break-word !important;
+}
+
+.professional-profile-container .contact-link:hover {
+  color: var(--primary-blue-hover) !important;
+  text-decoration: underline !important;
+}
+
+/* ============================================
+   AVAILABILITY BADGE
+   ============================================ */
+.professional-profile-container .availability-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  border-radius: var(--radius-xl) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.professional-profile-container .availability-badge.available {
+  background: var(--success-light) !important;
+  color: var(--success-green) !important;
+  border: 1px solid var(--success-green) !important;
+}
+
+.professional-profile-container .availability-badge.available::before {
+  content: '●' !important;
+  color: var(--success-green) !important;
+  animation: pulse 2s ease-in-out infinite !important;
+}
+
+/* ============================================
+   SKILLS SECTION
+   ============================================ */
+.professional-profile-container .skills-content {
+  margin-top: 8px !important;
+}
+
+.professional-profile-container .skills-grid {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+.professional-profile-container .skill-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 8px 14px !important;
+  background: var(--bg-light-blue) !important;
+  color: var(--primary-blue) !important;
+  border-radius: var(--radius-xl) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border: 1px solid var(--primary-blue-light) !important;
+  transition: var(--transition) !important;
+}
+
+.professional-profile-container .skill-tag:hover {
+  background: var(--primary-blue) !important;
+  color: white !important;
+  border-color: var(--primary-blue) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* ============================================
+   PORTFOLIO & CERTIFICATES
+   ============================================ */
+.professional-profile-container .portfolio-content,
+.professional-profile-container .certificates-content {
+  margin-top: 8px !important;
+}
+
+.professional-profile-container .portfolio-grid,
+.professional-profile-container .certificates-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 20px !important;
+}
+
+.professional-profile-container .portfolio-item,
+.professional-profile-container .certificate-item {
+  background: var(--bg-secondary) !important;
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden !important;
+  border: 1px solid var(--border-light) !important;
+  transition: var(--transition) !important;
+  position: relative !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.professional-profile-container .portfolio-item:hover,
+.professional-profile-container .certificate-item:hover {
+  border-color: var(--primary-blue-light) !important;
+  transform: translateY(-3px) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.professional-profile-container .portfolio-image,
+.professional-profile-container .certificate-image {
+  aspect-ratio: 16/9 !important;
+  overflow: hidden !important;
+  position: relative !important;
+  background: var(--bg-tertiary) !important;
+}
+
+.professional-profile-container .portfolio-img,
+.professional-profile-container .certificate-img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: var(--transition) !important;
+}
+
+.professional-profile-container .portfolio-item:hover .portfolio-img,
+.professional-profile-container .certificate-item:hover .certificate-img {
+  transform: scale(1.05) !important;
+}
+
+.professional-profile-container .portfolio-placeholder,
+.professional-profile-container .certificate-placeholder {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  color: var(--text-light) !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+}
+
+.professional-profile-container .portfolio-actions,
+.professional-profile-container .certificate-actions {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  display: flex !important;
+  gap: 6px !important;
+  opacity: 0 !important;
+  transition: var(--transition) !important;
+}
+
+.professional-profile-container .portfolio-item:hover .portfolio-actions,
+.professional-profile-container .certificate-item:hover .certificate-actions {
+  opacity: 1 !important;
+}
+
+.professional-profile-container .portfolio-info,
+.professional-profile-container .certificate-info {
+  padding: 16px !important;
+}
+
+.professional-profile-container .portfolio-info h4,
+.professional-profile-container .certificate-info h4 {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin: 0 0 8px 0 !important;
+  color: var(--text-primary) !important;
+  line-height: 1.3 !important;
+}
+
+.professional-profile-container .portfolio-info p {
+  font-size: 13px !important;
+  color: var(--text-secondary) !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+.professional-profile-container .certificate-issuer {
+  font-size: 13px !important;
+  color: var(--text-secondary) !important;
+  margin: 0 0 6px 0 !important;
+}
+
+.professional-profile-container .certificate-year {
+  font-size: 11px !important;
+  color: var(--text-light) !important;
+  background: var(--bg-tertiary) !important;
+  padding: 3px 6px !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 500 !important;
+}
+
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
+.professional-profile-container .action-btn {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-medium) !important;
+  box-shadow: var(--shadow-sm) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: var(--transition) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.professional-profile-container .action-btn:hover:not(:disabled) {
+  transform: scale(1.1) translateY(-1px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.professional-profile-container .action-btn.view {
+  color: var(--primary-blue) !important;
+  border-color: var(--primary-blue-light) !important;
+}
+
+.professional-profile-container .action-btn.view:hover:not(:disabled) {
+  background: var(--primary-blue) !important;
+  color: white !important;
+  border-color: var(--primary-blue) !important;
+}
+
+.professional-profile-container .action-btn.delete {
+  color: var(--error-red) !important;
+  border-color: var(--error-light) !important;
+}
+
+.professional-profile-container .action-btn.delete:hover:not(:disabled) {
+  background: var(--error-red) !important;
+  color: white !important;
+  border-color: var(--error-red) !important;
+}
+
+.professional-profile-container .action-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* ============================================
+   ✅ NEW: LIGHTBOX STYLES - SIMPLE & CLEAN
+   ============================================ */
+.lightbox-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.95) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10000 !important;
+  animation: fadeIn 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+.lightbox-modal {
+  position: relative !important;
+  max-width: 95vw !important;
+  max-height: 95vh !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: var(--radius-xl) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: var(--shadow-xl) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  animation: lightboxSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: default !important;
+}
+
+.lightbox-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  padding: 20px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.lightbox-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+  margin-right: 16px !important;
+}
+
+.lightbox-info h3 {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: white !important;
+  margin: 0 0 6px 0 !important;
+  line-height: 1.3 !important;
+}
+
+.lightbox-info p {
+  font-size: 14px !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.lightbox-actions {
+  display: flex !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+.lightbox-btn {
+  width: 40px !important;
+  height: 40px !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: var(--transition) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.lightbox-btn:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.05) !important;
+}
+
+.lightbox-btn.close-btn:hover {
+  background: var(--error-red) !important;
+  border-color: var(--error-red) !important;
+  color: white !important;
+}
+
+.lightbox-btn.download-btn:hover {
+  background: var(--primary-blue) !important;
+  border-color: var(--primary-blue) !important;
+  color: white !important;
+}
+
+.lightbox-content {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+  min-height: 0 !important;
+  position: relative !important;
+}
+
+.lightbox-image {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-xl) !important;
+  transition: var(--transition) !important;
+}
+
+/* ============================================
+   EDUCATION & EXPERIENCE LISTS
+   ============================================ */
+.professional-profile-container .education-list,
+.professional-profile-container .experience-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.professional-profile-container .education-item,
+.professional-profile-container .experience-item {
+  display: flex !important;
+  gap: 16px !important;
+  padding: 20px !important;
+  background: var(--bg-secondary) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-light) !important;
+  transition: var(--transition) !important;
+  position: relative !important;
+}
+
+.professional-profile-container .education-item:hover,
+.professional-profile-container .experience-item:hover {
+  border-color: var(--primary-blue-light) !important;
+  background: var(--bg-light-blue) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.professional-profile-container .education-icon,
+.professional-profile-container .experience-icon {
+  flex-shrink: 0 !important;
+  width: 40px !important;
+  height: 40px !important;
+  background: var(--primary-blue-light) !important;
+  color: var(--primary-blue) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-top: 4px !important;
+}
+
+.professional-profile-container .education-details,
+.professional-profile-container .experience-details {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.professional-profile-container .education-details h4,
+.professional-profile-container .experience-details h4 {
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  margin: 0 0 8px 0 !important;
+  color: var(--text-primary) !important;
+  line-height: 1.3 !important;
+}
+
+.professional-profile-container .education-institution,
+.professional-profile-container .experience-company {
+  font-size: 14px !important;
+  color: var(--text-secondary) !important;
+  margin: 0 0 6px 0 !important;
+  font-weight: 500 !important;
+}
+
+.professional-profile-container .education-year,
+.professional-profile-container .experience-period,
+.professional-profile-container .experience-type {
+  display: inline-block !important;
+  font-size: 12px !important;
+  background: var(--bg-tertiary) !important;
+  color: var(--text-light) !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  margin: 0 6px 6px 0 !important;
+  font-weight: 500 !important;
+}
+
+.professional-profile-container .education-field,
+.professional-profile-container .education-grade,
+.professional-profile-container .experience-location,
+.professional-profile-container .experience-description {
+  font-size: 13px !important;
+  color: var(--text-secondary) !important;
+  margin: 6px 0 0 0 !important;
+  line-height: 1.5 !important;
+}
+
+.professional-profile-container .experience-skills {
+  margin-top: 12px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+
+.professional-profile-container .skill-chip {
+  display: inline-block !important;
+  background: var(--bg-light-blue) !important;
+  color: var(--primary-blue) !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-xl) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  border: 1px solid var(--primary-blue-light) !important;
+}
+
+.professional-profile-container .skill-chip.small {
+  font-size: 10px !important;
+  padding: 3px 6px !important;
+}
+
+.professional-profile-container .item-actions {
+  position: absolute !important;
+  top: 16px !important;
+  right: 16px !important;
+  display: flex !important;
+  gap: 8px !important;
+  opacity: 0 !important;
+  transition: var(--transition) !important;
+}
+
+.professional-profile-container .education-item:hover .item-actions,
+.professional-profile-container .experience-item:hover .item-actions {
+  opacity: 1 !important;
+}
+
+.professional-profile-container .item-actions .action-btn {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.professional-profile-container .action-btn.edit {
+  color: var(--primary-blue) !important;
+  border-color: var(--primary-blue-light) !important;
+}
+
+.professional-profile-container .action-btn.edit:hover:not(:disabled) {
+  background: var(--primary-blue) !important;
+  color: white !important;
+  border-color: var(--primary-blue) !important;
+}
+
+/* ============================================
+   APPLICATIONS SECTION
+   ============================================ */
+.professional-profile-container .applications-content {
+  margin-top: 8px !important;
+}
+
+.professional-profile-container .applications-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.professional-profile-container .application-item {
+  background: var(--bg-secondary) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-light) !important;
+  padding: 20px !important;
+  transition: var(--transition) !important;
+  cursor: pointer !important;
+}
+
+.professional-profile-container .application-item:hover {
+  border-color: var(--primary-blue-light) !important;
+  background: var(--bg-light-blue) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.professional-profile-container .application-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: 12px !important;
+  gap: 16px !important;
+}
+
+.professional-profile-container .job-info h4 {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  margin: 0 0 4px 0 !important;
+  color: var(--text-primary) !important;
+  line-height: 1.3 !important;
+}
+
+.professional-profile-container .company-name {
+  font-size: 14px !important;
+  color: var(--text-secondary) !important;
+  margin: 0 0 4px 0 !important;
+  font-weight: 500 !important;
+}
+
+.professional-profile-container .job-category {
+  font-size: 12px !important;
+  color: var(--text-light) !important;
+  margin: 0 !important;
+}
+
+.professional-profile-container .status-badge {
+  padding: 4px 12px !important;
+  border-radius: var(--radius-xl) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.professional-profile-container .status-pending {
+  background: var(--warning-light) !important;
+  color: var(--warning-amber) !important;
+  border: 1px solid var(--warning-amber) !important;
+}
+
+.professional-profile-container .status-accepted {
+  background: var(--success-light) !important;
+  color: var(--success-green) !important;
+  border: 1px solid var(--success-green) !important;
+}
+
+.professional-profile-container .status-rejected {
+  background: var(--error-light) !important;
+  color: var(--error-red) !important;
+  border: 1px solid var(--error-red) !important;
+}
+
+.professional-profile-container .application-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+.professional-profile-container .application-meta span {
+  font-size: 13px !important;
+  color: var(--text-secondary) !important;
+}
+
+.professional-profile-container .budget {
+  font-weight: 600 !important;
+  color: var(--success-green) !important;
+}
+
+.professional-profile-container .application-details {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  font-size: 12px !important;
+  color: var(--text-light) !important;
+}
+
+.professional-profile-container .btn-text {
+  background: none !important;
+  border: none !important;
+  color: var(--primary-blue) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: var(--transition) !important;
+  text-decoration: none !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.professional-profile-container .btn-text:hover {
+  background: var(--primary-blue-light) !important;
+  text-decoration: underline !important;
+}
+
+/* ============================================
+   EMPTY STATES
+   ============================================ */
+.professional-profile-container .empty-state {
+  text-align: center !important;
+  padding: 48px 20px !important;
+  color: var(--text-secondary) !important;
+  background: var(--bg-secondary) !important;
+  border-radius: var(--radius-lg) !important;
+  border: 2px dashed var(--border-medium) !important;
+}
+
+.professional-profile-container .empty-state svg {
+  margin-bottom: 16px !important;
+  opacity: 0.6 !important;
+  color: var(--primary-blue) !important;
+}
+
+.professional-profile-container .empty-state h4 {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  margin: 0 0 8px 0 !important;
+  color: var(--text-primary) !important;
+}
+
+.professional-profile-container .empty-state p {
+  font-size: 14px !important;
+  margin: 0 0 20px 0 !important;
+  line-height: 1.5 !important;
+}
+
+/* ============================================
+   MODAL COMPONENTS
+   ============================================ */
+.pp-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10000 !important;
+  padding: 16px !important;
+  backdrop-filter: blur(8px) !important;
+  animation: fadeIn 0.3s ease !important;
+}
+
+.pp-modal {
+  display: block !important;
+  position: relative !important;
+  z-index: 10001 !important;
+  width: 100% !important;
+  max-width: 600px !important;
+  max-height: 90vh !important;
+  overflow: hidden !important;
+  background: var(--bg-primary) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-lg) !important;
+  animation: modalSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1px solid var(--border-light) !important;
+}
+
+.pp-modal-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 20px !important;
+  border-bottom: 2px solid var(--bg-secondary) !important;
+  background: var(--bg-secondary) !important;
+}
+
+.pp-modal-header h3 {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  color: var(--text-primary) !important;
+}
+
+.pp-modal-close {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: var(--bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-medium) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: var(--transition) !important;
+}
+
+.pp-modal-close:hover {
+  background: var(--error-red) !important;
+  color: white !important;
+  border-color: var(--error-red) !important;
+  transform: scale(1.1) rotate(90deg) !important;
+}
+
+.pp-modal-content {
+  padding: 20px !important;
+  max-height: calc(90vh - 120px) !important;
+  overflow-y: auto !important;
+}
+
+/* ============================================
+   FORM COMPONENTS
+   ============================================ */
+.form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.form-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 16px !important;
+}
+
+.form-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.form-field.form-field-full {
+  grid-column: 1 / -1 !important;
+}
+
+.form-field.checkbox-field {
+  display: block !important;
+  margin: 16px 0 !important;
+}
+
+.form-field label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  margin-bottom: 4px !important;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  padding: 12px 14px !important;
+  border: 2px solid var(--border-medium) !important;
+  border-radius: var(--radius-md) !important;
+  font-size: 14px !important;
+  transition: var(--transition) !important;
+  background: var(--bg-primary) !important;
+  font-family: inherit !important;
+  width: 100% !important;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none !important;
+  border-color: var(--primary-blue) !important;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1) !important;
+  background: var(--bg-light-blue) !important;
+}
+
+.form-field input.error {
+  border-color: var(--error-red) !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.form-field .error-message {
+  font-size: 12px !important;
+  color: var(--error-red) !important;
+  margin-top: 4px !important;
+}
+
+.form-field small {
+  font-size: 12px !important;
+  color: var(--text-light) !important;
+  margin-top: 4px !important;
+}
+
+.checkbox-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  padding: 16px 20px !important;
+  background: var(--bg-secondary) !important;
+  border-radius: var(--radius-md) !important;
+  border: 2px solid var(--border-light) !important;
+  transition: var(--transition) !important;
+  margin: 0 !important;
+  user-select: none !important;
+  font-weight: 500 !important;
+}
+
+.checkbox-label:hover {
+  background: var(--bg-light-blue) !important;
+  border-color: var(--primary-blue-light) !important;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px !important;
+  height: 20px !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  cursor: pointer !important;
+  accent-color: var(--primary-blue) !important;
+  border-radius: 4px !important;
+}
+
+.checkbox-label .checkbox-text {
+  flex: 1 !important;
+  line-height: 1.4 !important;
+  color: var(--text-primary) !important;
+  font-weight: 500 !important;
+}
+
+.form-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+  padding-top: 16px !important;
+  border-top: 2px solid var(--bg-secondary) !important;
+}
+
+.btn-outline {
+  background: transparent !important;
+  color: var(--primary-blue) !important;
+  border: 2px solid var(--primary-blue-light) !important;
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  width: auto !important;
+  transition: var(--transition) !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--primary-blue) !important;
+  color: white !important;
+  border-color: var(--primary-blue) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ============================================
+   FILE UPLOAD
+   ============================================ */
+.file-upload {
+  margin: 16px 0 !important;
+}
+
+.file-input {
+  display: none !important;
+}
+
+.file-label {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 40px 20px !important;
+  border: 2px dashed var(--border-medium) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--bg-secondary) !important;
+  cursor: pointer !important;
+  transition: var(--transition) !important;
+  text-align: center !important;
+  gap: 8px !important;
+}
+
+.file-label:hover {
+  border-color: var(--primary-blue) !important;
+  background: var(--bg-light-blue) !important;
+}
+
+.file-label span {
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+}
+
+.file-label small {
+  color: var(--text-light) !important;
+  font-size: 12px !important;
+}
+
+.file-selected {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 12px !important;
+  background: var(--success-light) !important;
+  color: var(--success-green) !important;
+  border-radius: var(--radius-md) !important;
+  margin-top: 12px !important;
+  font-weight: 500 !important;
+}
+
+/* ============================================
+   SKILLS INPUT
+   ============================================ */
+.skills-input {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.add-skill {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: flex-end !important;
+}
+
+.add-skill input {
+  flex: 1 !important;
+}
+
+.current-skills {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  padding: 16px !important;
+  background: var(--bg-secondary) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-light) !important;
+  min-height: 60px !important;
+  position: relative !important;
+}
+
+.current-skills:empty::before {
+  content: 'No skills added yet. Add your first skill above.' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  color: var(--text-light) !important;
+  font-style: italic !important;
+  font-size: 12px !important;
+}
+
+.skill-chip {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  background: var(--bg-light-blue) !important;
+  color: var(--primary-blue) !important;
+  border-radius: var(--radius-xl) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border: 1px solid var(--primary-blue-light) !important;
+  transition: var(--transition) !important;
+}
+
+.skill-chip:hover {
+  background: var(--primary-blue) !important;
+  color: white !important;
+  border-color: var(--primary-blue) !important;
+}
+
+.skill-remove {
+  background: none !important;
+  border: none !important;
+  color: inherit !important;
+  cursor: pointer !important;
+  padding: 2px !important;
+  border-radius: 50% !important;
+  transition: var(--transition) !important;
+}
+
+.skill-remove:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.1) !important;
+}
+
+/* ============================================
+   ANIMATIONS & KEYFRAMES
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes lightboxSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite !important;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN - MOBILE FIRST
+   ============================================ */
+
+/* Large Mobile (480px+) */
+@media (min-width: 480px) {
+  .professional-profile-container .profile-action-buttons {
+    flex-direction: row !important;
+    max-width: none !important;
+    gap: 16px !important;
+  }
+  
+  .professional-profile-container .basic-info-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .professional-profile-container .contact-info-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+  
+  .professional-profile-container .portfolio-grid,
+  .professional-profile-container .certificates-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  
+  .professional-profile-container .form-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* Tablet (768px+) */
+@media (min-width: 768px) {
+  .professional-profile-container .profile-header-section {
+    padding: 50px 32px !important;
+  }
+  
+  .professional-profile-container .profile-header-content {
+    display: grid !important;
+    grid-template-columns: auto 1fr !important;
+    gap: 40px !important;
+    align-items: start !important;
+    text-align: left !important;
+  }
+  
+  .professional-profile-container .profile-name {
+    font-size: 32px !important;
+  }
+  
+  .professional-profile-container .profile-title {
+    font-size: 20px !important;
+  }
+  
+  .professional-profile-container .avatar-image,
+  .professional-profile-container .avatar-placeholder {
+    width: 120px !important;
+    height: 120px !important;
+  }
+  
+  .professional-profile-container .basic-info-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  
+  .professional-profile-container .contact-info-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  
+  .professional-profile-container .section-header {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  
+  .professional-profile-container .profile-action-buttons {
+    align-self: flex-start !important;
+    margin-top: 0 !important;
+  }
+  
+  .professional-profile-container .profile-meta-info {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+  }
+  
+  .professional-profile-container .profile-info-section {
+    align-items: flex-start !important;
+  }
+  
+  .professional-profile-container .profile-name-section {
+    align-items: flex-start !important;
+  }
+  
+  .professional-profile-container .profile-bio {
+    text-align: left !important;
+  }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+  .professional-profile-container .avatar-image,
+  .professional-profile-container .avatar-placeholder {
+    width: 140px !important;
+    height: 140px !important;
+  }
+  
+  .professional-profile-container .profile-name {
+    font-size: 36px !important;
+  }
+  
+  .professional-profile-container .profile-basic-section,
+  .professional-profile-container .profile-contact-section,
+  .professional-profile-container .profile-skills-section,
+  .professional-profile-container .profile-education-section,
+  .professional-profile-container .profile-experience-section,
+  .professional-profile-container .profile-portfolio-section,
+  .professional-profile-container .profile-certificates-section,
+  .professional-profile-container .profile-applications-section {
+    margin: 32px auto !important;
+    max-width: 1200px !important;
+    padding: 32px !important;
+  }
+  
+  .professional-profile-container .portfolio-grid,
+  .professional-profile-container .certificates-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+    gap: 24px !important;
+  }
+  
+  .professional-profile-container .basic-info-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+/* Large Desktop (1440px+) */
+@media (min-width: 1440px) {
+  .professional-profile-container .profile-basic-section,
+  .professional-profile-container .profile-contact-section,
+  .professional-profile-container .profile-skills-section,
+  .professional-profile-container .profile-education-section,
+  .professional-profile-container .profile-experience-section,
+  .professional-profile-container .profile-portfolio-section,
+  .professional-profile-container .profile-certificates-section,
+  .professional-profile-container .profile-applications-section {
+    max-width: 1400px !important;
+  }
+  
+  .professional-profile-container .portfolio-grid,
+  .professional-profile-container .certificates-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  }
+}
+
+/* ============================================
+   ACCESSIBILITY & PERFORMANCE
+   ============================================ */
+.professional-profile-container .btn:focus-visible,
+.professional-profile-container .section-edit-btn:focus-visible,
+.professional-profile-container .action-btn:focus-visible,
+.lightbox-btn:focus-visible {
+  outline: 3px solid var(--primary-blue) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.2) !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .professional-profile-container {
+    --border-light: #000000 !important;
+    --border-medium: #000000 !important;
+    --text-secondary: #000000 !important;
+    --bg-secondary: #ffffff !important;
+  }
+  
+  .lightbox-overlay {
+    background: rgba(0, 0, 0, 0.98) !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .professional-profile-container * {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .lightbox-overlay,
+  .lightbox-modal {
+    animation: none !important;
+  }
+}
+
+/* Performance optimizations */
+.professional-profile-container .portfolio-item,
+.professional-profile-container .certificate-item {
+  will-change: transform !important;
+  backface-visibility: hidden !important;
+}
+
+.professional-profile-container .portfolio-img,
+.professional-profile-container .certificate-img,
+.lightbox-image {
+  will-change: transform !important;
+  backface-visibility: hidden !important;
+}
+
+/* ============================================
+   🎯 COMPLETE - ENHANCED PROFILE WITH CLIENT VIEWING
+   ============================================ */

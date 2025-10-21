@@ -1,0 +1,467 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { FaEye, FaEyeSlash, FaGoogle, FaArrowLeft } from 'react-icons/fa';
+import './Auth.css';
+import logo from '../assets/logo.png';
+
+const Signup = () => {
+  const [searchParams] = useSearchParams();
+  const initialRole = searchParams.get('role') || 'client';
+  
+  const [userRole, setUserRole] = useState(initialRole);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    agreeToTerms: false
+  });
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, feedback: '' });
+
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  // Update role if URL parameter changes
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    if (roleParam && ['client', 'professional'].includes(roleParam)) {
+      setUserRole(roleParam);
+    }
+  }, [searchParams]);
+
+  // ✅ NEW: Password strength checker
+  const checkPasswordStrength = (password) => {
+    if (!password) return { score: 0, feedback: '' };
+
+    let score = 0;
+    let feedback = [];
+
+    // Length check
+    if (password.length >= 8) score += 1;
+    else feedback.push('at least 8 characters');
+
+    // Uppercase check
+    if (/[A-Z]/.test(password)) score += 1;
+    else feedback.push('uppercase letter');
+
+    // Lowercase check
+    if (/[a-z]/.test(password)) score += 1;
+    else feedback.push('lowercase letter');
+
+    // Number check
+    if (/\d/.test(password)) score += 1;
+    else feedback.push('number');
+
+    // Special character check
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score += 1;
+    else feedback.push('special character');
+
+    const strengthLevels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+    const strengthLevel = Math.min(Math.floor(score), 4);
+    
+    return {
+      score,
+      level: strengthLevels[strengthLevel],
+      feedback: feedback.length > 0 ? `Add ${feedback.slice(0, 2).join(', ')}` : 'Strong password!'
+    };
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+    
+    setFormData((prev) => ({ ...prev, [name]: newValue }));
+    
+    // ✅ NEW: Real-time password strength checking
+    if (name === 'password') {
+      setPasswordStrength(checkPasswordStrength(value));
+    }
+    
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    if (message) setMessage('');
+  };
+
+  const handleRoleSelect = (role) => {
+    setUserRole(role);
+    // Update URL without navigation
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('role', role);
+    window.history.replaceState({}, '', `${window.location.pathname}?${newSearchParams}`);
+  };
+
+  // ✅ NEW: Toggle password visibility
+  const togglePasswordVisibility = (field) => {
+    if (field === 'password') {
+      setShowPassword(!showPassword);
+    } else {
+      setShowConfirmPassword(!showConfirmPassword);
+    }
+  };
+
+  // ✅ NEW: Google OAuth handler
+  const handleGoogleSignup = async () => {
+    setGoogleLoading(true);
+    setMessage('');
+    setErrors({});
+
+    try {
+      console.log("🔍 Initiating Google OAuth signup...");
+      
+      // For now, show a message that Google OAuth needs to be configured
+      setMessage("Google OAuth integration needs to be configured with your Google Client ID");
+      
+      // Actual implementation would be:
+      // const response = await window.google.accounts.oauth2.initTokenClient({
+      //   client_id: 'YOUR_GOOGLE_CLIENT_ID',
+      //   scope: 'email profile',
+      //   callback: handleGoogleSignupCallback
+      // });
+      
+    } catch (err) {
+      console.error("❌ Google signup error:", err);
+      setMessage("Google signup failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  // ✅ NEW: Enhanced validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Name validation
+    if (!formData.name.trim()) {
+      newErrors.name = 'Full name is required';
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.name.trim())) {
+      newErrors.name = 'Name should only contain letters and spaces';
+    }
+
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (passwordStrength.score < 2) {
+      newErrors.password = 'Password is too weak. Please choose a stronger password.';
+    }
+
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    // Terms validation
+    if (!formData.agreeToTerms) {
+      newErrors.agreeToTerms = 'You must agree to the Terms & Conditions';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const result = await register({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        role: userRole,
+      });
+
+      if (result.success) {
+        setMessage('Account created successfully! Redirecting...');
+        setFormData({ 
+          name: '', 
+          email: '', 
+          password: '', 
+          confirmPassword: '',
+          agreeToTerms: false 
+        });
+        
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 1500);
+      } else {
+        throw new Error(result.error || 'Registration failed');
+      }
+      
+    } catch (error) {
+      setMessage(error.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getRoleDisplayName = (role) => {
+    return role === 'professional' ? 'Freelancer' : 'Client';
+  };
+
+  const getRoleDescription = (role) => {
+    return role === 'professional' 
+      ? 'Looking for work opportunities' 
+      : 'Hiring for projects';
+  };
+
+  // ✅ NEW: Get password strength color
+  const getPasswordStrengthColor = (score) => {
+    const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+    return colors[Math.min(score, 4)] || colors[0];
+  };
+
+  return (
+    <div className="auth-container mobile-optimized">
+      <div className="auth-card">
+        {/* Mobile Back Button */}
+        <button 
+          className="mobile-back-btn"
+          onClick={() => navigate(-1)}
+          aria-label="Go back"
+        >
+          <FaArrowLeft />
+        </button>
+
+        <div className="auth-header">
+          <div className="logo-placeholder">
+            <img src={logo} alt="Sampark Connect" className="auth-logo" />
+          </div>
+          <h2>Create your account</h2>
+          <p>Join as a {getRoleDisplayName(userRole).toLowerCase()}</p>
+        </div>
+
+        {/* Role Display */}
+        <div className="selected-role-display">
+          <div className="selected-role-card">
+            <div className="selected-role-icon">
+              <i className={userRole === 'client' ? 'fas fa-user-tie' : 'fas fa-briefcase'}></i>
+            </div>
+            <div className="selected-role-info">
+              <span className="selected-role-title">
+                I'm a {getRoleDisplayName(userRole)}
+              </span>
+              <span className="selected-role-desc">
+                {getRoleDescription(userRole)}
+              </span>
+            </div>
+            <button 
+              className="change-role-btn"
+              onClick={() => handleRoleSelect(userRole === 'client' ? 'professional' : 'client')}
+              type="button"
+              disabled={loading || googleLoading}
+            >
+              Change
+            </button>
+          </div>
+        </div>
+
+        {message && (
+          <div className={`message ${message.includes('successfully') ? 'success' : 'error'}`}>
+            {message}
+          </div>
+        )}
+
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {/* Name Field */}
+          <div className="form-group">
+            <input
+              type="text"
+              className={`form-control ${errors.name ? 'error' : ''}`}
+              placeholder="Full Name"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              disabled={loading || googleLoading}
+              required
+              autoComplete="name"
+            />
+            {errors.name && <div className="field-error">{errors.name}</div>}
+          </div>
+
+          {/* Email Field */}
+          <div className="form-group">
+            <input
+              type="email"
+              className={`form-control ${errors.email ? 'error' : ''}`}
+              placeholder="Email Address"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              disabled={loading || googleLoading}
+              required
+              autoComplete="email"
+            />
+            {errors.email && <div className="field-error">{errors.email}</div>}
+          </div>
+
+          {/* ✅ NEW: Enhanced Password Field with Strength Indicator */}
+          <div className="form-group password-group">
+            <div className="password-input-wrapper">
+              <input
+                type={showPassword ? "text" : "password"}
+                className={`form-control password-input ${errors.password ? 'error' : ''}`}
+                placeholder="Password (min. 8 characters)"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                disabled={loading || googleLoading}
+                required
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => togglePasswordVisibility('password')}
+                disabled={loading || googleLoading}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            
+            {/* ✅ NEW: Password Strength Indicator */}
+            {formData.password && (
+              <div className="password-strength">
+                <div className="strength-bar">
+                  <div 
+                    className="strength-fill"
+                    style={{ 
+                      width: `${(passwordStrength.score / 5) * 100}%`,
+                      backgroundColor: getPasswordStrengthColor(passwordStrength.score)
+                    }}
+                  ></div>
+                </div>
+                <div className="strength-text" style={{ color: getPasswordStrengthColor(passwordStrength.score) }}>
+                  {passwordStrength.level} - {passwordStrength.feedback}
+                </div>
+              </div>
+            )}
+            
+            {errors.password && <div className="field-error">{errors.password}</div>}
+          </div>
+
+          {/* ✅ NEW: Enhanced Confirm Password Field */}
+          <div className="form-group password-group">
+            <div className="password-input-wrapper">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                className={`form-control password-input ${errors.confirmPassword ? 'error' : ''}`}
+                placeholder="Confirm Password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                disabled={loading || googleLoading}
+                required
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => togglePasswordVisibility('confirm')}
+                disabled={loading || googleLoading}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+            
+            {/* ✅ NEW: Password Match Indicator */}
+            {formData.confirmPassword && formData.password && (
+              <div className={`password-match ${formData.password === formData.confirmPassword ? 'match' : 'no-match'}`}>
+                {formData.password === formData.confirmPassword ? '✓ Passwords match' : '✗ Passwords do not match'}
+              </div>
+            )}
+            
+            {errors.confirmPassword && <div className="field-error">{errors.confirmPassword}</div>}
+          </div>
+
+          {/* ✅ NEW: Enhanced Terms Checkbox */}
+          <div className="form-group">
+            <div className="form-check">
+              <input 
+                type="checkbox" 
+                id="terms" 
+                name="agreeToTerms"
+                checked={formData.agreeToTerms}
+                onChange={handleInputChange}
+                required 
+                disabled={loading || googleLoading}
+                className="custom-checkbox"
+              />
+              <label htmlFor="terms" className="checkbox-label">
+                <span className="checkmark"></span>
+                I agree to the <Link to="/terms" target="_blank">Terms & Conditions</Link> and <Link to="/privacy" target="_blank">Privacy Policy</Link>
+              </label>
+            </div>
+            {errors.agreeToTerms && <div className="field-error">{errors.agreeToTerms}</div>}
+          </div>
+
+          <button type="submit" className="btn-auth primary" disabled={loading || googleLoading}>
+            {loading ? (
+              <>
+                <span className="spinner"></span>
+                Creating Account...
+              </>
+            ) : (
+              `Create ${getRoleDisplayName(userRole)} Account`
+            )}
+          </button>
+        </form>
+
+        <div className="auth-divider">
+          <span>Or sign up with</span>
+        </div>
+
+        {/* ✅ NEW: Enhanced Google OAuth button */}
+        <div className="social-auth">
+          <button
+            type="button"
+            className="google-auth-btn"
+            onClick={handleGoogleSignup}
+            disabled={loading || googleLoading}
+          >
+            {googleLoading ? (
+              <span className="spinner google-spinner"></span>
+            ) : (
+              <FaGoogle />
+            )}
+            <span>
+              {googleLoading ? "Creating account..." : "Continue with Google"}
+            </span>
+          </button>
+        </div>
+
+        <div className="auth-footer">
+          Already have an account? <Link to="/login">Log in</Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Signup;
