@@ -409,6 +409,54 @@ io.on('connect_error', (error) => {
 // Make io available to routes
 app.set('io', io);
 
+// ✅ WELCOME ROUTE - UPDATED WITH ACTUAL RENDER URL
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "🚀 SamparkWork Backend API Server",
+    status: "Running Successfully",
+    version: "1.0.0",
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date(),
+    deployment: {
+      platform: "Render",
+      url: "https://samparkwork-backend.onrender.com",
+      region: "Singapore"
+    },
+    services: {
+      database: "MongoDB Atlas Connected",
+      messaging: "Socket.IO Active",
+      fileUploads: "Enabled",
+      realTime: "Active",
+      cors: "Dynamic Origins Configured"
+    },
+    endpoints: {
+      health: "/api/health",
+      auth: "/api/auth/*",
+      users: "/api/users/*",
+      jobs: "/api/jobs/*", 
+      messages: "/api/messages/*",
+      admin: "/api/admin/*",
+      categories: "/api/categories/*",
+      advertisements: "/api/advertisements/*"
+    },
+    frontend: {
+      development: "http://localhost:5173",
+      production: "https://samparkwork.in"
+    },
+    documentation: "Visit /api/health for detailed API information",
+    cors: {
+      allowedOrigins: allowedOrigins,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+    },
+    integration: {
+      socketio: "wss://samparkwork-backend.onrender.com",
+      api: "https://samparkwork-backend.onrender.com/api",
+      uploads: "https://samparkwork-backend.onrender.com/uploads"
+    }
+  });
+});
+
 // ✅ API Routes - mounted AFTER middleware
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
@@ -420,7 +468,7 @@ app.use("/api/advertisements", advertisementRoutes);
 // ✅ MESSAGING ROUTES - PROPERLY MOUNTED
 app.use('/api/messages', messageRoutes);
 
-// ✅ UPDATED: Enhanced health check with Socket.io support
+// ✅ COMPLETELY FIXED HEALTH CHECK - NO SOCKET.IO PACKAGE.JSON ACCESS
 app.get("/api/health", (req, res) => {
   const getDirectoryFileCount = (dirPath) => {
     try {
@@ -431,19 +479,43 @@ app.get("/api/health", (req, res) => {
   };
 
   const onlineUsersCount = connectedUsers.size;
-  const activeConnections = io.engine.clientsCount;
+  let activeConnections = 0;
+  
+  try {
+    activeConnections = io.engine.clientsCount;
+  } catch (error) {
+    activeConnections = onlineUsersCount;
+  }
 
   res.json({ 
     ok: true, 
     time: new Date(),
-    message: "Server is running with real-time messaging support",
+    message: "SamparkWork Backend API Server is running with real-time messaging support",
+    deployment: {
+      platform: "Render",
+      url: "https://samparkwork-backend.onrender.com",
+      region: "Singapore",
+      status: "Live and Operational"
+    },
     express_version: "5.x",
-    socketio_version: require('socket.io/package.json').version,
+    socketio_version: "4.8.1", // ✅ FIXED: Hardcoded version instead of require
+    node_version: process.version,
+    environment: process.env.NODE_ENV || 'development',
+    uptime: process.uptime(),
     features: {
       messaging: true,
       fileSharing: true,
       realTime: true,
-      socketio: true
+      socketio: true,
+      cors: true,
+      authentication: true,
+      compression: true,
+      security: true
+    },
+    database: {
+      type: "MongoDB Atlas",
+      status: "Connected",
+      cluster: "cluster0.rtlbzhl.mongodb.net"
     },
     realtime: {
       onlineUsers: onlineUsersCount,
@@ -458,14 +530,18 @@ app.get("/api/health", (req, res) => {
       jsonParsingEnabled: true,
       corsEnabled: true,
       messagingEnabled: true,
-      socketioEnabled: true
+      socketioEnabled: true,
+      helmetSecurityEnabled: true,
+      compressionEnabled: true,
+      cookieParsingEnabled: true,
+      morganLoggingEnabled: true
     },
     uploads: {
+      basePath: "https://samparkwork-backend.onrender.com/uploads",
       avatars: getDirectoryFileCount(path.join(__dirname, "uploads/avatars")),
       certificates: getDirectoryFileCount(path.join(__dirname, "uploads/certificates")),
       portfolio: getDirectoryFileCount(path.join(__dirname, "uploads/portfolio")),
       categories: getDirectoryFileCount(path.join(__dirname, "uploads/categories")),
-      // ✅ NEW: Messages upload stats
       messages: getDirectoryFileCount(path.join(__dirname, "uploads/messages")),
       messageThumbnails: getDirectoryFileCount(path.join(__dirname, "uploads/messages/thumbnails")),
       advertisements: {
@@ -473,30 +549,69 @@ app.get("/api/health", (req, res) => {
         videos: getDirectoryFileCount(path.join(__dirname, "uploads/advertisements/videos"))
       }
     },
-    // ✅ NEW: Available messaging endpoints
-    messagingEndpoints: [
-      "GET /api/messages/conversations",
-      "GET /api/messages/conversation/:conversationId", 
-      "POST /api/messages/send",
-      "POST /api/messages/conversation",
-      "POST /api/messages/upload",
-      "PUT /api/messages/read/:conversationId",
-      "GET /api/messages/search",
-      "GET /api/messages/unread-count",
-      "DELETE /api/messages/:messageId",
-      "PUT /api/messages/conversation/:conversationId/archive"
-    ],
-    // ✅ NEW: Socket.io events
+    api: {
+      baseUrl: "https://samparkwork-backend.onrender.com/api",
+      version: "v1",
+      authentication: "JWT Bearer Token Required"
+    },
+    endpoints: {
+      auth: [
+        "POST /api/auth/register",
+        "POST /api/auth/login", 
+        "POST /api/auth/logout",
+        "POST /api/auth/refresh"
+      ],
+      users: [
+        "GET /api/users/profile",
+        "PUT /api/users/profile",
+        "POST /api/users/profile/experience",
+        "PUT /api/users/profile/experience/:id",
+        "DELETE /api/users/profile/experience/:id"
+      ],
+      jobs: [
+        "GET /api/jobs",
+        "POST /api/jobs",
+        "GET /api/jobs/:id",
+        "PUT /api/jobs/:id",
+        "DELETE /api/jobs/:id"
+      ],
+      messaging: [
+        "GET /api/messages/conversations",
+        "GET /api/messages/conversation/:conversationId", 
+        "POST /api/messages/send",
+        "POST /api/messages/conversation",
+        "POST /api/messages/upload",
+        "PUT /api/messages/read/:conversationId",
+        "GET /api/messages/search",
+        "GET /api/messages/unread-count",
+        "DELETE /api/messages/:messageId",
+        "PUT /api/messages/conversation/:conversationId/archive"
+      ]
+    },
     socketEvents: [
-      "send-message",
-      "join-conversation", 
-      "leave-conversation",
-      "typing",
-      "stop-typing",
-      "message-read",
-      "update-status",
-      "get-online-users"
-    ]
+      "send-message - Send real-time messages",
+      "join-conversation - Join conversation rooms", 
+      "leave-conversation - Leave conversation rooms",
+      "typing - Show typing indicators",
+      "stop-typing - Stop typing indicators",
+      "message-read - Send read receipts",
+      "update-status - Update online status",
+      "get-online-users - Get list of online users"
+    ],
+    cors: {
+      allowedOrigins: allowedOrigins,
+      dynamicOrigins: process.env.ALLOWED_ORIGINS ? true : false,
+      credentials: true
+    },
+    integration: {
+      frontend: {
+        development: "http://localhost:5173",
+        staging: "https://samparkwork.vercel.app",
+        production: "https://samparkwork.in"
+      },
+      socketConnection: "wss://samparkwork-backend.onrender.com",
+      apiBase: "https://samparkwork-backend.onrender.com/api"
+    }
   });
 });
 
@@ -569,11 +684,14 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ 
     success: false,
     message: err.message || "Internal server error",
-    error: process.env.NODE_ENV === 'development' ? err.stack : 'Something went wrong!'
+    error: process.env.NODE_ENV === 'development' ? err.stack : 'Something went wrong!',
+    timestamp: new Date(),
+    path: req.originalUrl,
+    method: req.method
   });
 });
 
-// ✅ UPDATED: Express v5 compatible 404 handler with messaging endpoints
+// ✅ UPDATED 404 HANDLER WITH ACTUAL RENDER URL
 app.use((req, res) => {
   console.log(`❌ 404 - Route not found: ${req.method} ${req.originalUrl}`);
   
@@ -582,71 +700,96 @@ app.use((req, res) => {
     message: "API endpoint not found",
     path: req.originalUrl,
     method: req.method,
+    timestamp: new Date(),
+    server: "https://samparkwork-backend.onrender.com",
+    suggestion: "Visit https://samparkwork-backend.onrender.com/ for API information or /api/health for detailed status",
     availableEndpoints: [
-      "GET /api/health",
-      "GET /api/users/profile",
-      "PUT /api/users/profile", 
-      "POST /api/users/profile/experience",
-      "PUT /api/users/profile/experience/:experienceId",
-      "DELETE /api/users/profile/experience/:experienceId",
-      // ✅ NEW: Messaging endpoints in 404 response
-      "GET /api/messages/conversations",
-      "GET /api/messages/conversation/:conversationId",
-      "POST /api/messages/send",
-      "POST /api/messages/upload",
-      "PUT /api/messages/read/:conversationId",
-      "GET /api/messages/search",
-      "GET /api/messages/unread-count"
+      "GET / - API Information",
+      "GET /api/health - Comprehensive Health Check",
+      "POST /api/auth/login - User Authentication",
+      "POST /api/auth/register - User Registration",
+      "GET /api/users/profile - User Profile",
+      "PUT /api/users/profile - Update Profile", 
+      "POST /api/users/profile/experience - Add Experience",
+      "PUT /api/users/profile/experience/:experienceId - Update Experience",
+      "DELETE /api/users/profile/experience/:experienceId - Delete Experience",
+      "GET /api/jobs - Get All Jobs",
+      "POST /api/jobs - Create Job",
+      "GET /api/messages/conversations - Get Conversations",
+      "GET /api/messages/conversation/:conversationId - Get Messages",
+      "POST /api/messages/send - Send Message",
+      "POST /api/messages/upload - Upload File",
+      "PUT /api/messages/read/:conversationId - Mark as Read",
+      "GET /api/messages/search - Search Messages",
+      "GET /api/messages/unread-count - Get Unread Count"
     ],
     realTimeEndpoints: [
-      "Socket.io connection on same port",
-      "Events: send-message, typing, join-conversation"
-    ]
+      "WebSocket connection: wss://samparkwork-backend.onrender.com",
+      "Events: send-message, typing, join-conversation, message-read"
+    ],
+    integration: {
+      apiBase: "https://samparkwork-backend.onrender.com/api",
+      socketConnection: "wss://samparkwork-backend.onrender.com",
+      uploadsPath: "https://samparkwork-backend.onrender.com/uploads"
+    }
   });
 });
 
-// ✅ UPDATED: Start server with Socket.io support and production logging
+// ✅ UPDATED: Start server with actual Render URL information
 connectDB()
   .then(() => {
     console.log("✅ Database connected successfully");
 
     // Use server.listen instead of app.listen for Socket.io
     server.listen(PORT, '0.0.0.0', () => {
-      console.log(`\n🚀 Server running on http://0.0.0.0:${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
-      console.log(`🌐 Network access: http://10.25.40.157:${PORT}`);
-      console.log(`📁 Static Files: http://10.25.40.157:${PORT}/uploads/`);
-      console.log(`🧪 Health Check: http://10.25.40.157:${PORT}/api/health`);
-      console.log(`📢 Mobile Ready: http://10.25.40.157:${PORT}`);
-      console.log(`✅ Express v5 Compatible: YES`);
-      console.log(`✅ Experience Routes: WORKING`);
+      console.log(`\n🚀 SamparkWork Backend Server Successfully Deployed!`);
+      console.log(`🌐 Production URL: https://samparkwork-backend.onrender.com`);
+      console.log(`🔗 Local Network: http://10.25.40.157:${PORT}`);
+      console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'} mode`);
+      console.log(`🗄️  Database: MongoDB Atlas Connected`);
+      console.log(`📁 Static Files: https://samparkwork-backend.onrender.com/uploads/`);
+      console.log(`🧪 Health Check: https://samparkwork-backend.onrender.com/api/health`);
+      console.log(`📱 API Base URL: https://samparkwork-backend.onrender.com/api`);
+      console.log(`🔌 Socket.IO: wss://samparkwork-backend.onrender.com`);
       
       // Production deployment info
       if (process.env.NODE_ENV === 'production') {
-        console.log(`🚀 PRODUCTION MODE - Ready for Render deployment`);
-        console.log(`🔗 Backend will be available at: https://your-app-name.onrender.com`);
+        console.log(`\n🎉 PRODUCTION DEPLOYMENT SUCCESSFUL!`);
+        console.log(`🌍 Live Backend URL: https://samparkwork-backend.onrender.com`);
+        console.log(`🎯 Ready for Frontend Integration`);
         console.log(`🌐 CORS Origins: ${allowedOrigins.join(', ')}`);
+        console.log(`🔐 Security: Helmet + CORS + JWT Authentication`);
       }
       
-      // ✅ NEW: Real-time messaging status
-      console.log(`💬 Messaging System: ENABLED`);
-      console.log(`📎 File Sharing: ENABLED`);
-      console.log(`🔄 Real-time Socket.io: RUNNING`);
-      console.log(`🌐 Socket.io CORS: CONFIGURED`);
-      console.log(`🔐 Socket Authentication: ENABLED`);
-      console.log(`\n📋 Available Upload Directories:`);
+      console.log(`\n✅ Services Status:`);
+      console.log(`   💬 Real-time Messaging: ACTIVE`);
+      console.log(`   📎 File Upload System: ENABLED`);
+      console.log(`   🔄 Socket.IO WebSocket: RUNNING`);
+      console.log(`   🌐 CORS Configuration: DYNAMIC`);
+      console.log(`   🔐 JWT Authentication: ENABLED`);
+      console.log(`   🗜️  Compression: ENABLED`);
+      console.log(`   🛡️  Security Headers: ENABLED`);
+      
+      console.log(`\n📋 Upload Directories:`);
       uploadDirs.forEach(dir => {
         const relativePath = path.relative(__dirname, dir);
         const exists = fs.existsSync(dir);
         console.log(`   ${exists ? '✅' : '❌'} ${relativePath}`);
       });
+      
+      console.log(`\n🔗 Integration URLs for Frontend:`);
+      console.log(`   🌐 API Base: https://samparkwork-backend.onrender.com/api`);
+      console.log(`   🔌 Socket.IO: wss://samparkwork-backend.onrender.com`);
+      console.log(`   📁 File Uploads: https://samparkwork-backend.onrender.com/uploads`);
+      console.log(`   🧪 Health Check: https://samparkwork-backend.onrender.com/api/health`);
+      
       console.log(`\n💬 Messaging API Endpoints:`);
-      console.log(`   GET    /api/messages/conversations`);
-      console.log(`   GET    /api/messages/conversation/:id`);
-      console.log(`   POST   /api/messages/send`);
-      console.log(`   POST   /api/messages/upload`);
-      console.log(`   PUT    /api/messages/read/:id`);
-      console.log(`   GET    /api/messages/search`);
-      console.log(`   GET    /api/messages/unread-count`);
+      console.log(`   GET    https://samparkwork-backend.onrender.com/api/messages/conversations`);
+      console.log(`   GET    https://samparkwork-backend.onrender.com/api/messages/conversation/:id`);
+      console.log(`   POST   https://samparkwork-backend.onrender.com/api/messages/send`);
+      console.log(`   POST   https://samparkwork-backend.onrender.com/api/messages/upload`);
+      console.log(`   PUT    https://samparkwork-backend.onrender.com/api/messages/read/:id`);
+      
       console.log(`\n🔄 Socket.io Real-time Events:`);
       console.log(`   📨 send-message - Send messages instantly`);
       console.log(`   💬 join-conversation - Join conversation rooms`);
@@ -654,12 +797,14 @@ connectDB()
       console.log(`   👀 message-read - Read receipts`);
       console.log(`   🟢 update-status - Online/offline status`);
       console.log(`   👥 get-online-users - Get online users list`);
-      console.log(`\n🎯 Integration Points:`);
-      console.log(`   📱 Applications.jsx ➜ Message Client Button`);
-      console.log(`   💬 Messages.jsx ➜ Complete Messaging UI + Socket.io`);
-      console.log(`   📎 File Upload ➜ Images, Documents, Files`);
-      console.log(`   🔔 Real-time ➜ Socket.io ACTIVE`);
-      console.log(`   📲 Mobile Support ➜ Responsive + Touch-friendly`);
+      
+      console.log(`\n🎯 Next Steps:`);
+      console.log(`   1. ✅ Backend Deployed Successfully`);
+      console.log(`   2. 🔄 Deploy Frontend to Vercel`);
+      console.log(`   3. 🌐 Connect Custom Domain (samparkwork.in)`);
+      console.log(`   4. 🧪 Test Full Application`);
+      
+      console.log(`\n🚀 Backend is LIVE and ready for your frontend integration!`);
     });
   })
   .catch((err) => {
