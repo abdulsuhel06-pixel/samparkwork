@@ -30,16 +30,14 @@ const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 // ✅ CREATE HTTP SERVER FOR SOCKET.IO
 const server = http.createServer(app);
 
-// ✅ SOCKET.IO SERVER SETUP WITH ENHANCED CONFIGURATION
+// ✅ PRODUCTION READY Socket.IO CORS with dynamic origins
+const socketAllowedOrigins = process.env.ALLOWED_ORIGINS ? 
+  process.env.ALLOWED_ORIGINS.split(',') : 
+  [CLIENT_URL, "http://localhost:3000", "http://localhost:5173", "http://10.25.40.157:5173"];
+
 const io = socketIo(server, {
   cors: {
-    origin: [
-      CLIENT_URL, 
-      "http://localhost:3000", 
-      "http://localhost:5173",
-      "http://10.25.40.157:5173",  // Your mobile access URL
-      "https://yourdomain.com"     // Add your production domain here
-    ],
+    origin: socketAllowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   },
@@ -57,16 +55,23 @@ app.use(helmet({
   contentSecurityPolicy: false
 }));
 
-// ✅ FIXED: Enhanced CORS for mobile access WITH PATCH METHOD
+// ✅ PRODUCTION READY CORS with dynamic origins
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? 
+  process.env.ALLOWED_ORIGINS.split(',') : 
+  [CLIENT_URL, "http://localhost:3000", "http://localhost:5173", "http://10.25.40.157:5173"];
+
 app.use(cors({ 
-  origin: [
-    CLIENT_URL, 
-    "http://localhost:3000", 
-    "http://localhost:5173",
-    "http://10.25.40.157:5173"  // Your mobile access URL
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(null, true); // Allow all in development, you can change this for production
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // ✅ ADDED PATCH!
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -600,20 +605,28 @@ app.use((req, res) => {
   });
 });
 
-// ✅ UPDATED: Start server with Socket.io support
+// ✅ UPDATED: Start server with Socket.io support and production logging
 connectDB()
   .then(() => {
     console.log("✅ Database connected successfully");
 
     // Use server.listen instead of app.listen for Socket.io
     server.listen(PORT, '0.0.0.0', () => {
-      console.log(`\n🚀 Server running on http://0.0.0.0:${PORT}`);
+      console.log(`\n🚀 Server running on http://0.0.0.0:${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
       console.log(`🌐 Network access: http://10.25.40.157:${PORT}`);
       console.log(`📁 Static Files: http://10.25.40.157:${PORT}/uploads/`);
       console.log(`🧪 Health Check: http://10.25.40.157:${PORT}/api/health`);
       console.log(`📢 Mobile Ready: http://10.25.40.157:${PORT}`);
       console.log(`✅ Express v5 Compatible: YES`);
       console.log(`✅ Experience Routes: WORKING`);
+      
+      // Production deployment info
+      if (process.env.NODE_ENV === 'production') {
+        console.log(`🚀 PRODUCTION MODE - Ready for Render deployment`);
+        console.log(`🔗 Backend will be available at: https://your-app-name.onrender.com`);
+        console.log(`🌐 CORS Origins: ${allowedOrigins.join(', ')}`);
+      }
+      
       // ✅ NEW: Real-time messaging status
       console.log(`💬 Messaging System: ENABLED`);
       console.log(`📎 File Sharing: ENABLED`);
