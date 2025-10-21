@@ -1,36 +1,4 @@
 {
-  "version": 2,
-  "name": "samparkwork-marketplace-2025",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "env": {
-    "VITE_API_BASE_URL": "https://samparkwork-backend.onrender.com",
-    "VITE_SOCKET_URL": "wss://samparkwork-backend.onrender.com",
-    "VITE_NODE_ENV": "production"
-  },
-  "build": {
-    "env": {
-      "VITE_API_BASE_URL": "https://samparkwork-backend.onrender.com",
-      "VITE_SOCKET_URL": "wss://samparkwork-backend.onrender.com",
-      "VITE_NODE_ENV": "production"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
