@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "samparkwork-frontend",
+  "name": "samparkwork-marketplace-2025",
   "builds": [
     {
       "src": "package.json",
@@ -31,7 +31,6 @@
       "VITE_NODE_ENV": "production"
     }
   },
-  "functions": {},
   "rewrites": [
     {
       "source": "/(.*)",
