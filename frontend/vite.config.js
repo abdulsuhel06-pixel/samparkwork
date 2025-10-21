@@ -7,13 +7,13 @@ export default defineConfig({
     global: 'globalThis',
   },
   
-  // ✅ FIXED: Updated build configuration
+  // ✅ FIXED: Build configuration
   build: {
     // ✅ MODERN TARGET: Support for destructuring and modern JS
     target: ['es2018', 'chrome70', 'firefox62', 'safari12', 'edge79'],
     
-    // Optimize for production
-    minify: 'terser',
+    // ✅ FIXED: Use esbuild instead of terser (built-in, no extra package needed)
+    minify: 'esbuild',
     sourcemap: false,
     
     // Optimize chunk splitting
@@ -36,7 +36,7 @@ export default defineConfig({
     cssCodeSplit: true
   },
 
-  // ✅ DEVELOPMENT SERVER
+  // Development server
   server: {
     host: '0.0.0.0',
     port: 5173,
@@ -67,28 +67,27 @@ export default defineConfig({
     }
   },
 
-  // ✅ PREVIEW SERVER
+  // Preview server
   preview: {
     host: '0.0.0.0',
     port: 4173,
     cors: true
   },
 
-  // ✅ CSS OPTIMIZATION
+  // CSS optimization
   css: {
     devSourcemap: false
   },
 
-  // ✅ ENVIRONMENT VARIABLES
+  // Environment variables
   envPrefix: ['VITE_'],
   
-  // ✅ OPTIMIZATION FOR VERCEL
+  // ✅ OPTIMIZATION: esbuild for minification (no extra dependencies)
   esbuild: {
-    // Remove console.logs in production
     drop: ['console', 'debugger']
   },
 
-  // ✅ DEPENDENCY OPTIMIZATION
+  // Dependency optimization
   optimizeDeps: {
     include: [
       'react', 
