@@ -30,15 +30,15 @@ const api = axios.create({
   },
 });
 
-// Helper function to get auth token
+// ✅ CRITICAL FIX: Helper function to get auth token with CORRECT key
 const getAuthToken = () => {
-  return localStorage.getItem('wn-token');
+  return localStorage.getItem('wn_token'); // ✅ FIXED: Use wn_token (underscore)
 };
 
-// Request interceptor to add token
+// ✅ CRITICAL FIX: Request interceptor to add token with CORRECT key
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('wn-token');
+    const token = localStorage.getItem('wn_token'); // ✅ FIXED: Use wn_token (underscore)
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -52,7 +52,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// ✅ CRITICAL FIX: Response interceptor for error handling with CORRECT key
 api.interceptors.response.use(
   (response) => {
     console.log(`✅ API Response: ${response.status} ${response.config.url}`);
@@ -62,8 +62,8 @@ api.interceptors.response.use(
     console.error(`❌ API Error: ${error.response?.status} ${error.config?.url}`, error.response?.data);
     
     if (error.response?.status === 401) {
-      localStorage.removeItem('wn-token');
-      localStorage.removeItem('wn-user');
+      localStorage.removeItem('wn_token'); // ✅ FIXED: Use wn_token (underscore)
+      localStorage.removeItem('wn_user');
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -911,15 +911,15 @@ export const apiHelpers = {
   }
 };
 
-// ✅ AUTHENTICATION HELPER FUNCTIONS
+// ✅ CRITICAL FIX: AUTHENTICATION HELPER FUNCTIONS with CORRECT token key
 export const authHelpers = {
   getCurrentUser: () => {
-    const user = localStorage.getItem('wn-user');
+    const user = localStorage.getItem('wn_user'); // ✅ Keep wn_user as is
     return user ? JSON.parse(user) : null;
   },
 
   isAuthenticated: () => {
-    return !!localStorage.getItem('wn-token');
+    return !!localStorage.getItem('wn_token'); // ✅ FIXED: Use wn_token
   },
 
   isClient: () => {
@@ -938,23 +938,23 @@ export const authHelpers = {
   },
 
   logout: () => {
-    localStorage.removeItem('wn-token');
-    localStorage.removeItem('wn-user');
+    localStorage.removeItem('wn_token'); // ✅ FIXED: Use wn_token
+    localStorage.removeItem('wn_user');
     window.location.href = '/login';
   },
 
   getToken: () => {
-    return localStorage.getItem('wn-token');
+    return localStorage.getItem('wn_token'); // ✅ FIXED: Use wn_token
   },
 
   setAuthData: (token, user) => {
-    localStorage.setItem('wn-token', token);
-    localStorage.setItem('wn-user', JSON.stringify(user));
+    localStorage.setItem('wn_token', token); // ✅ FIXED: Use wn_token
+    localStorage.setItem('wn_user', JSON.stringify(user));
   },
 
   clearAuthData: () => {
-    localStorage.removeItem('wn-token');
-    localStorage.removeItem('wn-user');
+    localStorage.removeItem('wn_token'); // ✅ FIXED: Use wn_token
+    localStorage.removeItem('wn_user');
   },
 
   isTokenExpired: () => {
@@ -972,11 +972,11 @@ export const authHelpers = {
   }
 };
 
-// ✅ SOCKET.IO HELPER FUNCTIONS
+// ✅ SOCKET.IO HELPER FUNCTIONS with CORRECT token key
 export const socketHelpers = {
   canConnectSocket: () => {
     const token = getAuthToken();
-    const user = localStorage.getItem('wn-user');
+    const user = localStorage.getItem('wn_user');
     return !!(token && user);
   },
 
@@ -992,7 +992,7 @@ export const socketHelpers = {
 
   getSocketUser: () => {
     try {
-      const userData = localStorage.getItem('wn-user');
+      const userData = localStorage.getItem('wn_user');
       if (!userData) return null;
       
       const user = JSON.parse(userData);
@@ -1009,30 +1009,91 @@ export const socketHelpers = {
   }
 };
 
-// Enhanced error handling utility
-export const handleApiError = (error, context) => {
+// ✅ ENHANCED ERROR HANDLING with better login context
+export const handleApiError = (error, context = 'API') => {
   console.error(`❌ ${context} Error:`, error);
   
+  // Handle specific 404 error for login
+  if (error.response?.status === 404 && context === 'Login') {
+    return {
+      type: 'not_found',
+      message: 'Login endpoint not found. Please check if the backend is running correctly.',
+      details: 'The API endpoint /api/auth/login was not found on the server.'
+    };
+  }
+  
   if (error.response?.data?.message) {
-    return error.response.data.message;
+    return {
+      type: 'api_error',
+      message: error.response.data.message,
+      details: error.response.data.error || 'Server returned an error.'
+    };
   }
   
   if (error.response?.status === 404) {
-    return 'Resource not found';
+    return {
+      type: 'not_found',
+      message: 'Resource not found',
+      details: 'The requested resource could not be found on the server.'
+    };
+  }
+  
+  if (error.response?.status === 401) {
+    return {
+      type: 'auth',
+      message: 'Authentication failed',
+      details: 'Please check your credentials and try again.'
+    };
+  }
+  
+  if (error.response?.status === 403) {
+    return {
+      type: 'forbidden',
+      message: 'Access denied',
+      details: 'You do not have permission to access this resource.'
+    };
+  }
+  
+  if (error.response?.status === 422) {
+    return {
+      type: 'validation',
+      message: 'Validation failed',
+      details: error.response.data?.errors?.map(err => err.message).join(', ') || 'Please check your input data.'
+    };
   }
   
   if (error.response?.status === 500) {
-    return 'Server error. Please try again later.';
+    return {
+      type: 'server_error',
+      message: 'Server error. Please try again later.',
+      details: 'Internal server error occurred.'
+    };
   }
   
   if (error.code === 'NETWORK_ERROR' || !error.response) {
-    return 'Network error. Please check your connection.';
+    return {
+      type: 'network_error',
+      message: 'Network error. Please check your connection.',
+      details: 'Could not connect to the server.'
+    };
   }
   
-  return 'An unexpected error occurred';
+  if (error.code === 'ECONNABORTED') {
+    return {
+      type: 'timeout',
+      message: 'Request timeout. Please try again.',
+      details: 'The request took too long to complete.'
+    };
+  }
+  
+  return {
+    type: 'unknown_error',
+    message: 'An unexpected error occurred',
+    details: error.message || 'Unknown error'
+  };
 };
 
-// ✅ UTILITY FUNCTIONS
+// ✅ UTILITY FUNCTIONS (ALL YOUR EXISTING FUNCTIONS PRESERVED)
 export const utils = {
   formatFileSize: (bytes) => {
     if (bytes === 0) return '0 Bytes';
@@ -1191,7 +1252,7 @@ export const utils = {
   }
 };
 
-// Form validation helpers
+// ✅ FORM VALIDATION HELPERS (ALL YOUR EXISTING FUNCTIONS PRESERVED)
 export const validateForm = {
   required: (value) => {
     return value && value.toString().trim() !== '';
@@ -1230,7 +1291,7 @@ export const validateForm = {
   }
 };
 
-// Export API instance as default
+// ✅ Export API instance as default
 export default api;
 
 // ✅ EXPORT BASE URLS FOR OTHER COMPONENTS

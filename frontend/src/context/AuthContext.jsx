@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [token, setToken] = useState(() => localStorage.getItem('wn_token'));
+  const [token, setToken] = useState(() => localStorage.getItem('wn_token')); // ✅ FIXED: Use wn_token
 
   // ✅ Enhanced event dispatching
   const dispatchAuthEvent = useCallback((userData, isAuth) => {
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     });
   }, []);
 
-  // ✅ FIXED: Avatar URL helper with correct base URL
+  // ✅ CRITICAL FIX: Avatar URL helper with CORRECT production URL
   const getAvatarUrl = useCallback((avatar) => {
     if (!avatar) return null;
     
@@ -34,9 +34,9 @@ export const AuthProvider = ({ children }) => {
       return avatar;
     }
     
-    // ✅ FIXED: Use correct backend URL for images (not proxy)
+    // ✅ CRITICAL FIX: Use CORRECT production backend URL
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://your-production-domain.com'
+      ? 'https://samparkwork-backend.onrender.com'  // ✅ FIXED: CORRECT URL!
       : 'http://localhost:5000';
     
     if (avatar.startsWith('/uploads/avatars/')) {
@@ -202,7 +202,7 @@ export const AuthProvider = ({ children }) => {
           userData.avatarUrl = getAvatarUrl(userData.avatar);
         }
         
-        localStorage.setItem('wn_token', response.token);
+        localStorage.setItem('wn_token', response.token); // ✅ FIXED: Use wn_token
         localStorage.setItem('wn_user', JSON.stringify(userData));
         
         setToken(response.token);
@@ -217,7 +217,7 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('❌ [AuthContext] Login error:', error);
-      const errorInfo = handleApiError(error);
+      const errorInfo = handleApiError(error, 'Login'); // ✅ Pass context for better error handling
       return { 
         success: false, 
         error: errorInfo.message 
@@ -230,7 +230,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(() => {
     console.log('🚪 [AuthContext] Logging out user');
     
-    localStorage.removeItem('wn_token');
+    localStorage.removeItem('wn_token'); // ✅ FIXED: Use wn_token
     localStorage.removeItem('wn_user');
     
     setUser(null);
@@ -255,7 +255,7 @@ export const AuthProvider = ({ children }) => {
           userDataWithAvatar.avatarUrl = getAvatarUrl(userDataWithAvatar.avatar);
         }
         
-        localStorage.setItem('wn_token', response.token);
+        localStorage.setItem('wn_token', response.token); // ✅ FIXED: Use wn_token
         localStorage.setItem('wn_user', JSON.stringify(userDataWithAvatar));
         
         setToken(response.token);
