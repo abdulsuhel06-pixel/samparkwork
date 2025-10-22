@@ -1,16 +1,16 @@
 import axios from 'axios';
 
-// ✅ FIXED: Production-ready configuration with proper fallbacks
+// ✅ FIXED: Production-ready configuration
 const isDevelopment = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 const API_BASE_URL = isDevelopment 
-  ? 'http://localhost:5000'  // Development
-  : import.meta.env.VITE_API_BASE_URL || 'https://samparkwork-backend.onrender.com'; // Production
+  ? 'http://localhost:5000'
+  : 'https://samparkwork-backend.onrender.com'; // ✅ FIXED: Always use production URL
 
 const SOCKET_URL = isDevelopment 
-  ? 'ws://localhost:5000'    // Development  
-  : import.meta.env.VITE_SOCKET_URL || 'wss://samparkwork-backend.onrender.com'; // Production
+  ? 'ws://localhost:5000'
+  : 'wss://samparkwork-backend.onrender.com';
 
 // ✅ ENHANCED DEBUG LOGGING
 console.log('🚀 API Configuration:', {
@@ -19,10 +19,6 @@ console.log('🚀 API Configuration:', {
   apiBaseURL: API_BASE_URL,
   socketURL: SOCKET_URL,
   environment: import.meta.env.VITE_NODE_ENV || 'production',
-  envVars: {
-    VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-    VITE_SOCKET_URL: import.meta.env.VITE_SOCKET_URL,
-  }
 });
 
 // ✅ AXIOS INSTANCE
@@ -74,48 +70,64 @@ api.interceptors.response.use(
   }
 );
 
-// ✅ FIXED: Enhanced image URL helper with proper environment detection
+// ✅ FIXED: Clean URL generation function that handles Windows backslashes
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
   
-  // If already a complete URL, return as-is
-  if (imagePath.startsWith('http') || imagePath.startsWith('https')) {
-    return imagePath;
+  console.log('🖼️ getImageUrl - Input:', imagePath);
+  
+  // If already a complete URL, clean it and return
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    // ✅ CRITICAL FIX: Clean up Windows backslashes in URLs
+    const cleanUrl = imagePath.replace(/\\/g, '/').replace(/\/+/g, '/');
+    const finalUrl = cleanUrl.replace('http:/', 'http://').replace('https:/', 'https://');
+    console.log('🖼️ getImageUrl - Cleaned URL:', finalUrl);
+    return finalUrl;
   }
   
   // Remove leading slash if present
   const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
   const finalUrl = `${API_BASE_URL}/${cleanPath}`;
   
-  console.log('🖼️ getImageUrl:', { 
-    originalPath: imagePath, 
-    finalUrl,
-    isDevelopment,
-    hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown'
-  });
+  console.log('🖼️ getImageUrl - Generated URL:', finalUrl);
   return finalUrl;
 };
 
-// ✅ FIXED: Enhanced media URL helper with proper environment detection
+// ✅ FIXED: Media URL helper that handles Windows backslashes properly
 export const getMediaUrl = (mediaPath) => {
   if (!mediaPath) return null;
   
-  // If already a complete URL, return as-is
-  if (mediaPath.startsWith('http') || mediaPath.startsWith('https')) {
-    return mediaPath;
+  console.log('🎥 getMediaUrl - Input:', mediaPath);
+  
+  // If already a complete URL, clean it and return
+  if (mediaPath.startsWith('http://') || mediaPath.startsWith('https://')) {
+    // ✅ CRITICAL FIX: Clean up Windows backslashes and double slashes in URLs
+    let cleanUrl = mediaPath
+      .replace(/\\/g, '/') // Convert backslashes to forward slashes
+      .replace(/\/+/g, '/') // Replace multiple slashes with single slash
+      .replace('http:/', 'http://') // Fix http protocol
+      .replace('https:/', 'https://'); // Fix https protocol
+    
+    // ✅ ADDITIONAL FIX: Remove duplicate uploads/ paths
+    if (cleanUrl.includes('/uploads/uploads/')) {
+      cleanUrl = cleanUrl.replace('/uploads/uploads/', '/uploads/');
+    }
+    
+    console.log('🎥 getMediaUrl - Cleaned URL:', cleanUrl);
+    return cleanUrl;
   }
   
   // Remove leading slash if present
-  const cleanPath = mediaPath.startsWith('/') ? mediaPath.substring(1) : mediaPath;
+  let cleanPath = mediaPath.startsWith('/') ? mediaPath.substring(1) : mediaPath;
+  
+  // Ensure uploads/ prefix exists only once
+  if (!cleanPath.startsWith('uploads/')) {
+    cleanPath = `uploads/${cleanPath}`;
+  }
+  
   const finalUrl = `${API_BASE_URL}/${cleanPath}`;
   
-  console.log('🎥 getMediaUrl:', { 
-    originalPath: mediaPath, 
-    finalUrl,
-    isDevelopment,
-    hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
-    API_BASE_URL
-  });
+  console.log('🎥 getMediaUrl - Generated URL:', finalUrl);
   return finalUrl;
 };
 
@@ -137,7 +149,7 @@ export const getNetworkInfo = () => {
   };
 };
 
-// ✅ ALL YOUR EXISTING API HELPERS (keeping all your functions exactly as they are)
+// ✅ ALL YOUR EXISTING API HELPERS (keeping exactly as they are)
 export const apiHelpers = {
   // AUTH ENDPOINTS
   login: async (credentials) => {
