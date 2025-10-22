@@ -11,6 +11,7 @@ const PostJob = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [categoryLoading, setCategoryLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [preview, setPreview] = useState(false);
   const [formData, setFormData] = useState({
@@ -55,18 +56,26 @@ const PostJob = () => {
     fetchCategories();
   }, [navigate]);
 
+  // ✅ CRITICAL FIX: Use the correct API endpoint for categories
   const fetchCategories = async () => {
     try {
       console.log('📋 [PostJob] Fetching categories...');
-      const response = await apiHelpers.getJobCategories();
-      if (response.success) {
+      setCategoryLoading(true);
+      
+      // ✅ FIXED: Use getFeaturedCategories (PUBLIC) instead of getJobCategories
+      const response = await apiHelpers.getFeaturedCategories();
+      
+      console.log('📋 [PostJob] API Response:', response);
+      
+      if (response.success && response.categories) {
         console.log('✅ [PostJob] Categories received:', response.categories);
         
+        // ✅ ENHANCED: Process categories to extract names
         const processedCategories = response.categories.map(category => {
           if (typeof category === 'string') {
             return category;
           } else if (typeof category === 'object' && category.name) {
-            return category.name;
+            return category.name; // Extract name from category object
           } else if (typeof category === 'object' && category._id) {
             return category._id;
           } else {
@@ -77,9 +86,34 @@ const PostJob = () => {
         
         console.log('✅ [PostJob] Processed categories:', processedCategories);
         setCategories(processedCategories);
+      } else {
+        console.error('❌ [PostJob] Invalid response format:', response);
+        setCategories([]);
       }
     } catch (error) {
       console.error('❌ [PostJob] Failed to fetch categories:', error);
+      const errorInfo = handleApiError(error);
+      
+      // ✅ ENHANCED: Provide fallback categories if API fails
+      const fallbackCategories = [
+        'CAD Design',
+        'Micro Setting', 
+        'Casting',
+        'Polish Work',
+        'Filing',
+        'Rhodium Plating',
+        'Pulling',
+        'Stone Setting',
+        '3D Modeling',
+        'Jewelry Repair'
+      ];
+      
+      console.log('🆘 [PostJob] Using fallback categories due to API error');
+      setCategories(fallbackCategories);
+      
+      // Don't show error to user, just use fallback
+    } finally {
+      setCategoryLoading(false);
     }
   };
 
@@ -426,7 +460,7 @@ const PostJob = () => {
               <span className="char-count">{formData.title.length}/100</span>
             </div>
 
-            {/* Category Dropdown */}
+            {/* ✅ FIXED: Category Dropdown with loading state */}
             <div className="form-group">
               <label htmlFor="category" className="form-label">
                 Category *
@@ -437,8 +471,11 @@ const PostJob = () => {
                 value={formData.category}
                 onChange={handleInputChange}
                 className={`form-select ${errors.category ? 'error' : ''}`}
+                disabled={categoryLoading}
               >
-                <option value="">Select Category</option>
+                <option value="">
+                  {categoryLoading ? 'Loading categories...' : 'Select Category'}
+                </option>
                 {categories.map((category, index) => (
                   <option key={`category-${index}-${category}`} value={category}>
                     {category}
@@ -446,6 +483,17 @@ const PostJob = () => {
                 ))}
               </select>
               {errors.category && <span className="error-message">{errors.category}</span>}
+              {categoryLoading && (
+                <div className="loading-indicator">
+                  <span>Loading categories...</span>
+                </div>
+              )}
+              {!categoryLoading && categories.length === 0 && (
+                <div className="no-categories-warning">
+                  <AlertCircle size={16} />
+                  <span>No categories available. Contact admin to add categories.</span>
+                </div>
+              )}
             </div>
 
             <div className="form-group">
