@@ -2,31 +2,17 @@ const Category = require("../models/Category");
 const path = require("path");
 const fs = require("fs");
 
-// ✅ MOBILE COMPATIBLE: Smart image URL generation for all devices
-const generateMobileCompatibleImageUrl = (imagePath, req) => {
+// ✅ PRODUCTION-READY: Smart image URL generation
+const generateImageUrl = (imagePath, req) => {
   if (!imagePath) return null;
   
-  console.log('🖼️ [generateMobileCompatibleImageUrl] Processing:', imagePath);
-  console.log('🖼️ [generateMobileCompatibleImageUrl] Request info:', {
-    host: req.get('host'),
-    referer: req.get('referer'),
-    userAgent: req.get('user-agent')?.includes('Mobile') ? 'MOBILE' : 'DESKTOP'
-  });
+  console.log('🖼️ [generateImageUrl] Processing:', imagePath);
+  console.log('🖼️ [generateImageUrl] Environment:', process.env.NODE_ENV);
   
   // If already a full URL, return as is
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
-  
-  // ✅ CRITICAL: Detect if request is from mobile network access
-  const requestHost = req.get('host');
-  const referer = req.get('referer');
-  const isMobileNetworkRequest = requestHost && (
-    requestHost.includes('172.31.180.157') || 
-    requestHost.includes('192.168.') || 
-    requestHost.includes('10.') ||
-    (referer && referer.includes('172.31.180.157'))
-  );
   
   // Ensure proper path formatting
   let cleanPath = imagePath;
@@ -38,26 +24,15 @@ const generateMobileCompatibleImageUrl = (imagePath, req) => {
     }
   }
   
-  let finalUrl;
-  if (isMobileNetworkRequest) {
-    // ✅ MOBILE: Use network IP with backend port 5000
-    let networkIP = '172.31.180.157'; // Your network IP
-    
-    // Try to extract IP from request
-    if (requestHost && requestHost.includes(':')) {
-      const hostIP = requestHost.split(':')[0];
-      if (hostIP !== 'localhost' && hostIP !== '127.0.0.1') {
-        networkIP = hostIP;
-      }
-    }
-    
-    finalUrl = `http://${networkIP}:5000${cleanPath}`;
-    console.log('📱 Mobile image URL generated:', finalUrl);
-  } else {
-    // ✅ DESKTOP: Use localhost backend
-    finalUrl = `http://localhost:5000${cleanPath}`;
-    console.log('💻 Desktop image URL generated:', finalUrl);
-  }
+  // ✅ PRODUCTION-AWARE URL GENERATION
+  const isProduction = process.env.NODE_ENV === 'production';
+  const BASE_URL = isProduction 
+    ? 'https://samparkwork-backend.onrender.com' 
+    : 'http://localhost:5000';
+  
+  const finalUrl = `${BASE_URL}${cleanPath}`;
+  
+  console.log(`🌐 Generated ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} URL:`, finalUrl);
   
   return finalUrl;
 };
@@ -68,11 +43,7 @@ const generateMobileCompatibleImageUrl = (imagePath, req) => {
 const getFeaturedCategories = async (req, res) => {
   try {
     console.log("🔍 [getFeaturedCategories] === STARTING ===");
-    console.log("🔍 [getFeaturedCategories] Request info:", {
-      host: req.get('host'),
-      userAgent: req.get('user-agent')?.includes('Mobile') ? 'MOBILE' : 'DESKTOP',
-      referer: req.get('referer')
-    });
+    console.log("🔍 [getFeaturedCategories] Environment:", process.env.NODE_ENV);
     
     // Set no-cache headers
     res.set({
@@ -80,6 +51,7 @@ const getFeaturedCategories = async (req, res) => {
       'Pragma': 'no-cache',
       'Expires': '0',
       'X-Mobile-Compatible': 'true',
+      'X-Environment': process.env.NODE_ENV || 'development',
       'X-Timestamp': Date.now().toString()
     });
     
@@ -103,30 +75,31 @@ const getFeaturedCategories = async (req, res) => {
     
     console.log(`✅ [getFeaturedCategories] Found ${categories.length} categories in database`);
     
-    // ✅ Generate mobile-compatible image URLs
+    // ✅ Generate production-ready image URLs
     const categoriesWithUrls = categories.map((category, index) => {
       const categoryObj = category.toObject();
-      const mobileImageUrl = generateMobileCompatibleImageUrl(categoryObj.image, req);
+      const imageUrl = generateImageUrl(categoryObj.image, req);
       
       console.log(`📱 Category ${index + 1}: "${category.name}"`);
       console.log(`   Original: ${categoryObj.image}`);
-      console.log(`   Mobile URL: ${mobileImageUrl}`);
+      console.log(`   Final URL: ${imageUrl}`);
       
       return {
         ...categoryObj,
-        imageUrl: mobileImageUrl,
-        _timestamp: Date.now(), // Force refresh
-        _mobile: req.get('user-agent')?.includes('Mobile') || false
+        imageUrl: imageUrl,
+        _timestamp: Date.now(),
+        _environment: process.env.NODE_ENV || 'development'
       };
     });
     
-    console.log(`📤 [getFeaturedCategories] Returning ${categoriesWithUrls.length} categories with mobile URLs`);
+    console.log(`📤 [getFeaturedCategories] Returning ${categoriesWithUrls.length} categories`);
     
     res.status(200).json({
       success: true,
       count: categoriesWithUrls.length,
       industry: industry || 'All',
-      categories: categoriesWithUrls
+      categories: categoriesWithUrls,
+      environment: process.env.NODE_ENV || 'development'
     });
     
   } catch (error) {
@@ -149,7 +122,8 @@ const getCategories = async (req, res) => {
     // Set no-cache headers
     res.set({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'X-Mobile-Compatible': 'true'
+      'X-Mobile-Compatible': 'true',
+      'X-Environment': process.env.NODE_ENV || 'development'
     });
     
     const categories = await Category.find().sort({ createdAt: -1 });
@@ -159,7 +133,7 @@ const getCategories = async (req, res) => {
       const categoryObj = category.toObject();
       return {
         ...categoryObj,
-        imageUrl: generateMobileCompatibleImageUrl(categoryObj.image, req),
+        imageUrl: generateImageUrl(categoryObj.image, req),
         _timestamp: Date.now()
       };
     });
@@ -167,7 +141,8 @@ const getCategories = async (req, res) => {
     res.json({
       success: true,
       count: categoriesWithUrls.length,
-      categories: categoriesWithUrls
+      categories: categoriesWithUrls,
+      environment: process.env.NODE_ENV || 'development'
     });
   } catch (error) {
     console.error("❌ [getCategories] Error:", error);
@@ -185,6 +160,7 @@ const getCategories = async (req, res) => {
 const createCategory = async (req, res) => {
   try {
     console.log("📝 [createCategory] Creating new category");
+    console.log("📝 [createCategory] Environment:", process.env.NODE_ENV);
     console.log("📝 [createCategory] Body:", req.body);
     console.log("📝 [createCategory] File:", req.file);
     
@@ -235,11 +211,11 @@ const createCategory = async (req, res) => {
       });
     }
 
-    // Store clean image path
+    // ✅ STORE RELATIVE PATH (NOT FULL URL)
     let imagePath = null;
     if (req.file) {
-      imagePath = `/uploads/categories/${req.file.filename}`;
-      console.log("📷 [createCategory] Image saved:", imagePath);
+      imagePath = `uploads/categories/${req.file.filename}`;  // No leading slash
+      console.log("📷 [createCategory] Image saved with relative path:", imagePath);
     }
 
     const category = new Category({
@@ -248,7 +224,7 @@ const createCategory = async (req, res) => {
       parentCategory: parentCategory?.trim(),
       description: description?.trim(),
       isFeatured: isFeatured === "true" || isFeatured === true,
-      image: imagePath,
+      image: imagePath,  // Store relative path
     });
 
     const createdCategory = await category.save();
@@ -256,7 +232,7 @@ const createCategory = async (req, res) => {
     
     const categoryResponse = {
       ...createdCategory.toObject(),
-      imageUrl: generateMobileCompatibleImageUrl(createdCategory.image, req),
+      imageUrl: generateImageUrl(createdCategory.image, req),
       _timestamp: Date.now()
     };
     
@@ -290,6 +266,7 @@ const createCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
   try {
     console.log(`🔄 [updateCategory] Updating category: ${req.params.id}`);
+    console.log("🔄 [updateCategory] Environment:", process.env.NODE_ENV);
     
     const { name, industry, parentCategory, description, isFeatured } = req.body;
 
@@ -341,14 +318,15 @@ const updateCategory = async (req, res) => {
     if (req.file) {
       // Delete old image
       if (category.image) {
-        const oldImagePath = category.image.replace('/uploads/categories/', '');
+        const oldImagePath = category.image.replace(/^\/uploads\/categories\//, '').replace(/^uploads\/categories\//, '');
         const oldPath = path.join(__dirname, "..", "uploads", "categories", oldImagePath);
         if (fs.existsSync(oldPath)) {
           fs.unlinkSync(oldPath);
         }
       }
-      // Set new image path
-      category.image = `/uploads/categories/${req.file.filename}`;
+      // ✅ Set relative path (no leading slash)
+      category.image = `uploads/categories/${req.file.filename}`;
+      console.log("📷 [updateCategory] New image set with relative path:", category.image);
     }
 
     const updatedCategory = await category.save();
@@ -356,7 +334,7 @@ const updateCategory = async (req, res) => {
     
     const categoryResponse = {
       ...updatedCategory.toObject(),
-      imageUrl: generateMobileCompatibleImageUrl(updatedCategory.image, req),
+      imageUrl: generateImageUrl(updatedCategory.image, req),
       _timestamp: Date.now()
     };
     
@@ -398,7 +376,7 @@ const deleteCategory = async (req, res) => {
 
     // Clean up image file
     if (category.image) {
-      const imagePath = category.image.replace('/uploads/categories/', '');
+      const imagePath = category.image.replace(/^\/uploads\/categories\//, '').replace(/^uploads\/categories\//, '');
       const fullPath = path.join(__dirname, "..", "uploads", "categories", imagePath);
       if (fs.existsSync(fullPath)) {
         fs.unlinkSync(fullPath);
@@ -443,7 +421,7 @@ const toggleFeaturedCategory = async (req, res) => {
     
     const categoryResponse = {
       ...category.toObject(),
-      imageUrl: generateMobileCompatibleImageUrl(category.image, req),
+      imageUrl: generateImageUrl(category.image, req),
       _timestamp: Date.now()
     };
     

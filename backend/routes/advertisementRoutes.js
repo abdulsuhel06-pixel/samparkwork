@@ -24,60 +24,37 @@ const createUploadDirs = () => {
 
 createUploadDirs();
 
-// ✅ CRITICAL MOBILE FIX: Smart URL construction that works on ALL devices
-const buildMobileCompatibleUrl = (mediaPath, req) => {
+// ✅ PRODUCTION-READY: Smart media URL generation
+const generateMediaUrl = (mediaPath) => {
   if (!mediaPath) return null;
   
-  console.log('🔗 [buildMobileCompatibleUrl] Processing:', mediaPath);
-  console.log('🔗 [buildMobileCompatibleUrl] Request headers:', {
-    host: req.get('host'),
-    referer: req.get('referer'),
-    userAgent: req.get('user-agent')?.includes('Mobile') ? 'MOBILE' : 'DESKTOP'
-  });
+  console.log('🎥 [generateMediaUrl] Processing:', mediaPath);
+  console.log('🎥 [generateMediaUrl] Environment:', process.env.NODE_ENV);
   
-  // If already complete URL, return as-is
-  if (typeof mediaPath === 'string' && (mediaPath.startsWith('http://') || mediaPath.startsWith('https://'))) {
-    console.log('✅ Already complete URL:', mediaPath);
+  // If already a full URL, return as is
+  if (mediaPath.startsWith('http://') || mediaPath.startsWith('https://')) {
     return mediaPath;
   }
   
-  // Clean path processing
-  let cleanPath = String(mediaPath).replace(/\\/g, '/').replace(/^\/+/, '');
-  const originalPath = cleanPath;
-  while (cleanPath.includes('uploads/')) {
-    cleanPath = cleanPath.replace('uploads/', '');
-  }
-  
-  // ✅ CRITICAL: Detect if request is from mobile network access
-  const requestHost = req.get('host');
-  const referer = req.get('referer');
-  const isMobileNetworkRequest = requestHost && (
-    requestHost.includes('172.31.180.157') || 
-    requestHost.includes('192.168.') || 
-    requestHost.includes('10.') ||
-    (referer && referer.includes('172.31.180.157'))
-  );
-  
-  let finalUrl;
-  if (isMobileNetworkRequest) {
-    // ✅ MOBILE: Extract network IP from request and use backend port 5000
-    let networkIP = '172.31.180.157'; // Your current network IP
-    
-    // Try to extract IP from host or referer
-    if (requestHost && requestHost.includes(':')) {
-      const hostIP = requestHost.split(':')[0];
-      if (hostIP !== 'localhost' && hostIP !== '127.0.0.1') {
-        networkIP = hostIP;
-      }
+  // Ensure proper path formatting
+  let cleanPath = mediaPath;
+  if (!cleanPath.startsWith('/uploads/')) {
+    if (cleanPath.startsWith('uploads/')) {
+      cleanPath = `/${cleanPath}`;
+    } else {
+      cleanPath = `/uploads/${cleanPath}`;
     }
-    
-    finalUrl = `http://${networkIP}:5000/uploads/${cleanPath}`;
-    console.log('📱 Mobile URL generated:', finalUrl);
-  } else {
-    // ✅ DESKTOP: Use localhost backend
-    finalUrl = `http://localhost:5000/uploads/${cleanPath}`;
-    console.log('💻 Desktop URL generated:', finalUrl);
   }
+  
+  // ✅ PRODUCTION-AWARE URL GENERATION
+  const isProduction = process.env.NODE_ENV === 'production';
+  const BASE_URL = isProduction 
+    ? 'https://samparkwork-backend.onrender.com' 
+    : 'http://localhost:5000';
+  
+  const finalUrl = `${BASE_URL}${cleanPath}`;
+  
+  console.log(`🎬 Generated ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} URL:`, finalUrl);
   
   return finalUrl;
 };
@@ -89,20 +66,17 @@ router.use((req, res, next) => {
     'Pragma': 'no-cache',
     'Expires': '0',
     'X-Mobile-Compatible': 'true',
+    'X-Environment': process.env.NODE_ENV || 'development',
     'X-Timestamp': Date.now().toString()
   });
   next();
 });
 
-// Get all advertisements (public route)
+// ✅ Get all advertisements (public route) - PRODUCTION READY
 router.get('/', async (req, res) => {
   try {
     console.log('📢 GET /api/advertisements - Query params:', req.query);
-    console.log('📢 Request analysis:', {
-      host: req.get('host'),
-      userAgent: req.get('user-agent')?.includes('Mobile') ? 'MOBILE' : 'DESKTOP',
-      referer: req.get('referer')
-    });
+    console.log('📢 Environment:', process.env.NODE_ENV);
     
     const { isActive, placement, featured } = req.query;
     
@@ -116,30 +90,33 @@ router.get('/', async (req, res) => {
     const ads = await Advertisement.find(filter).sort({ createdAt: -1 }).select('-__v');
     console.log(`✅ Found ${ads.length} advertisements in database`);
 
-    // ✅ MOBILE COMPATIBLE: Return ads with proper URLs and no caching
+    // ✅ PRODUCTION COMPATIBLE: Generate proper URLs
     const adsWithUrls = ads.map((ad, index) => {
       const adObj = ad.toObject();
-      const mobileUrl = buildMobileCompatibleUrl(adObj.mediaUrl, req);
+      const mediaUrl = generateMediaUrl(adObj.mediaUrl);
       
-      console.log(`📱 Ad ${index + 1}: "${ad.title}"`);
+      console.log(`🎬 Ad ${index + 1}: "${ad.title}"`);
       console.log(`   Original: ${adObj.mediaUrl}`);
-      console.log(`   Mobile URL: ${mobileUrl}`);
+      console.log(`   Final URL: ${mediaUrl}`);
       
       return {
         ...adObj,
-        mediaUrl: mobileUrl,
-        _timestamp: Date.now(), // Force refresh
-        _mobile: req.get('user-agent')?.includes('Mobile') || false
+        mediaUrl: mediaUrl,
+        _timestamp: Date.now(),
+        _environment: process.env.NODE_ENV || 'development'
       };
     });
 
-    console.log(`📤 Returning ${adsWithUrls.length} advertisements with mobile-compatible URLs`);
+    console.log(`📤 Returning ${adsWithUrls.length} advertisements`);
     
-    // ✅ CRITICAL: Return as plain array (not wrapped object)
+    // Return as array format expected by frontend
     res.json(adsWithUrls);
   } catch (error) {
     console.error('❌ Error fetching advertisements:', error);
-    res.status(500).json({ message: 'Error fetching advertisements', error: error.message });
+    res.status(500).json({ 
+      message: 'Error fetching advertisements', 
+      error: error.message 
+    });
   }
 });
 
@@ -157,7 +134,7 @@ router.get('/:id', async (req, res) => {
 
     const adWithUrl = {
       ...ad.toObject(),
-      mediaUrl: buildMobileCompatibleUrl(ad.mediaUrl, req),
+      mediaUrl: generateMediaUrl(ad.mediaUrl),
       _timestamp: Date.now()
     };
 
@@ -168,10 +145,11 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// ✅ CREATE ADVERTISEMENT
+// ✅ CREATE ADVERTISEMENT - PRODUCTION READY
 router.post('/', protect, isAdmin, uploadAdvertisement.single('media'), async (req, res) => {
   try {
     console.log('📝 POST /api/advertisements - Creating advertisement');
+    console.log('📝 Environment:', process.env.NODE_ENV);
     console.log('📎 File info:', req.file ? {
       filename: req.file.filename,
       mimetype: req.file.mimetype,
@@ -191,7 +169,7 @@ router.post('/', protect, isAdmin, uploadAdvertisement.single('media'), async (r
 
     const mediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
     
-    // ✅ Store clean path in database
+    // ✅ Store RELATIVE path in database (no leading slash)
     const isVideo = req.file.mimetype.startsWith('video/');
     const subfolder = isVideo ? 'videos' : 'images';
     const cleanMediaUrl = `advertisements/${subfolder}/${req.file.filename}`;
@@ -201,7 +179,7 @@ router.post('/', protect, isAdmin, uploadAdvertisement.single('media'), async (r
     const advertisement = new Advertisement({
       title,
       content,
-      mediaUrl: cleanMediaUrl, // Clean path stored
+      mediaUrl: cleanMediaUrl, // Relative path stored
       mediaType,
       targetAudience: targetAudience || 'all',
       link: link || '',
@@ -212,10 +190,10 @@ router.post('/', protect, isAdmin, uploadAdvertisement.single('media'), async (r
 
     const savedAd = await advertisement.save();
     
-    // Return with mobile-compatible URL
+    // Return with production-ready URL
     const responseAd = {
       ...savedAd.toObject(),
-      mediaUrl: buildMobileCompatibleUrl(savedAd.mediaUrl, req),
+      mediaUrl: generateMediaUrl(savedAd.mediaUrl),
       _timestamp: Date.now()
     };
 
@@ -233,10 +211,11 @@ router.post('/', protect, isAdmin, uploadAdvertisement.single('media'), async (r
   }
 });
 
-// ✅ UPDATE ADVERTISEMENT
+// ✅ UPDATE ADVERTISEMENT - PRODUCTION READY
 router.put('/:id', protect, isAdmin, uploadAdvertisement.single('media'), async (req, res) => {
   try {
     console.log('📝 PUT /api/advertisements - Updating:', req.params.id);
+    console.log('📝 Environment:', process.env.NODE_ENV);
 
     const ad = await Advertisement.findById(req.params.id);
     if (!ad) {
@@ -263,11 +242,13 @@ router.put('/:id', protect, isAdmin, uploadAdvertisement.single('media'), async 
         }
       }
       
-      // Store clean path
+      // Store relative path (no leading slash)
       const isVideo = req.file.mimetype.startsWith('video/');
       const subfolder = isVideo ? 'videos' : 'images';
       updateData.mediaUrl = `advertisements/${subfolder}/${req.file.filename}`;
       updateData.mediaType = isVideo ? 'video' : 'image';
+      
+      console.log(`✅ Updated with clean path: ${updateData.mediaUrl}`);
     }
 
     const updatedAd = await Advertisement.findByIdAndUpdate(
@@ -278,7 +259,7 @@ router.put('/:id', protect, isAdmin, uploadAdvertisement.single('media'), async 
 
     const responseAd = {
       ...updatedAd.toObject(),
-      mediaUrl: buildMobileCompatibleUrl(updatedAd.mediaUrl, req),
+      mediaUrl: generateMediaUrl(updatedAd.mediaUrl),
       _timestamp: Date.now()
     };
 
