@@ -1,22 +1,34 @@
 import axios from 'axios';
 
-// ✅ PRODUCTION-READY CONFIGURATION
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://samparkwork-backend.onrender.com';
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'wss://samparkwork-backend.onrender.com';
+// ✅ FIXED: Production-ready configuration with proper fallbacks
+const isDevelopment = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-// ✅ ENVIRONMENT DEBUG (Remove this after testing)
+const API_BASE_URL = isDevelopment 
+  ? 'http://localhost:5000'  // Development
+  : import.meta.env.VITE_API_BASE_URL || 'https://samparkwork-backend.onrender.com'; // Production
+
+const SOCKET_URL = isDevelopment 
+  ? 'ws://localhost:5000'    // Development  
+  : import.meta.env.VITE_SOCKET_URL || 'wss://samparkwork-backend.onrender.com'; // Production
+
+// ✅ ENHANCED DEBUG LOGGING
 console.log('🚀 API Configuration:', {
+  isDevelopment,
+  hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
   apiBaseURL: API_BASE_URL,
   socketURL: SOCKET_URL,
   environment: import.meta.env.VITE_NODE_ENV || 'production',
-  isDevelopment: import.meta.env.DEV,
-  isProduction: import.meta.env.PROD
+  envVars: {
+    VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+    VITE_SOCKET_URL: import.meta.env.VITE_SOCKET_URL,
+  }
 });
 
 // ✅ AXIOS INSTANCE
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // Increased timeout for Render cold starts
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -62,7 +74,7 @@ api.interceptors.response.use(
   }
 );
 
-// ✅ ENHANCED IMAGE URL HELPER
+// ✅ FIXED: Enhanced image URL helper with proper environment detection
 export const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
   
@@ -75,11 +87,16 @@ export const getImageUrl = (imagePath) => {
   const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
   const finalUrl = `${API_BASE_URL}/${cleanPath}`;
   
-  console.log('🖼️ getImageUrl:', { originalPath: imagePath, finalUrl });
+  console.log('🖼️ getImageUrl:', { 
+    originalPath: imagePath, 
+    finalUrl,
+    isDevelopment,
+    hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown'
+  });
   return finalUrl;
 };
 
-// ✅ ENHANCED MEDIA URL HELPER
+// ✅ FIXED: Enhanced media URL helper with proper environment detection
 export const getMediaUrl = (mediaPath) => {
   if (!mediaPath) return null;
   
@@ -92,11 +109,17 @@ export const getMediaUrl = (mediaPath) => {
   const cleanPath = mediaPath.startsWith('/') ? mediaPath.substring(1) : mediaPath;
   const finalUrl = `${API_BASE_URL}/${cleanPath}`;
   
-  console.log('🎥 getMediaUrl:', { originalPath: mediaPath, finalUrl });
+  console.log('🎥 getMediaUrl:', { 
+    originalPath: mediaPath, 
+    finalUrl,
+    isDevelopment,
+    hostname: typeof window !== 'undefined' ? window.location.hostname : 'unknown',
+    API_BASE_URL
+  });
   return finalUrl;
 };
 
-// ✅ NETWORK INFO HELPER
+// ✅ ENHANCED NETWORK INFO HELPER
 export const getNetworkInfo = () => {
   const hostname = window.location.hostname;
   const port = window.location.port;
@@ -106,6 +129,7 @@ export const getNetworkInfo = () => {
     hostname,
     port,
     protocol,
+    isDevelopment,
     isMobile: hostname !== 'localhost' && hostname !== '127.0.0.1',
     baseUrl: `${protocol}//${hostname}${port ? ':' + port : ''}`,
     apiBaseUrl: API_BASE_URL,
