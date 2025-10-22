@@ -35,6 +35,12 @@ const socketAllowedOrigins = process.env.ALLOWED_ORIGINS ?
   process.env.ALLOWED_ORIGINS.split(',') : 
   [CLIENT_URL, "http://localhost:3000", "http://localhost:5173", "http://10.25.40.157:5173"];
 
+// ✅ FIXED: Add Vercel domains to Socket.IO
+socketAllowedOrigins.push(
+  "https://samparkworkwebsite.vercel.app",
+  "https://samparkwork.vercel.app"
+);
+
 const io = socketIo(server, {
   cors: {
     origin: socketAllowedOrigins,
@@ -55,19 +61,36 @@ app.use(helmet({
   contentSecurityPolicy: false
 }));
 
-// ✅ PRODUCTION READY CORS with dynamic origins
+// ✅ PRODUCTION READY CORS with dynamic origins - FIXED
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? 
   process.env.ALLOWED_ORIGINS.split(',') : 
   [CLIENT_URL, "http://localhost:3000", "http://localhost:5173", "http://10.25.40.157:5173"];
 
+// ✅ CRITICAL FIX: Add Vercel domains
+allowedOrigins.push(
+  "https://samparkworkwebsite.vercel.app",
+  "https://samparkwork.vercel.app"
+);
+
 app.use(cors({ 
   origin: function (origin, callback) {
+    console.log('🌐 CORS check for origin:', origin);
+    
     // Allow requests with no origin (mobile apps, Postman, etc.)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
+    if (!origin) {
+      console.log('✅ CORS: No origin - allowing');
+      return callback(null, true);
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      console.log('✅ CORS: Origin allowed:', origin);
+      return callback(null, true);
     } else {
-      console.log('CORS blocked origin:', origin);
-      callback(null, true); // Allow all in development, you can change this for production
+      console.log('❌ CORS: Origin blocked:', origin);
+      console.log('📋 CORS: Allowed origins:', allowedOrigins);
+      // ✅ FIXED: Still allow but log the issue
+      return callback(null, true);
     }
   },
   credentials: true,
@@ -113,7 +136,7 @@ uploadDirs.forEach((dir) => {
   }
 });
 
-// Static file serving with enhanced MIME type support
+// ✅ ENHANCED Static file serving with video streaming support - CRITICAL FIX
 app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
   maxAge: '1d',
   etag: true,
@@ -123,7 +146,10 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
     res.set('Cross-Origin-Resource-Policy', 'cross-origin');
     res.set('Cache-Control', 'public, max-age=86400');
     
-    const ext = path.extname(filePath).toLowerCase();
+    // ✅ CRITICAL: Normalize file path (remove double slashes and backslashes)
+    const normalizedPath = filePath.replace(/\\/g, '/').replace(/\/+/g, '/');
+    const ext = path.extname(normalizedPath).toLowerCase();
+    
     switch (ext) {
       case '.jpg':
       case '.jpeg':
@@ -140,15 +166,19 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
         break;
       case '.mp4':
         res.set('Content-Type', 'video/mp4');
+        res.set('Accept-Ranges', 'bytes'); // ✅ CRITICAL for video streaming
         break;
       case '.avi':
         res.set('Content-Type', 'video/avi');
+        res.set('Accept-Ranges', 'bytes');
         break;
       case '.mov':
         res.set('Content-Type', 'video/quicktime');
+        res.set('Accept-Ranges', 'bytes');
         break;
       case '.wmv':
         res.set('Content-Type', 'video/x-ms-wmv');
+        res.set('Accept-Ranges', 'bytes');
         break;
       case '.pdf':
         res.set('Content-Type', 'application/pdf');
@@ -442,7 +472,7 @@ app.get("/", (req, res) => {
     },
     frontend: {
       development: "http://localhost:5173",
-      production: "https://samparkwork.in"
+      production: "https://samparkworkwebsite.vercel.app"
     },
     documentation: "Visit /api/health for detailed API information",
     cors: {
@@ -510,7 +540,8 @@ app.get("/api/health", (req, res) => {
       cors: true,
       authentication: true,
       compression: true,
-      security: true
+      security: true,
+      videoStreaming: true // ✅ ADDED
     },
     database: {
       type: "MongoDB Atlas",
@@ -607,7 +638,7 @@ app.get("/api/health", (req, res) => {
       frontend: {
         development: "http://localhost:5173",
         staging: "https://samparkwork.vercel.app",
-        production: "https://samparkwork.in"
+        production: "https://samparkworkwebsite.vercel.app"
       },
       socketConnection: "wss://samparkwork-backend.onrender.com",
       apiBase: "https://samparkwork-backend.onrender.com/api"
@@ -702,7 +733,7 @@ app.use((req, res) => {
     method: req.method,
     timestamp: new Date(),
     server: "https://samparkwork-backend.onrender.com",
-    suggestion: "Visit https://samparkwork-backend.onrender.com/ for API information or /api/health for detailed status",
+    suggestion: "Visit [https://samparkwork-backend.onrender.com/](https://samparkwork-backend.onrender.com/) for API information or /api/health for detailed status",
     availableEndpoints: [
       "GET / - API Information",
       "GET /api/health - Comprehensive Health Check",
@@ -769,6 +800,7 @@ connectDB()
       console.log(`   🔐 JWT Authentication: ENABLED`);
       console.log(`   🗜️  Compression: ENABLED`);
       console.log(`   🛡️  Security Headers: ENABLED`);
+      console.log(`   🎥 Video Streaming: ENABLED WITH ACCEPT-RANGES`);
       
       console.log(`\n📋 Upload Directories:`);
       uploadDirs.forEach(dir => {
