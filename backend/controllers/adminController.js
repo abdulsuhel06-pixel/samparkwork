@@ -5,7 +5,7 @@ const Category = require("../models/Category");
 const path = require("path");
 const fs = require("fs");
 
-// ✅ PRODUCTION-READY: Smart media URL generation
+// ✅ FIXED: Production-ready media URL generation with proper HTTPS
 const generateMediaUrl = (mediaPath) => {
   if (!mediaPath) return null;
   
@@ -17,23 +17,25 @@ const generateMediaUrl = (mediaPath) => {
     return mediaPath;
   }
   
-  // Ensure proper path formatting
+  // Ensure proper path formatting - FIXED: Remove duplicate uploads
   let cleanPath = mediaPath;
-  if (!cleanPath.startsWith('/uploads/')) {
-    if (cleanPath.startsWith('uploads/')) {
-      cleanPath = `/${cleanPath}`;
-    } else {
-      cleanPath = `/uploads/${cleanPath}`;
-    }
+  
+  // Remove any leading slashes first
+  cleanPath = cleanPath.replace(/^\/+/, '');
+  
+  // Ensure it starts with uploads/ (no leading slash in the relative path)
+  if (!cleanPath.startsWith('uploads/')) {
+    cleanPath = `uploads/${cleanPath}`;
   }
   
-  // ✅ PRODUCTION-AWARE URL GENERATION
+  // ✅ FIXED: Always use HTTPS in production for mixed content fix
   const isProduction = process.env.NODE_ENV === 'production';
   const BASE_URL = isProduction 
     ? 'https://samparkwork-backend.onrender.com' 
     : 'http://localhost:5000';
   
-  const finalUrl = `${BASE_URL}${cleanPath}`;
+  // Add leading slash for URL construction
+  const finalUrl = `${BASE_URL}/${cleanPath}`;
   
   console.log(`🎬 Generated ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} URL:`, finalUrl);
   
@@ -219,74 +221,108 @@ const deleteJob = async (req, res) => {
   }
 };
 
-// ================= Advertisement Management =================
+// ================= FIXED: Advertisement Management =================
+
+// ✅ FIXED: GET ADVERTISEMENTS - Proper response format
 const getAdvertisements = async (req, res) => {
   try {
-    console.log('📺 Fetching advertisements for admin dashboard...');
+    console.log('📺 Admin fetching advertisements list...');
     console.log('📺 Environment:', process.env.NODE_ENV);
     
     const advertisements = await Advertisement.find({}).sort({ createdAt: -1 });
     
-    console.log(`✅ Retrieved ${advertisements.length} advertisements for admin`);
+    console.log(`✅ Found ${advertisements.length} advertisements in database`);
     
-    // ✅ Generate proper media URLs for each advertisement
-    const advertisementsWithUrls = advertisements.map(ad => {
+    // ✅ Generate proper media URLs for each advertisement  
+    const advertisementsWithUrls = advertisements.map((ad, index) => {
       const adObj = ad.toObject();
+      const mediaUrl = generateMediaUrl(adObj.mediaUrl);
+      
+      console.log(`🎬 Ad ${index + 1}: "${ad.title}"`);
+      console.log(`   Original: ${adObj.mediaUrl}`);
+      console.log(`   Final URL: ${mediaUrl}`);
+      
       return {
         ...adObj,
-        mediaUrl: generateMediaUrl(adObj.mediaUrl),
+        mediaUrl: mediaUrl,
         _timestamp: Date.now(),
         _environment: process.env.NODE_ENV || 'development'
       };
     });
     
+    // ✅ CRITICAL FIX: Return in format expected by AdminDashboard
+    console.log(`📤 Returning ${advertisementsWithUrls.length} advertisements`);
+    
     res.json({
       success: true,
       count: advertisementsWithUrls.length,
-      advertisements: advertisementsWithUrls,
+      advertisements: advertisementsWithUrls, // This is what frontend expects
       environment: process.env.NODE_ENV || 'development'
     });
   } catch (error) {
     console.error('❌ Error fetching advertisements:', error);
     res.status(500).json({ 
+      success: false,
       message: "Error fetching advertisements", 
       error: error.message 
     });
   }
 };
 
-// ✅ CREATE ADVERTISEMENT - PRODUCTION READY
+// ✅ FIXED: CREATE ADVERTISEMENT - Proper file handling
 const createAdvertisement = async (req, res) => {
   try {
     console.log('📺 Admin creating new advertisement...');
     console.log('📺 Environment:', process.env.NODE_ENV);
+    console.log('📎 File info:', req.file ? {
+      filename: req.file.filename,
+      mimetype: req.file.mimetype,
+      destination: req.file.destination,
+      path: req.file.path
+    } : 'No file uploaded');
+
+    // ✅ CRITICAL FIX: Require media file
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Media file is required' 
+      });
+    }
 
     const { title, content, placement, isActive, link, featured } = req.body;
 
-    let mediaUrl = null;
-    let mediaType = 'image';
-
-    if (req.file) {
-      // ✅ Store RELATIVE path in database (no leading slash)
-      const isVideo = req.file.mimetype.startsWith('video/');
-      const subfolder = isVideo ? 'videos' : 'images';
-      
-      // Store path as: advertisements/{videos|images}/filename
-      mediaUrl = `advertisements/${subfolder}/${req.file.filename}`;
-      mediaType = isVideo ? 'video' : 'image';
-      
-      console.log('✅ Admin storing clean media path:', mediaUrl);
+    // ✅ CRITICAL FIX: Validate required fields
+    if (!title || !content) {
+      // Clean up uploaded file if validation fails
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(400).json({ 
+        success: false,
+        message: 'Title and content are required' 
+      });
     }
+
+    // ✅ FIXED: Store clean relative path without double uploads/
+    const isVideo = req.file.mimetype.startsWith('video/');
+    const subfolder = isVideo ? 'videos' : 'images';
+    
+    // Store path as: advertisements/videos/filename or advertisements/images/filename
+    const cleanMediaUrl = `advertisements/${subfolder}/${req.file.filename}`;
+    const mediaType = isVideo ? 'video' : 'image';
+    
+    console.log('✅ Admin storing clean media path:', cleanMediaUrl);
 
     const advertisement = new Advertisement({
       title,
       content,
-      mediaUrl: mediaUrl, // Relative path stored
+      mediaUrl: cleanMediaUrl, // Clean relative path
       mediaType: mediaType,
       placement: placement || 'homepage',
       isActive: isActive === "true" || isActive === true,
       link: link || '',
-      featured: featured === "true" || featured === true
+      featured: featured === "true" || featured === true,
+      targetAudience: 'all' // Default value
     });
 
     const createdAd = await advertisement.save();
@@ -306,29 +342,50 @@ const createAdvertisement = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error creating advertisement:', error);
+    
+    // ✅ CRITICAL: Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+        console.log('🧹 Cleaned up uploaded file after error');
+      } catch (cleanupError) {
+        console.error('❌ File cleanup error:', cleanupError);
+      }
+    }
+    
     res.status(500).json({ 
+      success: false,
       message: "Error creating advertisement", 
       error: error.message 
     });
   }
 };
 
-// ✅ UPDATE ADVERTISEMENT - PRODUCTION READY
+// ✅ FIXED: UPDATE ADVERTISEMENT - Better error handling
 const updateAdvertisement = async (req, res) => {
   try {
     console.log('📺 Admin updating advertisement:', req.params.id);
     console.log('📺 Environment:', process.env.NODE_ENV);
+    console.log('📁 New file uploaded:', req.file ? req.file.filename : 'No file');
     
     const { title, content, isActive, link, featured } = req.body;
     const advertisement = await Advertisement.findById(req.params.id);
 
     if (!advertisement) {
-      return res.status(404).json({ message: "Advertisement not found" });
+      // Clean up uploaded file if ad not found
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({ 
+        success: false,
+        message: "Advertisement not found" 
+      });
     }
 
-    advertisement.title = title || advertisement.title;
-    advertisement.content = content || advertisement.content;
-    advertisement.link = link || advertisement.link;
+    // Update text fields
+    if (title) advertisement.title = title;
+    if (content) advertisement.content = content;
+    if (link !== undefined) advertisement.link = link;
     
     if (isActive !== undefined) {
       advertisement.isActive = isActive === "true" || isActive === true;
@@ -338,16 +395,18 @@ const updateAdvertisement = async (req, res) => {
       advertisement.featured = featured === "true" || featured === true;
     }
 
+    // ✅ FIXED: Handle new media file upload
     if (req.file) {
-      // Delete old file
+      // Delete old media file
       if (advertisement.mediaUrl) {
         const oldFilePath = path.join(__dirname, '../uploads', advertisement.mediaUrl);
         if (fs.existsSync(oldFilePath)) {
           fs.unlinkSync(oldFilePath);
+          console.log('🗑️ Deleted old media file:', oldFilePath);
         }
       }
       
-      // ✅ Store RELATIVE path in database (no leading slash)
+      // Store new clean relative path
       const isVideo = req.file.mimetype.startsWith('video/');
       const subfolder = isVideo ? 'videos' : 'images';
       
@@ -374,14 +433,26 @@ const updateAdvertisement = async (req, res) => {
     });
   } catch (error) {
     console.error('❌ Error updating advertisement:', error);
+    
+    // Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+        console.log('🧹 Cleaned up uploaded file after error');
+      } catch (cleanupError) {
+        console.error('❌ File cleanup error:', cleanupError);
+      }
+    }
+    
     res.status(500).json({ 
+      success: false,
       message: "Error updating advertisement", 
       error: error.message 
     });
   }
 };
 
-// Delete advertisement
+// ✅ FIXED: DELETE ADVERTISEMENT - Better file cleanup
 const deleteAdvertisement = async (req, res) => {
   try {
     console.log('🗑️ Admin deleting advertisement:', req.params.id);
@@ -389,7 +460,10 @@ const deleteAdvertisement = async (req, res) => {
     const advertisement = await Advertisement.findById(req.params.id);
     
     if (!advertisement) {
-      return res.status(404).json({ message: "Advertisement not found" });
+      return res.status(404).json({ 
+        success: false,
+        message: "Advertisement not found" 
+      });
     }
 
     // Delete media file
@@ -397,6 +471,7 @@ const deleteAdvertisement = async (req, res) => {
       const filePath = path.join(__dirname, '../uploads', advertisement.mediaUrl);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
+        console.log('🗑️ Deleted media file:', filePath);
       }
     }
 
@@ -410,6 +485,7 @@ const deleteAdvertisement = async (req, res) => {
   } catch (error) {
     console.error('❌ Error deleting advertisement:', error);
     res.status(500).json({ 
+      success: false,
       message: "Error deleting advertisement", 
       error: error.message 
     });
