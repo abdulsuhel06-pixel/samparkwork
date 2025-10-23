@@ -916,5 +916,5 @@ const PostJob = () => {
     </div>
   );
 };
-
+ {/* Export the page to the main route*/}
 export default PostJob;
