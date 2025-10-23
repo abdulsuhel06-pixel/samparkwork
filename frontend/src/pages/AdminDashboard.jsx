@@ -130,29 +130,29 @@ const AdminDashboard = () => {
     };
   }, []);
 
-  // ✅ SIMPLIFIED: Use imageUrl from backend if available, fallback to constructing URL
-  const getImageUrl = (category) => {
-    // First, try to use imageUrl provided by backend
-    if (category.imageUrl) {
-      console.log('🖼️ Using backend imageUrl:', category.imageUrl);
-      return category.imageUrl;
+  // ✅ ENHANCED: Get media URL for advertisements 
+  const getImageUrl = (ad) => {
+    // For advertisements, check mediaUrl
+    if (ad.mediaUrl) {
+      console.log('🎬 Using advertisement mediaUrl:', ad.mediaUrl);
+      return ad.mediaUrl;
     }
     
-    // Fallback: construct URL from image path
-    if (category.image) {
+    // Fallback: construct URL from media path
+    if (ad.media) {
       const baseUrl = 'http://10.25.40.157:5000';
-      let imageUrl;
+      let mediaUrl;
       
-      if (category.image.startsWith('http')) {
-        imageUrl = category.image;
-      } else if (category.image.startsWith('/uploads/')) {
-        imageUrl = `${baseUrl}${category.image}`;
+      if (ad.media.startsWith('http')) {
+        mediaUrl = ad.media;
+      } else if (ad.media.startsWith('/uploads/')) {
+        mediaUrl = `${baseUrl}${ad.media}`;
       } else {
-        imageUrl = `${baseUrl}/uploads/categories/${category.image}`;
+        mediaUrl = `${baseUrl}/uploads/advertisements/${ad.media}`;
       }
       
-      console.log('🖼️ Constructed imageUrl:', { original: category.image, final: imageUrl });
-      return imageUrl;
+      console.log('🎬 Constructed mediaUrl:', { original: ad.media, final: mediaUrl });
+      return mediaUrl;
     }
     
     return null;
@@ -308,13 +308,30 @@ const AdminDashboard = () => {
     }
   };
 
+  // 🚨 FIXED: Advertisement fetching function
   const fetchAds = async () => {
     try {
       setLoadingState('ads', true);
+      console.log('📺 Fetching advertisements from admin API...');
+      
       const { data } = await api.get("/api/admin/advertisements");
-      setAds(Array.isArray(data) ? data : []);
+      console.log('📺 Raw response:', data);
+      
+      // ✅ CRITICAL FIX: Use data.advertisements instead of data directly
+      if (data && data.success && Array.isArray(data.advertisements)) {
+        console.log(`✅ Found ${data.advertisements.length} advertisements`);
+        setAds(data.advertisements);
+      } else if (Array.isArray(data)) {
+        // Fallback: in case backend returns array directly  
+        console.log(`✅ Fallback: Found ${data.length} advertisements`);
+        setAds(data);
+      } else {
+        console.warn('⚠️ Unexpected response format:', data);
+        setAds([]);
+      }
     } catch (error) {
-      console.error("Error fetching advertisements:", error);
+      console.error("❌ Error fetching advertisements:", error);
+      console.error("❌ Error details:", error.response?.data);
       setAds([]);
     } finally {
       setLoadingState('ads', false);
