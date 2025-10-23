@@ -491,7 +491,7 @@ const deleteAdvertisement = async (req, res) => {
     });
   }
 };
-
+//export all modules
 module.exports = {
   getDashboardStats,
   getUsers,
