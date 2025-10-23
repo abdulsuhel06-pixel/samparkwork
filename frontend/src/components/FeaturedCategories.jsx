@@ -11,12 +11,12 @@ const FeaturedCategories = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // ✅ FIXED: Default to 'Jewellery' instead of 'All'
-  const [selectedIndustry, setSelectedIndustry] = useState('Jewellery');
+  // ✅ CHANGED: Default to 'Textile' instead of 'Jewellery' for attractive first impression
+  const [selectedIndustry, setSelectedIndustry] = useState('Textile');
   const [filterLoading, setFilterLoading] = useState(false);
 
-  // ✅ FIXED: Only Jewellery and Textile (no 'All')
-  const industries = ['Jewellery', 'Textile'];
+  // ✅ REORDERED: Textile first, then Jewellery
+  const industries = ['Textile', 'Jewellery'];
 
   useEffect(() => {
     fetchCategories();
@@ -121,9 +121,9 @@ const FeaturedCategories = () => {
     setSelectedIndustry(industry);
   };
 
-  // ✅ NEW: Handle VIEW button click - Navigate to FindJobs with category filter
-  const handleViewCategory = (category) => {
-    console.log("🎯 [FeaturedCategories] VIEW clicked for category:", category.name);
+  // ✅ ENHANCED: Handle card click - Navigate to FindJobs with category filter
+  const handleCardClick = (category) => {
+    console.log("🎯 [FeaturedCategories] Card clicked for category:", category.name);
     
     // Create URL parameters for category filtering
     const params = new URLSearchParams({
@@ -265,11 +265,11 @@ const FeaturedCategories = () => {
   return (
     <section className="featured-categories-section">
       <div className="featured-container">
-        {/* Simple Clean Header with Industry Filter */}
+        {/* ✅ CLEAN: Simple Header with Industry Filter */}
         <div className="featured-simple-header">
           <h2 className="featured-section-title">Popular Categories</h2>
           
-          {/* ✅ FIXED: Industry Filter Buttons */}
+          {/* ✅ UPDATED: Textile first in filter buttons */}
           <div className="featured-industry-filter">
             {industries.map((industry) => (
               <button
@@ -289,20 +289,10 @@ const FeaturedCategories = () => {
               </button>
             ))}
           </div>
-          
-          {/* ✅ FIXED: Results count and current filter indicator */}
-          <div className="featured-filter-info">
-            <span className="featured-results-count">
-              {categories.length} {selectedIndustry} categories found
-            </span>
-            <small className="network-status">
-              {getNetworkInfo().isMobile ? '📱' : '💻'}
-            </small>
-          </div>
         </div>
 
-        {/* Professional Full-Image Categories Grid */}
-        <div className={`featured-categories-grid ${filterLoading ? 'filtering' : ''}`}>
+        {/* ✅ CLEAN: No Hover Effects Categories Grid */}
+        <div className={`featured-categories-grid no-hover ${filterLoading ? 'filtering' : ''}`}>
           {categories.map((category, index) => {
             const categoryId = category._id || category.id || index;
             const categorySlug = category.slug || 
@@ -321,16 +311,25 @@ const FeaturedCategories = () => {
             return (
               <div 
                 key={categoryId} 
-                className="featured-category-card"
+                className="featured-category-card no-hover-card"
                 style={{
                   backgroundImage: fullImageUrl ? 
-                    `linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 100%), url(${fullImageUrl})` : 
+                    `linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 100%), url(${fullImageUrl})` : 
                     'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat'
                 }}
-                onClick={() => handleViewCategory(category)}
+                onClick={() => handleCardClick(category)}
+                role="button"
+                tabIndex={0}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleCardClick(category);
+                  }
+                }}
+                aria-label={`View jobs in ${category.name} category`}
               >
                 {/* Fallback for No Image */}
                 {!fullImageUrl && (
@@ -341,29 +340,26 @@ const FeaturedCategories = () => {
                   </div>
                 )}
 
-                {/* Clean Content Overlay - Positioned at Bottom */}
-                <div className="featured-category-content-overlay">
+                {/* ✅ CLEAN: Simple Content Overlay - No Hover Effects */}
+                <div className="featured-category-content-overlay clean-no-hover">
                   {/* Category Title */}
-                  <h3 className="featured-category-title">
+                  <h3 className="featured-category-title simple-title">
                     {category.name || 'Unnamed Category'}
                   </h3>
                   
                   {/* Category Description */}
-                  <p className="featured-category-description">
+                  <p className="featured-category-description simple-description">
                     {category.description || "Discover top professionals in this category"}
                   </p>
 
-                  {/* ✅ ENHANCED: Professional View Button with jobs navigation */}
-                  <button 
-                    className="featured-category-view-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewCategory(category);
-                    }}
-                  >
-                    VIEW JOBS
-                  </button>
+                  {/* ✅ CLEAN: Simple touch indicator */}
+                  <div className="touch-indicator simple-touch">
+                    <span className="tap-text">Tap to explore</span>
+                    <div className="tap-arrow">→</div>
+                  </div>
                 </div>
+
+                {/* ✅ REMOVED: No hover overlay at all */}
               </div>
             );
           })}
@@ -372,7 +368,7 @@ const FeaturedCategories = () => {
         {/* View All Section */}
         <div className="featured-view-all-section">
           <button 
-            className="featured-view-all-button"
+            className="featured-view-all-button simple-button"
             onClick={() => navigate('/find-jobs')}
           >
             View All Jobs

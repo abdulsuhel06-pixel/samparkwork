@@ -1,5 +1,6 @@
 /* ===== MODERN HERO SECTION - 2025 PROFESSIONAL DESIGN (SEARCH REMOVED) ===== */
 
+
 /* ===== MOBILE-FIRST BASE STYLES ===== */
 .modern-hero-section {
   position: relative;
@@ -11,9 +12,14 @@
   background: #000;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   
+  /* ✅ CRITICAL FIX: Higher z-index to prevent advertisement overlay */
+  z-index: 100;
+  isolation: isolate;
+  
   /* ✅ MOBILE NAVBAR COMPENSATION */
   padding-top: 80px; /* 60px navbar + 20px breathing room */
 }
+
 
 /* ===== PROFESSIONAL BACKGROUND SYSTEM ===== */
 .modern-hero-section .hero-background-container {
@@ -21,6 +27,7 @@
   inset: 0;
   z-index: 1;
 }
+
 
 .modern-hero-section .hero-background-image {
   width: 100%;
@@ -30,6 +37,7 @@
   filter: brightness(0.7) contrast(1.2) saturate(1.1);
   transition: all 0.4s ease;
 }
+
 
 .modern-hero-section .hero-background-overlay {
   position: absolute;
@@ -44,10 +52,11 @@
   z-index: 2;
 }
 
+
 /* ===== MODERN CONTENT STRUCTURE (CENTERED LAYOUT) ===== */
 .modern-hero-section .hero-content-wrapper {
   position: relative;
-  z-index: 3;
+  z-index: 10; /* ✅ CRITICAL FIX: Higher z-index for content */
   width: 100%;
   min-height: calc(100vh - 80px); /* Adjust for mobile navbar */
   display: flex;
@@ -55,6 +64,7 @@
   justify-content: center;
   padding: 3rem 0; /* ✅ INCREASED: More padding without search section */
 }
+
 
 .modern-hero-section .hero-content-container {
   width: 100%;
@@ -65,13 +75,19 @@
   align-items: center;
   text-align: center;
   gap: 3rem; /* ✅ INCREASED: More spacing between sections */
+  position: relative;
+  z-index: 15; /* ✅ CRITICAL FIX: Highest z-index for text content */
 }
+
 
 /* ===== ENHANCED TYPOGRAPHY SYSTEM ===== */
 .modern-hero-section .hero-header {
   text-align: center;
   max-width: 100%;
+  position: relative;
+  z-index: 20; /* ✅ CRITICAL FIX: Maximum z-index for headers */
 }
+
 
 .modern-hero-section .hero-main-title {
   font-size: clamp(2.2rem, 5.5vw, 3rem);
@@ -81,7 +97,10 @@
   margin-bottom: 1.5rem; /* ✅ INCREASED: More space below title */
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
   letter-spacing: -0.02em;
+  position: relative;
+  z-index: 25; /* ✅ CRITICAL FIX: Ensure title always on top */
 }
+
 
 .modern-hero-section .title-accent {
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF6B35 100%);
@@ -90,7 +109,9 @@
   background-clip: text;
   position: relative;
   display: inline-block;
+  z-index: 30; /* ✅ CRITICAL FIX: Accent text highest priority */
 }
+
 
 .modern-hero-section .title-accent::after {
   content: '';
@@ -105,6 +126,7 @@
   animation: heroGlow 3s ease-in-out infinite alternate;
 }
 
+
 @keyframes heroGlow {
   0% {
     opacity: 0.7;
@@ -116,6 +138,7 @@
   }
 }
 
+
 .modern-hero-section .hero-description {
   font-size: clamp(1rem, 2.8vw, 1.2rem);
   color: rgba(255, 255, 255, 0.9);
@@ -125,7 +148,10 @@
   font-weight: 400;
   max-width: 600px;
   margin: 0 auto;
+  position: relative;
+  z-index: 20; /* ✅ CRITICAL FIX: Description protected from overlap */
 }
+
 
 /* ===== ENHANCED PRIMARY CTA SYSTEM (CENTERED & PROMINENT) ===== */
 .modern-hero-section .hero-actions {
@@ -134,7 +160,10 @@
   align-items: center;
   gap: 2rem; /* ✅ INCREASED: More spacing between elements */
   margin-top: 1rem; /* ✅ ADDED: Extra top margin */
+  position: relative;
+  z-index: 20; /* ✅ CRITICAL FIX: Actions protected from overlap */
 }
+
 
 .modern-hero-section .primary-cta {
   display: flex;
@@ -154,7 +183,10 @@
   box-shadow: 0 10px 35px rgba(255, 215, 0, 0.4); /* ✅ ENHANCED: Bigger shadow */
   min-width: 220px;
   transform: translateY(0); /* ✅ ADDED: Base transform for hover effect */
+  position: relative;
+  z-index: 25; /* ✅ CRITICAL FIX: CTA button highest priority */
 }
+
 
 .modern-hero-section .primary-cta:hover {
   transform: translateY(-4px); /* ✅ INCREASED: More pronounced hover effect */
@@ -162,16 +194,21 @@
   background: linear-gradient(135deg, #FFE55C 0%, #FFB84D 100%); /* ✅ ADDED: Hover gradient */
 }
 
+
 .modern-hero-section .cta-icon {
   font-size: 1.3rem; /* ✅ INCREASED: Larger icon */
 }
+
 
 /* Subtle Secondary Actions */
 .modern-hero-section .secondary-actions {
   display: flex;
   align-items: center;
   gap: 1.5rem; /* ✅ INCREASED: More spacing */
+  position: relative;
+  z-index: 20; /* ✅ CRITICAL FIX: Secondary actions protected */
 }
+
 
 .modern-hero-section .secondary-link {
   color: rgba(255, 255, 255, 0.8);
@@ -180,12 +217,15 @@
   text-decoration: none;
   transition: all 0.3s ease;
   position: relative;
+  z-index: 25; /* ✅ CRITICAL FIX: Links protected from overlay */
 }
+
 
 .modern-hero-section .secondary-link:hover {
   color: #FFD700;
   transform: translateY(-1px);
 }
+
 
 /* ✅ ADDED: Underline effect for secondary links */
 .modern-hero-section .secondary-link::after {
@@ -200,15 +240,18 @@
   transform: translateX(-50%);
 }
 
+
 .modern-hero-section .secondary-link:hover::after {
   width: 100%;
 }
+
 
 .modern-hero-section .divider {
   color: rgba(255, 255, 255, 0.4);
   font-weight: 300;
   font-size: 1.2rem; /* ✅ INCREASED: Larger divider */
 }
+
 
 /* ===== DESKTOP OPTIMIZATIONS ===== */
 @media (min-width: 769px) {
@@ -262,6 +305,7 @@
   }
 }
 
+
 /* ===== MOBILE-SPECIFIC OPTIMIZATIONS ===== */
 @media (max-width: 768px) {
   /* ✅ ENHANCED MOBILE SPACING */
@@ -293,6 +337,7 @@
     max-width: 300px; /* ✅ ADDED: But limit max width */
   }
 }
+
 
 @media (max-width: 480px) {
   /* ✅ SMALL MOBILE OPTIMIZATIONS */
@@ -330,6 +375,7 @@
   }
 }
 
+
 @media (max-width: 380px) {
   /* ✅ EXTRA SMALL MOBILE */
   .modern-hero-section {
@@ -350,6 +396,7 @@
     font-size: 0.95rem;
   }
 }
+
 
 /* Large desktop enhancements */
 @media (min-width: 1200px) {
@@ -381,14 +428,17 @@
   }
 }
 
+
 /* ===== PERFORMANCE & ACCESSIBILITY ===== */
 .modern-hero-section .hero-background-image {
   will-change: transform;
 }
 
+
 .modern-hero-section .primary-cta {
   will-change: transform;
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -400,18 +450,22 @@
   }
 }
 
+
 /* ===== DEVICE-SPECIFIC CLASSES ===== */
 .modern-hero-section.mobile-hero .hero-main-title {
   line-height: 1.25;
 }
 
+
 .modern-hero-section.desktop-hero .hero-main-title {
   line-height: 1.1;
 }
 
+
 .modern-hero-section.tablet-hero .hero-main-title {
   line-height: 1.2;
 }
+
 
 /* Dark mode compatibility */
 @media (prefers-color-scheme: dark) {
@@ -425,6 +479,7 @@
     );
   }
 }
+
 
 /* ===== CRITICAL: MOBILE NAVBAR COMPENSATION ===== */
 @media (max-width: 768px) {
@@ -440,6 +495,7 @@
   }
 }
 
+
 /* ===== LANDSCAPE MOBILE FIX ===== */
 @media (max-width: 768px) and (orientation: landscape) {
   .modern-hero-section {
@@ -452,12 +508,14 @@
   }
 }
 
+
 /* ===== FOCUS STYLES FOR ACCESSIBILITY ===== */
 .modern-hero-section .primary-cta:focus,
 .modern-hero-section .secondary-link:focus {
   outline: 2px solid #FFD700;
   outline-offset: 2px;
 }
+
 
 /* ✅ ADDED: Subtle pulse animation for CTA */
 @keyframes ctaPulse {
@@ -469,9 +527,11 @@
   }
 }
 
+
 .modern-hero-section .primary-cta {
   animation: ctaPulse 4s ease-in-out infinite;
 }
+
 
 .modern-hero-section .primary-cta:hover {
   animation: none; /* ✅ ADDED: Stop pulse on hover */
