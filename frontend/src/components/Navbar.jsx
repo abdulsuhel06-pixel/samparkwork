@@ -457,7 +457,7 @@ const Navbar = () => {
         onLoginClick={handleLoginFromModal}
       />
 
-      {/* ✅ DESKTOP NAV (Enhanced with proper dropdown) */}
+      {/* ✅ DESKTOP NAV (FIXED: Shows both Login and Signup buttons) */}
       <nav className="desktop-navbar">
         <div className="navbar-container">
           <Link to="/" className="navbar-brand">
@@ -467,11 +467,11 @@ const Navbar = () => {
 
           <div className="navbar-center-nav">
             <ul className="navbar-nav-horizontal">
-              <li><NavLink to="/" className="nav-link-horizontal"><i className="fas fa-home nav-icon"></i><span>Home</span></NavLink></li>
-              <li><NavLink to="/find-jobs" className="nav-link-horizontal"><i className="fas fa-briefcase nav-icon"></i><span>Find Jobs</span></NavLink></li>
-              <li><NavLink to="/find-talents" className="nav-link-horizontal"><i className="fas fa-users nav-icon"></i><span>Find Talents</span></NavLink></li>
-              <li><NavLink to="/categories" className="nav-link-horizontal"><i className="fas fa-th-large nav-icon"></i><span>Categories</span></NavLink></li>
-              <li><NavLink to="/about" className="nav-link-horizontal"><i className="fas fa-info-circle nav-icon"></i><span>About</span></NavLink></li>
+              <li><NavLink to="/" className="nav-link-horizontal text-black"><i className="fas fa-home nav-icon text-black"></i><span>Home</span></NavLink></li>
+              <li><NavLink to="/find-jobs" className="nav-link-horizontal text-black"><i className="fas fa-briefcase nav-icon text-black"></i><span>Find Jobs</span></NavLink></li>
+              <li><NavLink to="/find-talents" className="nav-link-horizontal text-black"><i className="fas fa-users nav-icon text-black"></i><span>Find Talents</span></NavLink></li>
+              <li><NavLink to="/categories" className="nav-link-horizontal text-black"><i className="fas fa-th-large nav-icon text-black"></i><span>Categories</span></NavLink></li>
+              <li><NavLink to="/about" className="nav-link-horizontal text-black"><i className="fas fa-info-circle nav-icon text-black"></i><span>About</span></NavLink></li>
               {user && user.role === "admin" && (
                 <li><NavLink to="/admin" className="nav-link-horizontal admin-link"><i className="fas fa-shield-alt nav-icon"></i><span>Admin</span></NavLink></li>
               )}
@@ -584,9 +584,22 @@ const Navbar = () => {
                 </div>
               </div>
             ) : (
-              <div className="auth-buttons">
-                <Link to="/login" className="btn btn-login bg-white fw-semibold text-black">Login</Link>
-                <button className="btn btn-signup bg-white text-black fw-semibold" onClick={handleSignUpClick}>Sign Up</button>
+              // ✅ FIXED: Shows BOTH Login and Signup buttons in desktop view
+              <div className="auth-buttons-professional">
+                <Link 
+                  to="/login" 
+                  className="btn-professional btn-login-professional"
+                >
+                  <i className="fas fa-sign-in-alt"></i>
+                  <span>Login</span>
+                </Link>
+                <button 
+                  className="btn-professional btn-signup-professional" 
+                  onClick={handleSignUpClick}
+                >
+                  <i className="fas fa-user-plus"></i>
+                  <span>Sign Up</span>
+                </button>
               </div>
             )}
           </div>

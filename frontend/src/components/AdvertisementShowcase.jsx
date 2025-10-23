@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Play, AlertCircle } from 'lucide-react';
 import api, { getMediaUrl, getNetworkInfo } from '../services/api';
 import './AdvertisementShowcase.css';
 
 // ✅ MOBILE COMPATIBLE VIDEO PLAYER with comprehensive error handling
-const VideoPlayer = ({ src, poster, title }) => {
+const VideoPlayer = React.memo(({ src, poster, title }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState(false);
@@ -73,7 +73,7 @@ const VideoPlayer = ({ src, poster, title }) => {
     }
   }, [src, error]);
 
-  const handlePlayClick = () => {
+  const handlePlayClick = useCallback(() => {
     if (videoRef.current) {
       videoRef.current.play()
         .then(() => {
@@ -85,14 +85,14 @@ const VideoPlayer = ({ src, poster, title }) => {
           setError(true);
         });
     }
-  };
+  }, []);
 
   if (error) {
     return (
       <div className="video-error">
         <AlertCircle size={48} className="error-icon" />
         <p>Video unavailable</p>
-        <small>Failed to load: {src}</small>
+        <small>Failed to load: {title}</small>
         <small>Network: {getNetworkInfo().isMobile ? 'Mobile' : 'Desktop'}</small>
       </div>
     );
@@ -131,29 +131,19 @@ const VideoPlayer = ({ src, poster, title }) => {
       )}
     </div>
   );
-};
+});
+
+VideoPlayer.displayName = 'VideoPlayer';
 
 const AdvertisementShowcase = () => {
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const intervalRef = useRef(null);
 
-  useEffect(() => {
-    fetchAds();
-  }, []);
-
-  useEffect(() => {
-    if (ads.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentSlide((prev) => (prev + 1) % ads.length);
-      }, 10000); // 10 seconds per slide
-
-      return () => clearInterval(interval);
-    }
-  }, [ads.length]);
-
-  const fetchAds = async () => {
+  // ✅ OPTIMIZATION: Memoize the fetchAds function
+  const fetchAds = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -225,9 +215,37 @@ const AdvertisementShowcase = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleAdClick = async (ad) => {
+  useEffect(() => {
+    fetchAds();
+  }, [fetchAds]);
+
+  // ✅ OPTIMIZATION: Better interval management
+  useEffect(() => {
+    if (ads.length > 1) {
+      const startInterval = () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+        intervalRef.current = setInterval(() => {
+          setCurrentSlide((prev) => (prev + 1) % ads.length);
+        }, 10000); // 10 seconds per slide
+      };
+
+      startInterval();
+
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      };
+    }
+  }, [ads.length]);
+
+  // ✅ OPTIMIZATION: Memoize handlers
+  const handleAdClick = useCallback(async (ad) => {
     try {
       // Track click
       await api.post(`/api/advertisements/${ad._id}/click`);
@@ -244,19 +262,19 @@ const AdvertisementShowcase = () => {
         window.open(ad.link, '_blank', 'noopener,noreferrer');
       }
     }
-  };
+  }, []);
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % ads.length);
-  };
+  }, [ads.length]);
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev - 1 + ads.length) % ads.length);
-  };
+  }, [ads.length]);
 
-  const goToSlide = (index) => {
+  const goToSlide = useCallback((index) => {
     setCurrentSlide(index);
-  };
+  }, []);
 
   // Loading state
   if (loading) {
@@ -360,9 +378,9 @@ const AdvertisementShowcase = () => {
                       alt={currentAd.title || 'Advertisement'}
                       className="ad-image"
                       loading="lazy"
-                      onLoad={() => console.log('✅ Ad image loaded successfully:', currentAd.mediaUrl)}
+                      onLoad={() => console.log('✅ Ad image loaded successfully:', currentAd.title)}
                       onError={(e) => {
-                        console.error('❌ Ad image failed to load:', currentAd.mediaUrl);
+                        console.error('❌ Ad image failed to load:', currentAd.title);
                         console.error('Network info:', getNetworkInfo());
                         e.target.style.display = 'none';
                         const placeholder = e.target.parentNode.querySelector('.image-placeholder');
