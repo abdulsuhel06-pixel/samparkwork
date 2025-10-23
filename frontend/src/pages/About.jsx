@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Gem, 
   Scissors,
@@ -12,9 +13,11 @@ import {
 import './About.css';
 
 const About = () => {
+  const navigate = useNavigate();
+
   const team = [
     {
-      name: 'Rojob Ali',
+      name: 'Sk Rajab Ali',
       role: 'Founder & CEO',
       bio: 'Visionary entrepreneur passionate about connecting traditional craftsmanship with modern technology.'
     },
@@ -25,6 +28,15 @@ const About = () => {
     }
   ];
 
+  // ✅ Navigation handlers
+  const handleGetStarted = () => {
+    navigate('/register');
+  };
+
+  const handleJoinNow = () => {
+    navigate('/register');
+  };
+
   return (
     <div className="about-page">
       {/* Hero Section */}
@@ -32,31 +44,22 @@ const About = () => {
         <div className="container">
           <div className="hero-content">
             <div className="hero-badge">
-              <Gem size={16} />
-              <span>Jewellery & Textile Marketplace</span>
+             
             </div>
             <h1 className="hero-title">
-              Connecting Skilled Artisans with Opportunities
+              Connecting Skilled Professionals with Opportunities
             </h1>
-            <p className="hero-description">
-              A trusted platform where talented professionals in jewellery and textile 
-              industries connect with meaningful work opportunities.
-            </p>
-            <button className="cta-button">
+            
+            <button className="cta-button" onClick={handleGetStarted}>
               Get Started
               <ArrowRight size={16} />
             </button>
           </div>
           
           <div className="hero-visual">
-            <div className="craft-icons">
-              <div className="icon-card">
-                <Gem size={32} />
-              </div>
-              <div className="icon-card">
-                <Scissors size={32} />
-              </div>
-            </div>
+            
+             
+            
           </div>
         </div>
       </section>
@@ -161,11 +164,11 @@ const About = () => {
               Join our community of skilled professionals and discover new opportunities.
             </p>
             <div className="contact-actions">
-              <button className="cta-button primary">
+              <button className="cta-button primary" onClick={handleJoinNow}>
                 Join Now
                 <ArrowRight size={16} />
               </button>
-              <a href="mailto:contact@yourplatform.com" className="contact-link">
+              <a href="samparkconnect08@gmail.com" className="contact-link">
                 <Mail size={16} />
                 Get in Touch
               </a>

@@ -130,32 +130,58 @@ const AdminDashboard = () => {
     };
   }, []);
 
-  // ✅ ENHANCED: Get media URL for advertisements 
+  // ✅ PRODUCTION-READY: Get media URL for advertisements with complete debugging
   const getImageUrl = (ad) => {
-    // For advertisements, check mediaUrl
-    if (ad.mediaUrl) {
-      console.log('🎬 Using advertisement mediaUrl:', ad.mediaUrl);
+    console.log('🎬 [getImageUrl] Processing advertisement:', {
+      id: ad._id,
+      title: ad.title,
+      mediaUrl: ad.mediaUrl,
+      mediaType: ad.mediaType
+    });
+    
+    if (!ad.mediaUrl) {
+      console.warn('🎬 [getImageUrl] No mediaUrl found for advertisement');
+      return null;
+    }
+    
+    // If already a full URL, return as is
+    if (ad.mediaUrl.startsWith('http://') || ad.mediaUrl.startsWith('https://')) {
+      console.log('🎬 [getImageUrl] Using existing full URL:', ad.mediaUrl);
       return ad.mediaUrl;
     }
     
-    // Fallback: construct URL from media path
-    if (ad.media) {
-      const baseUrl = 'http://10.25.40.157:5000';
-      let mediaUrl;
-      
-      if (ad.media.startsWith('http')) {
-        mediaUrl = ad.media;
-      } else if (ad.media.startsWith('/uploads/')) {
-        mediaUrl = `${baseUrl}${ad.media}`;
-      } else {
-        mediaUrl = `${baseUrl}/uploads/advertisements/${ad.media}`;
-      }
-      
-      console.log('🎬 Constructed mediaUrl:', { original: ad.media, final: mediaUrl });
-      return mediaUrl;
+    // ✅ CRITICAL FIX: Environment-aware base URL selection
+    const isProduction = process.env.NODE_ENV === 'production' || 
+                        window.location.hostname !== 'localhost' ||
+                        window.location.hostname === 'samparkworkwebsite.vercel.app' ||
+                        window.location.hostname === 'samparkwork.vercel.app';
+    
+    const baseUrl = isProduction 
+      ? 'https://samparkwork-backend.onrender.com' 
+      : 'http://localhost:5000';
+    
+    // ✅ CRITICAL: Ensure proper path construction
+    // Database stores: advertisements/videos/filename
+    // We need: /uploads/advertisements/videos/filename
+    let finalPath = ad.mediaUrl;
+    
+    // Add /uploads/ prefix if not present
+    if (!finalPath.startsWith('/uploads/')) {
+      finalPath = `/uploads/${finalPath}`;
     }
     
-    return null;
+    const finalUrl = `${baseUrl}${finalPath}`;
+    
+    console.log('🎬 [getImageUrl] Generated URL:', {
+      environment: isProduction ? 'PRODUCTION' : 'DEVELOPMENT',
+      hostname: window.location.hostname,
+      baseUrl,
+      originalPath: ad.mediaUrl,
+      finalPath,
+      finalUrl
+    });
+    
+    return finalUrl;
   };
 
   // ✅ ENHANCED: FALLBACK IMAGE COMPONENT WITH DEBUG INFO
@@ -949,149 +975,206 @@ const AdminDashboard = () => {
     </div>
   );
 
-  const renderAds = () => (
-    <div className="beautiful-section-content">
-      <div className="beautiful-page-header">
-        <div className="page-header-content">
-          <div className="page-title-section">
-            <h1>Advertisements</h1>
-            <p>Manage advertising campaigns and promotions</p>
+  // ✅ ENHANCED: Advertisement rendering with production-ready video support
+  const renderAds = () => {
+    // ✅ TEMPORARY DEBUG: Log environment and URL generation
+    console.log('🐛 [renderAds] Debug Info:', {
+      hostname: window.location.hostname,
+      nodeEnv: process.env.NODE_ENV,
+      adsCount: ads.length,
+      firstAdMediaUrl: ads.length > 0 ? ads[0].mediaUrl : 'No ads',
+      generatedUrl: ads.length > 0 ? getImageUrl(ads[0]) : 'No ads'
+    });
+
+    return (
+      <div className="beautiful-section-content">
+        <div className="beautiful-page-header">
+          <div className="page-header-content">
+            <div className="page-title-section">
+              <h1>Advertisements</h1>
+              <p>Manage advertising campaigns and promotions</p>
+            </div>
+            <div className="page-header-actions">
+              <button className="beautiful-filter-btn"><Filter size={18} />Filter</button>
+              <button className="beautiful-primary-btn" onClick={() => openModal('ad')}>
+                <Plus size={18} />Create Ad
+              </button>
+            </div>
           </div>
-          <div className="page-header-actions">
-            <button className="beautiful-filter-btn"><Filter size={18} />Filter</button>
+        </div>
+
+        {dataLoading.ads ? <LoadingSpinner /> : ads.length === 0 ? (
+          <div className="beautiful-empty-state">
+            <div className="empty-icon"><Megaphone size={64} /></div>
+            <h3>No advertisements found</h3>
+            <p>Create your first advertising campaign to boost visibility.</p>
             <button className="beautiful-primary-btn" onClick={() => openModal('ad')}>
-              <Plus size={18} />Create Ad
+              <Plus size={18} />Create First Ad
             </button>
           </div>
-        </div>
-      </div>
-
-      {dataLoading.ads ? <LoadingSpinner /> : ads.length === 0 ? (
-        <div className="beautiful-empty-state">
-          <div className="empty-icon"><Megaphone size={64} /></div>
-          <h3>No advertisements found</h3>
-          <p>Create your first advertising campaign to boost visibility.</p>
-          <button className="beautiful-primary-btn" onClick={() => openModal('ad')}>
-            <Plus size={18} />Create First Ad
-          </button>
-        </div>
-      ) : (
-        <div className="beautiful-ads-grid">
-          {ads.map(ad => (
-            <div key={ad._id} className="beautiful-ad-card">
-              <div className="ad-media">
-                {ad.mediaType === 'video' ? (
-                  <>
-                    {ad.mediaUrl ? (
+        ) : (
+          <div className="beautiful-ads-grid">
+            {ads.map(ad => (
+              <div key={ad._id} className="beautiful-ad-card">
+                <div className="ad-media">
+                  {ad.mediaType === 'video' ? (
+                    <div className="video-container" style={{ position: 'relative', width: '100%', height: '200px', backgroundColor: '#000' }}>
                       <video 
-                        src={getImageUrl(ad)} 
+                        src={getImageUrl(ad)}
                         controls
                         preload="metadata"
+                        crossOrigin="anonymous"
                         style={{
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
                           objectPosition: 'center'
                         }}
+                        onLoadStart={() => console.log('🎥 Video loading started:', getImageUrl(ad))}
+                        onLoadedMetadata={() => console.log('🎥 Video metadata loaded')}
+                        onLoadedData={() => console.log('🎥 Video data loaded')}
                         onError={(e) => {
-                          e.target.style.display = 'none';
+                          console.error('🎥 Video error:', {
+                            error: e.target.error,
+                            src: e.target.src,
+                            networkState: e.target.networkState,
+                            readyState: e.target.readyState
+                          });
+                          // Show fallback
                           if (e.target.nextSibling) {
+                            e.target.style.display = 'none';
                             e.target.nextSibling.style.display = 'flex';
                           }
                         }}
                       />
-                    ) : null}
-                    <div className="media-placeholder" style={{ 
-                      display: ad.mediaUrl ? 'none' : 'flex',
-                      flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                      height: '200px', backgroundColor: '#f8f9fa', color: '#6c757d'
-                    }}>
-                      <Play size={32} /><span>Video</span>
+                      {/* Fallback placeholder */}
+                      <div 
+                        className="video-placeholder" 
+                        style={{ 
+                          display: 'none',
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          flexDirection: 'column', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          backgroundColor: '#f8f9fa', 
+                          color: '#6c757d'
+                        }}
+                      >
+                        <Play size={48} style={{ marginBottom: '10px' }} />
+                        <span style={{ fontSize: '14px', fontWeight: '500' }}>Video Unavailable</span>
+                        <small style={{ marginTop: '5px', textAlign: 'center', maxWidth: '80%' }}>
+                          {getImageUrl(ad)}
+                        </small>
+                      </div>
+                      
+                      {/* Loading overlay */}
+                      <div 
+                        className="video-loading"
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          backgroundColor: 'rgba(0,0,0,0.7)',
+                          color: 'white',
+                          padding: '10px 15px',
+                          borderRadius: '5px',
+                          fontSize: '12px',
+                          pointerEvents: 'none',
+                          display: 'none'
+                        }}
+                      >
+                        Loading video...
+                      </div>
                     </div>
-                  </>
-                ) : (
-                  <FallbackImage 
-                    src={getImageUrl(ad)}
-                    alt={ad.title}
-                    className="ad-media-img"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      objectPosition: 'center'
-                    }}
-                  />
-                )}
-                
-                {ad.featured && (
-                  <div className="featured-badge"><Star size={14} />Featured</div>
-                )}
-
-                <div className="ad-quick-actions">
-                  <button 
-                    className="quick-edit-btn"
-                    onClick={() => openEditAd(ad)}
-                    title="Edit Advertisement"
-                  >
-                    <Edit size={18} />
-                  </button>
-                  <button 
-                    className="quick-delete-btn"
-                    onClick={() => handleDelete('advertisements', ad._id, ad.title)}
-                    title="Delete Advertisement"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="ad-content">
-                <h3>{ad.title || 'Untitled Ad'}</h3>
-                <p>{ad.content || 'No content'}</p>
-                
-                <div className="ad-meta">
-                  <span className={`media-badge ${ad.mediaType || 'image'}`}>
-                    {ad.mediaType === 'video' ? (
-                      <><Video size={12} />Video</>
-                    ) : (
-                      <><Image size={12} />Image</>
-                    )}
-                  </span>
-                  <span className={`status-badge ${ad.isActive ? 'active' : 'inactive'}`}>
-                    {ad.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-                
-                <div className="ad-footer">
-                  <span className="ad-date">
-                    <Calendar size={14} />
-                    {ad.createdAt ? new Date(ad.createdAt).toLocaleDateString() : 'Unknown'}
-                  </span>
+                  ) : (
+                    <FallbackImage 
+                      src={getImageUrl(ad)}
+                      alt={ad.title}
+                      className="ad-media-img"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center'
+                      }}
+                    />
+                  )}
                   
-                  <div className="ad-actions">
+                  {ad.featured && (
+                    <div className="featured-badge"><Star size={14} />Featured</div>
+                  )}
+
+                  <div className="ad-quick-actions">
                     <button 
-                      className="beautiful-action-btn edit" 
+                      className="quick-edit-btn"
                       onClick={() => openEditAd(ad)}
                       title="Edit Advertisement"
                     >
-                      <Edit size={16} />
+                      <Edit size={18} />
                     </button>
                     <button 
-                      className="beautiful-action-btn delete" 
+                      className="quick-delete-btn"
                       onClick={() => handleDelete('advertisements', ad._id, ad.title)}
                       title="Delete Advertisement"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </div>
+                
+                <div className="ad-content">
+                  <h3>{ad.title || 'Untitled Ad'}</h3>
+                  <p>{ad.content || 'No content'}</p>
+                  
+                  <div className="ad-meta">
+                    <span className={`media-badge ${ad.mediaType || 'image'}`}>
+                      {ad.mediaType === 'video' ? (
+                        <><Video size={12} />Video</>
+                      ) : (
+                        <><Image size={12} />Image</>
+                      )}
+                    </span>
+                    <span className={`status-badge ${ad.isActive ? 'active' : 'inactive'}`}>
+                      {ad.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  
+                  <div className="ad-footer">
+                    <span className="ad-date">
+                      <Calendar size={14} />
+                      {ad.createdAt ? new Date(ad.createdAt).toLocaleDateString() : 'Unknown'}
+                    </span>
+                    
+                    <div className="ad-actions">
+                      <button 
+                        className="beautiful-action-btn edit" 
+                        onClick={() => openEditAd(ad)}
+                        title="Edit Advertisement"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button 
+                        className="beautiful-action-btn delete" 
+                        onClick={() => handleDelete('advertisements', ad._id, ad.title)}
+                        title="Delete Advertisement"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="beautiful-admin-dashboard">
