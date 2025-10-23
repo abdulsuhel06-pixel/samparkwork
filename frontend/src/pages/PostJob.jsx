@@ -35,6 +35,7 @@ const PostJob = () => {
     budgetMax: '',
     budgetType: 'Fixed',
     experienceLevel: 'Intermediate',
+    duration: '1-3 months',
     skills: [],
     deadline: '',
     urgent: false,
@@ -56,13 +57,13 @@ const PostJob = () => {
     fetchCategories();
   }, [navigate]);
 
-  // ✅ CRITICAL FIX: Use the correct API endpoint for categories
+  // ✅ RESTORED: Your original working category function
   const fetchCategories = async () => {
     try {
       console.log('📋 [PostJob] Fetching categories...');
       setCategoryLoading(true);
       
-      // ✅ FIXED: Use getFeaturedCategories (PUBLIC) instead of getJobCategories
+      // ✅ RESTORED: Use getFeaturedCategories (your original working API)
       const response = await apiHelpers.getFeaturedCategories();
       
       console.log('📋 [PostJob] API Response:', response);
@@ -105,7 +106,12 @@ const PostJob = () => {
         'Pulling',
         'Stone Setting',
         '3D Modeling',
-        'Jewelry Repair'
+        'Jewelry Repair',
+        'Setting',
+        'Design',
+        'Manufacturing',
+        'Repair',
+        'Quality Control'
       ];
       
       console.log('🆘 [PostJob] Using fallback categories due to API error');
@@ -181,15 +187,18 @@ const PostJob = () => {
       newErrors.category = 'Category is required';
     }
 
-    if (!formData.budgetMin || formData.budgetMin <= 0) {
+    // ✅ ENHANCED: Better budget validation
+    if (!formData.budgetMin || formData.budgetMin === '' || parseFloat(formData.budgetMin) <= 0) {
       newErrors.budgetMin = 'Valid minimum budget is required';
     }
 
-    if (!formData.budgetMax || formData.budgetMax <= 0) {
+    if (!formData.budgetMax || formData.budgetMax === '' || parseFloat(formData.budgetMax) <= 0) {
       newErrors.budgetMax = 'Valid maximum budget is required';
     }
 
-    if (parseFloat(formData.budgetMax) < parseFloat(formData.budgetMin)) {
+    // ✅ ENHANCED: Only check comparison if both values are valid
+    if (formData.budgetMin && formData.budgetMax && 
+        parseFloat(formData.budgetMax) < parseFloat(formData.budgetMin)) {
       newErrors.budgetMax = 'Maximum budget must be greater than minimum budget';
     }
 
@@ -226,30 +235,77 @@ const PostJob = () => {
     
     if (!validateForm()) {
       const firstError = Object.keys(errors)[0];
-      document.getElementsByName(firstError)[0]?.focus();
+      const errorElement = document.getElementById(firstError) || document.getElementsByName(firstError)[0];
+      errorElement?.focus();
       return;
     }
 
     setLoading(true);
     try {
       console.log('📤 [PostJob] Submitting job data:', formData);
-      const response = await apiHelpers.createJob(formData);
+      
+      // ✅ CRITICAL FIX: Send data that matches backend expectations
+      const jobData = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        category: formData.category,
+        subCategory: formData.subCategory.trim() || undefined,
+        location: formData.location,
+        businessAddress: formData.location === 'On-site' ? formData.businessAddress : undefined,
+        budgetMin: parseFloat(formData.budgetMin),
+        budgetMax: parseFloat(formData.budgetMax),
+        budgetType: formData.budgetType,
+        experienceLevel: formData.experienceLevel,
+        duration: formData.duration,
+        skills: Array.isArray(formData.skills) ? formData.skills : [],
+        deadline: formData.deadline || undefined,
+        urgent: Boolean(formData.urgent),
+        featured: Boolean(formData.featured)
+      };
+      
+      console.log('📤 [PostJob] Final job data being sent:', jobData);
+      
+      const response = await apiHelpers.createJob(jobData);
+      console.log('📤 [PostJob] API Response:', response);
+      
       if (response.success) {
+        console.log('✅ [PostJob] Job created successfully:', response.job);
         alert('Job posted successfully!');
         navigate('/jobs');
+      } else {
+        console.error('❌ [PostJob] Job creation failed:', response);
+        alert(response.message || 'Failed to create job. Please try again.');
       }
     } catch (error) {
       console.error('❌ [PostJob] Error posting job:', error);
       const errorInfo = handleApiError(error);
       
+      // ✅ ENHANCED: Better error handling for different error formats
       if (error.response?.data?.errors) {
-        const apiErrors = {};
-        error.response.data.errors.forEach(err => {
-          apiErrors[err.field] = err.message;
-        });
-        setErrors(apiErrors);
+        if (Array.isArray(error.response.data.errors)) {
+          // Handle array of error strings
+          const errorMessage = error.response.data.errors.join('\n');
+          alert(`Validation Error:\n${errorMessage}`);
+        } else {
+          // Handle field-specific errors
+          const apiErrors = {};
+          error.response.data.errors.forEach(err => {
+            if (typeof err === 'string') {
+              // Simple string error
+              apiErrors.general = err;
+            } else if (err.field && err.message) {
+              // Field-specific error
+              apiErrors[err.field] = err.message;
+            }
+          });
+          setErrors(apiErrors);
+          
+          if (apiErrors.general) {
+            alert(`Error: ${apiErrors.general}`);
+          }
+        }
       } else {
-        alert(errorInfo.message);
+        alert(errorInfo.message || 'Failed to post job. Please check your inputs and try again.');
       }
     } finally {
       setLoading(false);
@@ -355,6 +411,10 @@ const PostJob = () => {
               <div className="meta-item">
                 <Users size={18} />
                 <span>{formData.experienceLevel}</span>
+              </div>
+              <div className="meta-item">
+                <Clock size={18} />
+                <span>{formData.duration}</span>
               </div>
               {formData.deadline && (
                 <div className="meta-item">
@@ -553,6 +613,25 @@ const PostJob = () => {
               </select>
             </div>
 
+            {/* ✅ CRITICAL FIX: Added missing Duration field */}
+            <div className="form-group">
+              <label htmlFor="duration" className="form-label">
+                Project Duration *
+              </label>
+              <select
+                id="duration"
+                name="duration"
+                value={formData.duration}
+                onChange={handleInputChange}
+                className="form-select"
+              >
+                <option value="Less than 1 month">Less than 1 month</option>
+                <option value="1-3 months">1-3 months</option>
+                <option value="3-6 months">3-6 months</option>
+                <option value="6+ months">6+ months</option>
+              </select>
+            </div>
+
             {/* Business Address Fields */}
             {formData.location === 'On-site' && (
               <>
@@ -745,6 +824,7 @@ const PostJob = () => {
                 onChange={handleInputChange}
                 placeholder="25000"
                 min="0"
+                step="100"
                 className={`form-input ${errors.budgetMin ? 'error' : ''}`}
               />
               {errors.budgetMin && <span className="error-message">{errors.budgetMin}</span>}
@@ -762,6 +842,7 @@ const PostJob = () => {
                 onChange={handleInputChange}
                 placeholder="50000"
                 min="0"
+                step="100"
                 className={`form-input ${errors.budgetMax ? 'error' : ''}`}
               />
               {errors.budgetMax && <span className="error-message">{errors.budgetMax}</span>}
@@ -916,5 +997,5 @@ const PostJob = () => {
     </div>
   );
 };
- {/* Export the page to the main route*/}
+
 export default PostJob;
