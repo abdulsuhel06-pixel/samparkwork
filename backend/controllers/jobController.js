@@ -6,9 +6,7 @@ const Conversation = require("../models/Conversation");
 const asyncHandler = require("express-async-handler");
 const mongoose = require("mongoose");
 
-
 // ===== EXISTING FUNCTIONS (ENHANCED) =====
-
 
 // @desc    Create a new job
 // @route   POST /api/jobs
@@ -16,9 +14,8 @@ const mongoose = require("mongoose");
 const createJob = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [createJob] Starting job creation");
-    console.log("💼 [createJob] Body:", req.body);
+    console.log("💼 [createJob] Request body:", JSON.stringify(req.body, null, 2));
     console.log("💼 [createJob] User:", req.user?.id, req.user?.role);
-
 
     // Prevent professionals from posting jobs
     if (req.user.role === "professional") {
@@ -28,11 +25,11 @@ const createJob = asyncHandler(async (req, res) => {
       });
     }
 
-
     const {
       title,
       description,
       category,
+      subCategory,
       budgetMin,
       budgetMax,
       budgetType = "Fixed",
@@ -41,45 +38,74 @@ const createJob = asyncHandler(async (req, res) => {
       experienceLevel = "Intermediate",
       duration = "1-3 months",
       deadline,
-      businessAddress
+      businessAddress,
+      urgent = false,
+      featured = false
     } = req.body;
 
-
-    // ✅ ENHANCED: Validate required fields with detailed logging
-    if (!title || !description || !category || budgetMin === undefined || budgetMax === undefined) {
-      console.log("❌ [createJob] Missing required fields");
+    // ✅ ENHANCED: Validate required fields
+    if (!title || !description || !category) {
+      console.log("❌ [createJob] Missing basic required fields");
       return res.status(400).json({
         success: false,
-        message: "Missing required fields: title, description, category, budgetMin, budgetMax"
+        message: "Missing required fields: title, description, category"
       });
     }
 
+    // ✅ CRITICAL FIX: Validate budget fields properly
+    if (budgetMin === undefined || budgetMin === null || budgetMin === '' || 
+        budgetMax === undefined || budgetMax === null || budgetMax === '') {
+      console.log("❌ [createJob] Missing budget fields:", { budgetMin, budgetMax });
+      return res.status(400).json({
+        success: false,
+        message: "Both minimum and maximum budget are required"
+      });
+    }
 
-    // ✅ ENHANCED: Validate budget logic
-    if (parseFloat(budgetMax) < parseFloat(budgetMin)) {
+    const minBudget = parseFloat(budgetMin);
+    const maxBudget = parseFloat(budgetMax);
+
+    // ✅ ENHANCED: Validate budget numbers
+    if (isNaN(minBudget) || isNaN(maxBudget)) {
+      return res.status(400).json({
+        success: false,
+        message: "Budget values must be valid numbers"
+      });
+    }
+
+    if (minBudget < 0 || maxBudget < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Budget values cannot be negative"
+      });
+    }
+
+    if (maxBudget < minBudget) {
       return res.status(400).json({
         success: false,
         message: "Maximum budget cannot be less than minimum budget"
       });
     }
 
-
-    // ✅ CRITICAL FIX: Create job with 'open' status (matches model default)
+    // ✅ CRITICAL FIX: Create job data with FLAT budget fields that match Job model
     const jobData = {
       title: title.trim(),
       description: description.trim(),
       category,
-      budgetMin: parseFloat(budgetMin),
-      budgetMax: parseFloat(budgetMax),
-      budgetType,
+      subCategory: subCategory?.trim() || undefined,
+      // ✅ FLAT BUDGET FIELDS - matches Job model required fields
+      budgetMin: minBudget,
+      budgetMax: maxBudget,
+      budgetType: budgetType,
       location,
       skills: Array.isArray(skills) ? skills : [],
       experienceLevel,
       duration,
       createdBy: req.user.id,
-      status: "open"  // ✅ CRITICAL FIX: Use 'open' not 'active'
+      status: "open",
+      urgent: Boolean(urgent),
+      featured: Boolean(featured)
     };
-
 
     // ✅ ENHANCED: Add deadline if provided
     if (deadline) {
@@ -94,32 +120,31 @@ const createJob = asyncHandler(async (req, res) => {
       }
     }
 
-
     // ✅ ENHANCED: Add business address for on-site jobs
     if (location === "On-site" && businessAddress) {
       jobData.businessAddress = {
-        businessName: businessAddress.businessName?.trim(),
-        streetAddress: businessAddress.streetAddress?.trim(),
-        city: businessAddress.city?.trim(),
-        state: businessAddress.state?.trim(),
-        postalCode: businessAddress.postalCode?.trim(),
+        businessName: businessAddress.businessName?.trim() || '',
+        streetAddress: businessAddress.streetAddress?.trim() || '',
+        addressLine2: businessAddress.addressLine2?.trim() || '',
+        city: businessAddress.city?.trim() || '',
+        state: businessAddress.state?.trim() || '',
+        postalCode: businessAddress.postalCode?.trim() || '',
         country: businessAddress.country?.trim() || "India",
-        landmark: businessAddress.landmark?.trim(),
-        locationInstructions: businessAddress.locationInstructions?.trim()
+        landmark: businessAddress.landmark?.trim() || '',
+        locationInstructions: businessAddress.locationInstructions?.trim() || ''
       };
     }
 
+    console.log("💼 [createJob] Final job data:", JSON.stringify(jobData, null, 2));
 
+    // ✅ CRITICAL FIX: Create job with flat budget fields
     const job = new Job(jobData);
     const savedJob = await job.save();
 
-
     // ✅ ENHANCED: Populate created job for response
-    await savedJob.populate("createdBy", "name email role");
+    await savedJob.populate("createdBy", "name email role companyName");
 
-
-    console.log("✅ [createJob] Job created successfully with status 'open':", savedJob._id);
-
+    console.log("✅ [createJob] Job created successfully:", savedJob._id);
 
     res.status(201).json({
       success: true,
@@ -127,21 +152,19 @@ const createJob = asyncHandler(async (req, res) => {
       message: "Job created successfully"
     });
 
-
   } catch (error) {
     console.error("❌ [createJob] Error:", error);
-
 
     // ✅ ENHANCED: Handle specific validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
+      console.error("❌ [createJob] Validation errors:", errors);
       return res.status(400).json({
         success: false,
         message: "Validation error",
         errors: errors
       });
     }
-
 
     if (error.code === 11000) {
       return res.status(409).json({
@@ -151,7 +174,6 @@ const createJob = asyncHandler(async (req, res) => {
       });
     }
 
-
     res.status(500).json({
       success: false,
       message: "Error creating job",
@@ -160,14 +182,12 @@ const createJob = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Get all jobs with enhanced filtering
 // @route   GET /api/jobs
 // @access  Public
 const getJobs = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [getJobs] Fetching jobs with query:", req.query);
-
 
     const {
       page = 1,
@@ -183,11 +203,9 @@ const getJobs = asyncHandler(async (req, res) => {
       sortOrder = "desc"
     } = req.query;
 
-
     // ✅ CRITICAL FIX: Use 'open' status instead of 'active'
     const filter = { status: "open" };
     console.log("💼 [getJobs] Base filter:", filter);
-
 
     if (category) {
       filter.category = category;
@@ -202,21 +220,17 @@ const getJobs = asyncHandler(async (req, res) => {
       console.log("💼 [getJobs] Added experience filter:", experienceLevel);
     }
 
-
-    // ✅ FIXED: Budget filtering logic
+    // ✅ CRITICAL FIX: Budget filtering logic - use flat budget fields
     if (budgetMin || budgetMax) {
       if (budgetMin) {
-        // Find jobs where the maximum budget is >= user's minimum budget
-        filter.budgetMax = { $gte: parseFloat(budgetMin) };
-        console.log("💼 [getJobs] Added budgetMin filter - jobs with budgetMax >=", budgetMin);
+        filter['budgetMax'] = { $gte: parseFloat(budgetMin) };
+        console.log("💼 [getJobs] Added budgetMin filter >=", budgetMin);
       }
       if (budgetMax) {
-        // Find jobs where the minimum budget is <= user's maximum budget
-        filter.budgetMin = { $lte: parseFloat(budgetMax) };
-        console.log("💼 [getJobs] Added budgetMax filter - jobs with budgetMin <=", budgetMax);
+        filter['budgetMin'] = { $lte: parseFloat(budgetMax) };
+        console.log("💼 [getJobs] Added budgetMax filter <=", budgetMax);
       }
     }
-
 
     // Skills filtering
     if (skills) {
@@ -224,7 +238,6 @@ const getJobs = asyncHandler(async (req, res) => {
       filter.skills = { $in: skillsArray };
       console.log("💼 [getJobs] Added skills filter:", skillsArray);
     }
-
 
     // Search functionality
     if (search) {
@@ -236,11 +249,9 @@ const getJobs = asyncHandler(async (req, res) => {
       console.log("💼 [getJobs] Added search filter:", search);
     }
 
-
     console.log("💼 [getJobs] Final filter object:", JSON.stringify(filter, null, 2));
 
-
-    // ✅ ENHANCED: Sorting logic
+    // ✅ ENHANCED: Sorting logic - use flat budget fields
     const sortOptions = {};
     const validSortFields = ['createdAt', 'budgetMin', 'budgetMax', 'title'];
     if (validSortFields.includes(sortBy)) {
@@ -250,33 +261,22 @@ const getJobs = asyncHandler(async (req, res) => {
     }
     console.log("💼 [getJobs] Sort options:", sortOptions);
 
-
     const skip = (parseInt(page) - 1) * parseInt(limit);
     console.log("💼 [getJobs] Pagination - Page:", page, "Limit:", limit, "Skip:", skip);
-
 
     // ✅ ENHANCED: Execute query with proper population
     console.log("💼 [getJobs] Executing database query...");
     const jobs = await Job.find(filter)
-      .populate("createdBy", "name email role businessName")
+      .populate("createdBy", "name email role companyName")
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
       .lean();
 
-
     const totalJobs = await Job.countDocuments(filter);
     const totalPages = Math.ceil(totalJobs / parseInt(limit));
 
-
     console.log(`✅ [getJobs] Query successful - Found ${jobs.length} jobs (${totalJobs} total)`);
-    console.log(`✅ [getJobs] Sample job data:`, jobs.length > 0 ? {
-      id: jobs[0]._id,
-      title: jobs[0].title,
-      status: jobs[0].status,
-      createdAt: jobs[0].createdAt
-    } : 'No jobs found');
-
 
     res.json({
       success: true,
@@ -288,7 +288,6 @@ const getJobs = asyncHandler(async (req, res) => {
       hasPrevPage: parseInt(page) > 1
     });
 
-
   } catch (error) {
     console.error("❌ [getJobs] Error:", error);
     res.status(500).json({
@@ -299,7 +298,6 @@ const getJobs = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Get recent jobs (last 7 days)
 // @route   GET /api/jobs/recent
 // @access  Public
@@ -307,31 +305,26 @@ const getRecentJobs = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [getRecentJobs] Fetching recent jobs");
 
-
     const { limit = 5 } = req.query;
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
 
     // ✅ CRITICAL FIX: Use 'open' status
     const recentJobs = await Job.find({
       status: "open",  // ✅ Changed from "active" to "open"
       createdAt: { $gte: sevenDaysAgo }
     })
-      .populate("createdBy", "name role businessName")
+      .populate("createdBy", "name role companyName")
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .lean();
 
-
     console.log(`✅ [getRecentJobs] Found ${recentJobs.length} recent jobs`);
-
 
     res.json({
       success: true,
       jobs: recentJobs,
       count: recentJobs.length
     });
-
 
   } catch (error) {
     console.error("❌ [getRecentJobs] Error:", error);
@@ -343,7 +336,6 @@ const getRecentJobs = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Get unique job categories
 // @route   GET /api/jobs/categories
 // @access  Public
@@ -351,10 +343,8 @@ const getJobCategories = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [getJobCategories] Fetching job categories");
 
-
     // ✅ CRITICAL FIX: Use 'open' status
     const categories = await Job.distinct("category", { status: "open" });
-
 
     // ✅ ENHANCED: Get categories with counts
     const categoriesWithCount = await Job.aggregate([
@@ -363,16 +353,13 @@ const getJobCategories = asyncHandler(async (req, res) => {
       { $sort: { count: -1 } }
     ]);
 
-
     console.log(`✅ [getJobCategories] Found ${categories.length} categories`);
-
 
     res.json({
       success: true,
       categories,
       categoriesWithCount
     });
-
 
   } catch (error) {
     console.error("❌ [getJobCategories] Error:", error);
@@ -384,7 +371,6 @@ const getJobCategories = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Get single job by ID
 // @route   GET /api/jobs/:id
 // @access  Public
@@ -392,11 +378,9 @@ const getJobById = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [getJobById] Fetching job:", req.params.id);
 
-
     const job = await Job.findById(req.params.id)
-      .populate("createdBy", "name email role businessName avatar")
+      .populate("createdBy", "name email role companyName avatar")
       .lean();
-
 
     if (!job) {
       return res.status(404).json({
@@ -405,13 +389,11 @@ const getJobById = asyncHandler(async (req, res) => {
       });
     }
 
-
     // ✅ ENHANCED: Get application count and user's application status
     const applicationCount = await Application.countDocuments({
       job: job._id,
       status: { $ne: "withdrawn" }
     });
-
 
     let userApplication = null;
     if (req.user) {
@@ -421,7 +403,6 @@ const getJobById = asyncHandler(async (req, res) => {
         status: { $ne: "withdrawn" }
       }).lean();
     }
-
 
     const enhancedJob = {
       ...job,
@@ -433,15 +414,12 @@ const getJobById = asyncHandler(async (req, res) => {
       } : null
     };
 
-
     console.log("✅ [getJobById] Job found with application data");
-
 
     res.json({
       success: true,
       job: enhancedJob
     });
-
 
   } catch (error) {
     console.error("❌ [getJobById] Error:", error);
@@ -453,7 +431,6 @@ const getJobById = asyncHandler(async (req, res) => {
       });
     }
 
-
     res.status(500).json({
       success: false,
       message: "Error fetching job",
@@ -462,7 +439,6 @@ const getJobById = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Update job
 // @route   PUT /api/jobs/:id
 // @access  Private (Job owner only)
@@ -470,9 +446,7 @@ const updateJob = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [updateJob] Updating job:", req.params.id);
 
-
     const job = await Job.findById(req.params.id);
-
 
     if (!job) {
       return res.status(404).json({
@@ -480,7 +454,6 @@ const updateJob = asyncHandler(async (req, res) => {
         message: "Job not found"
       });
     }
-
 
     // ✅ ENHANCED: Check ownership
     if (job.createdBy.toString() !== req.user.id) {
@@ -490,8 +463,7 @@ const updateJob = asyncHandler(async (req, res) => {
       });
     }
 
-
-    // ✅ ENHANCED: Validate budget changes
+    // ✅ ENHANCED: Validate budget changes - use flat fields
     const { budgetMin, budgetMax } = req.body;
     if (budgetMin !== undefined && budgetMax !== undefined) {
       if (parseFloat(budgetMax) < parseFloat(budgetMin)) {
@@ -500,8 +472,12 @@ const updateJob = asyncHandler(async (req, res) => {
           message: "Maximum budget cannot be less than minimum budget"
         });
       }
+      
+      // ✅ UPDATE FLAT BUDGET FIELDS
+      job.budgetMin = parseFloat(budgetMin);
+      job.budgetMax = parseFloat(budgetMax);
+      job.budgetType = req.body.budgetType || job.budgetType || 'Fixed';
     }
-
 
     // Update job with new data
     Object.keys(req.body).forEach(key => {
@@ -510,16 +486,12 @@ const updateJob = asyncHandler(async (req, res) => {
       }
     });
 
-
     job.updatedAt = new Date();
     const updatedJob = await job.save();
 
-
-    await updatedJob.populate("createdBy", "name email role");
-
+    await updatedJob.populate("createdBy", "name email role companyName");
 
     console.log("✅ [updateJob] Job updated successfully");
-
 
     res.json({
       success: true,
@@ -527,10 +499,8 @@ const updateJob = asyncHandler(async (req, res) => {
       message: "Job updated successfully"
     });
 
-
   } catch (error) {
     console.error("❌ [updateJob] Error:", error);
-
 
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
@@ -541,7 +511,6 @@ const updateJob = asyncHandler(async (req, res) => {
       });
     }
 
-
     res.status(500).json({
       success: false,
       message: "Error updating job",
@@ -549,7 +518,6 @@ const updateJob = asyncHandler(async (req, res) => {
     });
   }
 });
-
 
 // @desc    Delete job PERMANENTLY
 // @route   DELETE /api/jobs/:id
@@ -598,8 +566,6 @@ const deleteJob = asyncHandler(async (req, res) => {
   }
 });
 
-
-
 // @desc    Apply for a job
 // @route   POST /api/jobs/:id/apply
 // @access  Private (Professionals only)
@@ -607,7 +573,6 @@ const applyJob = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [applyJob] Processing application for job:", req.params.id);
     console.log("💼 [applyJob] Professional:", req.user.id);
-
 
     // Only professionals can apply
     if (req.user.role !== "professional") {
@@ -617,7 +582,6 @@ const applyJob = asyncHandler(async (req, res) => {
       });
     }
 
-
     const job = await Job.findById(req.params.id);
     if (!job) {
       return res.status(404).json({
@@ -625,7 +589,6 @@ const applyJob = asyncHandler(async (req, res) => {
         message: "Job not found"
       });
     }
-
 
     // ✅ CRITICAL FIX: Check for 'open' status
     if (job.status !== "open") {
@@ -635,7 +598,6 @@ const applyJob = asyncHandler(async (req, res) => {
       });
     }
 
-
     // ✅ ENHANCED: Prevent self-application
     if (job.createdBy.toString() === req.user.id) {
       return res.status(400).json({
@@ -644,14 +606,12 @@ const applyJob = asyncHandler(async (req, res) => {
       });
     }
 
-
     // Check for existing application
     const existingApplication = await Application.findOne({
       job: req.params.id,
       professional: req.user.id,
       status: { $ne: "withdrawn" }
     });
-
 
     if (existingApplication) {
       return res.status(409).json({
@@ -661,10 +621,8 @@ const applyJob = asyncHandler(async (req, res) => {
       });
     }
 
-
     // ✅ ENHANCED: Create application with validation
     const { coverLetter, proposedBudget, estimatedTimeline } = req.body;
-
 
     if (!coverLetter || coverLetter.trim().length < 50) {
       return res.status(400).json({
@@ -673,7 +631,6 @@ const applyJob = asyncHandler(async (req, res) => {
       });
     }
 
-
     const applicationData = {
       job: req.params.id,
       professional: req.user.id,
@@ -681,28 +638,22 @@ const applyJob = asyncHandler(async (req, res) => {
       status: "pending"
     };
 
-
     if (proposedBudget && !isNaN(proposedBudget)) {
       applicationData.proposedBudget = parseFloat(proposedBudget);
     }
-
 
     if (estimatedTimeline) {
       applicationData.estimatedTimeline = estimatedTimeline.trim();
     }
 
-
     const application = new Application(applicationData);
     const savedApplication = await application.save();
 
-
     // ✅ ENHANCED: Populate for response
     await savedApplication.populate("professional", "name email avatar");
-    await savedApplication.populate("job", "title budgetMin budgetMax");
-
+    await savedApplication.populate("job", "title budgetMin budgetMax budgetType");
 
     console.log("✅ [applyJob] Application submitted successfully");
-
 
     res.status(201).json({
       success: true,
@@ -710,10 +661,8 @@ const applyJob = asyncHandler(async (req, res) => {
       message: "Application submitted successfully"
     });
 
-
   } catch (error) {
     console.error("❌ [applyJob] Error:", error);
-
 
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
@@ -724,7 +673,6 @@ const applyJob = asyncHandler(async (req, res) => {
       });
     }
 
-
     res.status(500).json({
       success: false,
       message: "Error submitting application",
@@ -733,7 +681,6 @@ const applyJob = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Get user's posted jobs (for clients)
 // @route   GET /api/jobs/my/posted
 // @access  Private (Clients only)
@@ -741,10 +688,8 @@ const getMyPostedJobs = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [getMyPostedJobs] Fetching posted jobs for user:", req.user.id);
 
-
     const { page = 1, limit = 10, status } = req.query;
     const filter = { createdBy: req.user.id };
-
 
     if (status && status !== "all") {
       filter.status = status;
@@ -752,16 +697,13 @@ const getMyPostedJobs = asyncHandler(async (req, res) => {
       filter.status = { $ne: "cancelled" }; // ✅ Exclude cancelled jobs by default
     }
 
-
     const skip = (parseInt(page) - 1) * parseInt(limit);
-
 
     const jobs = await Job.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
       .lean();
-
 
     // ✅ ENHANCED: Get application counts for each job
     const jobsWithApplicationCounts = await Promise.all(
@@ -771,12 +713,10 @@ const getMyPostedJobs = asyncHandler(async (req, res) => {
           status: { $ne: "withdrawn" }
         });
 
-
         const pendingCount = await Application.countDocuments({
           job: job._id,
           status: "pending"
         });
-
 
         return {
           ...job,
@@ -786,13 +726,10 @@ const getMyPostedJobs = asyncHandler(async (req, res) => {
       })
     );
 
-
     const totalJobs = await Job.countDocuments(filter);
     const totalPages = Math.ceil(totalJobs / parseInt(limit));
 
-
     console.log(`✅ [getMyPostedJobs] Found ${jobs.length} posted jobs`);
-
 
     res.json({
       success: true,
@@ -804,7 +741,6 @@ const getMyPostedJobs = asyncHandler(async (req, res) => {
       hasPrevPage: parseInt(page) > 1
     });
 
-
   } catch (error) {
     console.error("❌ [getMyPostedJobs] Error:", error);
     res.status(500).json({
@@ -815,7 +751,6 @@ const getMyPostedJobs = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Get user's applications (for professionals)
 // @route   GET /api/jobs/my/applications
 // @access  Private (Professionals only)
@@ -823,26 +758,22 @@ const getMyApplications = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [getMyApplications] Fetching applications for professional:", req.user.id);
 
-
     const { page = 1, limit = 10, status } = req.query;
     const filter = { professional: req.user.id };
-
 
     if (status && status !== "all") {
       filter.status = status;
     }
 
-
     const skip = (parseInt(page) - 1) * parseInt(limit);
-
 
     const applications = await Application.find(filter)
       .populate({
         path: "job",
-        select: "title description budgetMin budgetMax location category status createdBy deadline",
+        select: "title description budgetMin budgetMax budgetType location category status createdBy deadline",
         populate: {
           path: "createdBy",
-          select: "name email businessName"
+          select: "name email companyName"
         }
       })
       .sort({ createdAt: -1 })
@@ -850,13 +781,10 @@ const getMyApplications = asyncHandler(async (req, res) => {
       .limit(parseInt(limit))
       .lean();
 
-
     const totalApplications = await Application.countDocuments(filter);
     const totalPages = Math.ceil(totalApplications / parseInt(limit));
 
-
     console.log(`✅ [getMyApplications] Found ${applications.length} applications`);
-
 
     res.json({
       success: true,
@@ -868,7 +796,6 @@ const getMyApplications = asyncHandler(async (req, res) => {
       hasPrevPage: parseInt(page) > 1
     });
 
-
   } catch (error) {
     console.error("❌ [getMyApplications] Error:", error);
     res.status(500).json({
@@ -879,7 +806,6 @@ const getMyApplications = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Increment job view count
 // @route   POST /api/jobs/:id/increment-view
 // @access  Private
@@ -887,13 +813,11 @@ const incrementJobView = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [incrementJobView] Incrementing view for job:", req.params.id);
 
-
     const job = await Job.findByIdAndUpdate(
       req.params.id,
-      { $inc: { views: 1 } },  // ✅ Fixed: increment 'views' not 'viewCount'
+      { $inc: { views: 1 } },
       { new: true }
     ).select("views");
-
 
     if (!job) {
       return res.status(404).json({
@@ -902,15 +826,12 @@ const incrementJobView = asyncHandler(async (req, res) => {
       });
     }
 
-
     console.log("✅ [incrementJobView] View count incremented");
-
 
     res.json({
       success: true,
-      viewCount: job.views  // ✅ Fixed: return 'views' not 'viewCount'
+      viewCount: job.views
     });
-
 
   } catch (error) {
     console.error("❌ [incrementJobView] Error:", error);
@@ -922,9 +843,7 @@ const incrementJobView = asyncHandler(async (req, res) => {
   }
 });
 
-
 // ===== NEW FUNCTIONS FOR APPLICATION MANAGEMENT =====
-
 
 // @desc    Get applications for a specific job (for job owners)
 // @route   GET /api/jobs/:jobId/applications
@@ -932,7 +851,6 @@ const incrementJobView = asyncHandler(async (req, res) => {
 const getJobApplications = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [getJobApplications] Fetching applications for job:", req.params.jobId);
-
 
     const job = await Job.findById(req.params.jobId);
     if (!job) {
@@ -942,7 +860,6 @@ const getJobApplications = asyncHandler(async (req, res) => {
       });
     }
 
-
     // Verify job ownership
     if (job.createdBy.toString() !== req.user.id) {
       return res.status(403).json({
@@ -951,18 +868,14 @@ const getJobApplications = asyncHandler(async (req, res) => {
       });
     }
 
-
     const { page = 1, limit = 10, status } = req.query;
     const filter = { job: req.params.jobId };
-
 
     if (status && status !== "all") {
       filter.status = status;
     }
 
-
     const skip = (parseInt(page) - 1) * parseInt(limit);
-
 
     const applications = await Application.find(filter)
       .populate({
@@ -973,12 +886,9 @@ const getJobApplications = asyncHandler(async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
-
     const totalApplications = await Application.countDocuments(filter);
 
-
     console.log(`✅ [getJobApplications] Found ${applications.length} applications`);
-
 
     res.json({
       success: true,
@@ -993,7 +903,6 @@ const getJobApplications = asyncHandler(async (req, res) => {
       totalPages: Math.ceil(totalApplications / parseInt(limit))
     });
 
-
   } catch (error) {
     console.error("❌ [getJobApplications] Error:", error);
     res.status(500).json({
@@ -1004,7 +913,6 @@ const getJobApplications = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Accept application
 // @route   POST /api/jobs/applications/:id/accept
 // @access  Private (Job owners only)
@@ -1012,11 +920,9 @@ const acceptApplication = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [acceptApplication] Accepting application:", req.params.id);
 
-
     const application = await Application.findById(req.params.id)
       .populate("job")
       .populate("professional", "name email");
-
 
     if (!application) {
       return res.status(404).json({
@@ -1024,7 +930,6 @@ const acceptApplication = asyncHandler(async (req, res) => {
         message: "Application not found"
       });
     }
-
 
     // Verify job ownership
     if (application.job.createdBy.toString() !== req.user.id) {
@@ -1034,7 +939,6 @@ const acceptApplication = asyncHandler(async (req, res) => {
       });
     }
 
-
     application.status = "accepted";
     application.reviewedAt = new Date();
     application.reviewedBy = req.user.id;
@@ -1042,19 +946,15 @@ const acceptApplication = asyncHandler(async (req, res) => {
       application.notes = req.body.message;
     }
 
-
     await application.save();
 
-
     console.log("✅ [acceptApplication] Application accepted successfully");
-
 
     res.json({
       success: true,
       application,
       message: "Application accepted successfully"
     });
-
 
   } catch (error) {
     console.error("❌ [acceptApplication] Error:", error);
@@ -1066,7 +966,6 @@ const acceptApplication = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Reject application
 // @route   POST /api/jobs/applications/:id/reject
 // @access  Private (Job owners only)
@@ -1074,11 +973,9 @@ const rejectApplication = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [rejectApplication] Rejecting application:", req.params.id);
 
-
     const application = await Application.findById(req.params.id)
       .populate("job")
       .populate("professional", "name email");
-
 
     if (!application) {
       return res.status(404).json({
@@ -1086,7 +983,6 @@ const rejectApplication = asyncHandler(async (req, res) => {
         message: "Application not found"
       });
     }
-
 
     // Verify job ownership
     if (application.job.createdBy.toString() !== req.user.id) {
@@ -1096,7 +992,6 @@ const rejectApplication = asyncHandler(async (req, res) => {
       });
     }
 
-
     application.status = "rejected";
     application.reviewedAt = new Date();
     application.reviewedBy = req.user.id;
@@ -1104,19 +999,15 @@ const rejectApplication = asyncHandler(async (req, res) => {
       application.notes = req.body.message;
     }
 
-
     await application.save();
 
-
     console.log("✅ [rejectApplication] Application rejected successfully");
-
 
     res.json({
       success: true,
       application,
       message: "Application rejected successfully"
     });
-
 
   } catch (error) {
     console.error("❌ [rejectApplication] Error:", error);
@@ -1128,7 +1019,6 @@ const rejectApplication = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Start conversation with professional
 // @route   POST /api/jobs/:jobId/contact/:userId
 // @access  Private (Job owners only)
@@ -1136,9 +1026,7 @@ const startConversation = asyncHandler(async (req, res) => {
   try {
     console.log("💼 [startConversation] Starting conversation for job:", req.params.jobId);
 
-
     const { jobId, userId } = req.params;
-
 
     // Basic validation
     if (userId === req.user.id) {
@@ -1148,10 +1036,8 @@ const startConversation = asyncHandler(async (req, res) => {
       });
     }
 
-
     // Use the existing messageController function
     const { createOrFindConversation } = require("../controllers/messageController");
-
 
     // Prepare request for messageController
     const originalBody = req.body;
@@ -1161,25 +1047,20 @@ const startConversation = asyncHandler(async (req, res) => {
       type: 'project'
     };
 
-
     // Create response handler to capture result
     let controllerResponse = null;
     const originalJson = res.json;
-
 
     res.json = function(data) {
       controllerResponse = data;
       return res;
     };
 
-
     await createOrFindConversation(req, res);
-
 
     // Restore original methods
     res.json = originalJson;
     req.body = originalBody;
-
 
     if (controllerResponse && controllerResponse.success) {
       console.log("✅ [startConversation] Conversation started successfully");
@@ -1190,12 +1071,10 @@ const startConversation = asyncHandler(async (req, res) => {
       });
     }
 
-
     return res.status(500).json({
       success: false,
       message: "Error starting conversation"
     });
-
 
   } catch (error) {
     console.error("❌ [startConversation] Error:", error);
@@ -1206,7 +1085,6 @@ const startConversation = asyncHandler(async (req, res) => {
     });
   }
 });
-
 
 // ✅ CRITICAL ADDITION: Update application status (for PATCH route)
 // @desc    Update application status with optional message
@@ -1328,7 +1206,6 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
     });
   }
 });
-
 
 // ✅ Export all functions
 module.exports = {

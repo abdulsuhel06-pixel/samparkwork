@@ -22,9 +22,7 @@ const {
   updateApplicationStatus  // ✅ CRITICAL: Add this import
 } = require("../controllers/jobController");
 
-
 const router = express.Router();
-
 
 // Debug middleware
 router.use((req, res, next) => {
@@ -32,11 +30,9 @@ router.use((req, res, next) => {
   next();
 });
 
-
 // ===== VALIDATION MIDDLEWARE =====
 
-
-// ✅ COMPLETELY FIXED: Updated validation to handle businessAddress object
+// ✅ CRITICAL FIX: Updated validation to match your Job model structure
 const validateJob = [
   body('title')
     .trim()
@@ -54,6 +50,7 @@ const validateJob = [
     .trim()
     .notEmpty()
     .withMessage('Job category is required'),
+  // ✅ CRITICAL FIX: Validate budgetMin and budgetMax (frontend format)
   body('budgetMin')
     .isNumeric()
     .withMessage('Minimum budget must be a number')
@@ -101,7 +98,7 @@ const validateJob = [
       return true;
     }),
   
-  // ✅ NEW: Business address validation (conditional based on location)
+  // ✅ ENHANCED: Business address validation (conditional based on location)
   body('businessAddress')
     .optional()
     .custom((value, { req }) => {
@@ -146,7 +143,6 @@ const validateJob = [
     })
 ];
 
-
 const validateJobApplication = [
   body('coverLetter')
     .trim()
@@ -165,36 +161,49 @@ const validateJobApplication = [
     .withMessage('Estimated timeline cannot exceed 200 characters')
 ];
 
-
-// ✅ ENHANCED: Handle validation errors with detailed logging
+// ✅ CRITICAL FIX: Enhanced error handling with proper budget validation error messages
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log("❌ Job validation errors:", errors.array());
     console.log("❌ Request body for debugging:", JSON.stringify(req.body, null, 2));
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors.array().map(err => ({
+    
+    // ✅ CRITICAL FIX: Convert validation errors to match frontend expectations
+    const formattedErrors = errors.array().map(err => {
+      let message = err.msg;
+      
+      // ✅ Map backend validation messages to match model expectations
+      if (err.path === 'budgetMin' && message.includes('Minimum budget must be a number')) {
+        message = 'Minimum budget is required';
+      }
+      if (err.path === 'budgetMax' && message.includes('Maximum budget must be a number')) {
+        message = 'Maximum budget is required';
+      }
+      
+      return {
         field: err.path || err.param,
-        message: err.msg,
+        message: message,
         value: err.value,
         location: err.location
-      }))
+      };
+    });
+    
+    return res.status(400).json({
+      success: false,
+      message: 'Validation error',
+      errors: formattedErrors.map(err => err.message) // ✅ Return simple array for your error handling
     });
   }
   next();
 };
-
 
 // ===== PUBLIC ROUTES (order matters!) =====
 router.get("/", getJobs);
 router.get("/recent", getRecentJobs);
 router.get("/categories", getJobCategories);
 
-
 // ===== PROTECTED ROUTES =====
-// ✅ FIXED: Simplified middleware chain with proper validation
+// ✅ CRITICAL FIX: Proper validation chain that matches your Job model
 router.post("/", 
   protect, 
   isAdminOrClient, 
@@ -203,21 +212,17 @@ router.post("/",
   createJob
 );
 
-
 // ✅ CRITICAL FIX: SPECIFIC ROUTES MUST COME BEFORE GENERIC /:id ROUTES
 router.post("/:id/increment-view", protect, incrementJobView);
 router.post("/:id/apply", protect, validateJobApplication, handleValidationErrors, applyJob);
 router.put("/:id", protect, isAdminOrClient, validateJob, handleValidationErrors, updateJob);
 router.delete("/:id", protect, isAdminOrClient, deleteJob);
 
-
 // ===== USER-SPECIFIC ROUTES =====
 router.get("/my/posted", protect, isAdminOrClient, getMyPostedJobs);
 router.get("/my/applications", protect, getMyApplications);
 
-
 // ===== ✅ ENHANCED APPLICATION MANAGEMENT ROUTES =====
-
 
 // Get applications received for client's jobs
 router.get("/applications/received", protect, isAdminOrClient, async (req, res) => {
@@ -259,7 +264,7 @@ router.get("/applications/received", protect, isAdminOrClient, async (req, res) 
     const applications = await Application.find(filter)
       .populate({
         path: 'job',
-        select: 'title budget category status createdAt location deadline'
+        select: 'title budget budgetMin budgetMax category status createdAt location deadline'
       })
       .populate({
         path: 'professional',
@@ -272,16 +277,30 @@ router.get("/applications/received", protect, isAdminOrClient, async (req, res) 
     const totalApplications = await Application.countDocuments(filter);
     const totalPages = Math.ceil(totalApplications / parseInt(limit));
     
-    // ✅ ENHANCED: Process avatar URLs
+    // ✅ ENHANCED: Process avatar URLs and handle both budget structures
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const processedApplications = applications.map(app => ({
-      ...app.toObject(),
-      professional: {
-        ...app.professional.toObject(),
-        avatarUrl: app.professional.avatar ? 
-          `${baseUrl}/uploads/avatars/${app.professional.avatar}` : null
+    const processedApplications = applications.map(app => {
+      const appObj = app.toObject();
+      
+      // ✅ CRITICAL FIX: Handle both budget structures in job data
+      if (appObj.job) {
+        if (!appObj.job.budgetMin && appObj.job.budget?.min) {
+          appObj.job.budgetMin = appObj.job.budget.min;
+        }
+        if (!appObj.job.budgetMax && appObj.job.budget?.max) {
+          appObj.job.budgetMax = appObj.job.budget.max;
+        }
       }
-    }));
+      
+      return {
+        ...appObj,
+        professional: {
+          ...appObj.professional,
+          avatarUrl: appObj.professional.avatar ? 
+            `${baseUrl}/uploads/avatars/${appObj.professional.avatar}` : null
+        }
+      };
+    });
     
     console.log(`✅ [Applications] Found ${processedApplications.length} received applications`);
     
@@ -305,10 +324,8 @@ router.get("/applications/received", protect, isAdminOrClient, async (req, res) 
   }
 });
 
-
 // ✅ CRITICAL FIX: Use controller function instead of inline handler
 router.patch("/applications/:id/status", protect, canAccessApplication, updateApplicationStatus);
-
 
 // ✅ COMPLETELY FIXED: Delete/remove application with proper authorization
 router.delete("/applications/:id", protect, canAccessApplication, async (req, res) => {
@@ -409,9 +426,7 @@ router.delete("/applications/:id", protect, canAccessApplication, async (req, re
   }
 });
 
-
 // ===== ✅ CRITICAL FIX: MESSAGING INTEGRATION ROUTES =====
-
 
 // ✅ COMPLETELY FIXED: Start conversation using your existing messageController
 router.post("/:jobId/contact/:userId", protect, async (req, res) => {
@@ -515,7 +530,6 @@ router.post("/:jobId/contact/:userId", protect, async (req, res) => {
   }
 });
 
-
 // Get job applications for a specific job (for job owners)
 router.get("/:jobId/applications", protect, isAdminOrClient, async (req, res) => {
   try {
@@ -600,10 +614,8 @@ router.get("/:jobId/applications", protect, isAdminOrClient, async (req, res) =>
   }
 });
 
-
 // ✅ CRITICAL FIX: GENERIC /:id ROUTE MUST COME LAST
 router.get("/:id", getJobById);
-
 
 // ===== ERROR HANDLING MIDDLEWARE =====
 router.use((err, req, res, next) => {
@@ -640,8 +652,6 @@ router.use((err, req, res, next) => {
   });
 });
 
-
 console.log("✅ jobRoutes module loaded successfully");
-
 
 module.exports = router;

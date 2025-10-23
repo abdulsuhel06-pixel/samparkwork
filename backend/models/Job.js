@@ -30,23 +30,17 @@ const jobSchema = new mongoose.Schema(
       type: String,
       trim: true
     }],
-    // ✅ FIXED: Budget structure to match controller expectations
+    // ✅ CRITICAL FIX: Budget structure - make nested budget optional but keep validation
     budget: {
       min: {
         type: Number,
-        required: [true, "Minimum budget is required"],
         min: [0, "Budget cannot be negative"]
+        // ✅ REMOVED: required validation - will be set by middleware
       },
       max: {
         type: Number,
-        required: [true, "Maximum budget is required"],
-        min: [0, "Budget cannot be negative"],
-        validate: {
-          validator: function(value) {
-            return value >= this.budget.min;
-          },
-          message: 'Maximum budget must be greater than or equal to minimum budget'
-        }
+        min: [0, "Budget cannot be negative"]
+        // ✅ REMOVED: required validation - will be set by middleware
       },
       type: {
         type: String,
@@ -61,14 +55,22 @@ const jobSchema = new mongoose.Schema(
         default: 'INR'
       }
     },
-    // ✅ KEPT: Backward compatibility fields (will be removed by controller)
+    // ✅ CRITICAL FIX: Make these required temporarily until middleware converts
     budgetMin: {
       type: Number,
+      required: [true, "Minimum budget is required"],
       min: [0, "Budget cannot be negative"]
     },
     budgetMax: {
       type: Number,
-      min: [0, "Budget cannot be negative"]
+      required: [true, "Maximum budget is required"],
+      min: [0, "Budget cannot be negative"],
+      validate: {
+        validator: function(value) {
+          return value >= this.budgetMin;
+        },
+        message: 'Maximum budget must be greater than or equal to minimum budget'
+      }
     },
     budgetType: {
       type: String,
@@ -83,16 +85,14 @@ const jobSchema = new mongoose.Schema(
       },
       default: 'Remote'
     },
-    // ✅ NEW: Complete business address information
+    // ✅ Business address information
     businessAddress: {
       businessName: {
         type: String,
         trim: true,
         maxlength: [200, "Business name cannot exceed 200 characters"],
-        // Required only when location is On-site
         validate: {
           validator: function(value) {
-            // If location is On-site, businessName is required
             return this.location !== 'On-site' || (value && value.trim().length > 0);
           },
           message: 'Business name is required for on-site jobs'
@@ -192,7 +192,6 @@ const jobSchema = new mongoose.Schema(
         message: 'Deadline must be a future date'
       }
     },
-    // ✅ FIXED: Status field to match controller usage
     status: {
       type: String,
       enum: {
@@ -232,7 +231,6 @@ const jobSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
-    // ✅ NEW: Auto-expiration fields
     isExpired: {
       type: Boolean,
       default: false,
@@ -258,16 +256,15 @@ jobSchema.index({ createdBy: 1, status: 1, createdAt: -1 });
 jobSchema.index({ category: 1, status: 1, createdAt: -1 });
 jobSchema.index({ skills: 1, status: 1 });
 jobSchema.index({ location: 1, status: 1 });
-jobSchema.index({ 'budget.min': 1, 'budget.max': 1, status: 1 });
+jobSchema.index({ budgetMin: 1, budgetMax: 1, status: 1 });
 jobSchema.index({ deadline: 1, status: 1, isExpired: 1 });
 jobSchema.index({ isExpired: 1, status: 1 });
 jobSchema.index({ experienceLevel: 1, status: 1 });
 jobSchema.index({ duration: 1, status: 1 });
-// ✅ NEW: Address-based indexes
 jobSchema.index({ 'businessAddress.city': 1, 'businessAddress.state': 1, status: 1 });
 jobSchema.index({ location: 1, 'businessAddress.city': 1, status: 1 });
 
-// ✅ ENHANCED: Text search index with weights
+// ✅ Text search index with weights
 jobSchema.index(
   { 
     title: 'text', 
@@ -290,34 +287,32 @@ jobSchema.index(
   }
 );
 
-// ✅ COMPOUND INDEXES for complex queries
-jobSchema.index({ status: 1, createdAt: -1, category: 1 });
-jobSchema.index({ status: 1, 'budget.min': 1, 'budget.max': 1 });
-jobSchema.index({ status: 1, location: 1, experienceLevel: 1 });
-
 // Virtual for application count
 jobSchema.virtual('applicationCount').get(function() {
   return this.applications ? this.applications.length : 0;
 });
 
-// ✅ FIXED: Budget range display using new structure
+// ✅ Budget range display - prefer flat fields
 jobSchema.virtual('budgetRange').get(function() {
-  if (this.budget && this.budget.min !== undefined && this.budget.max !== undefined) {
-    const formatter = new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    });
-    
-    if (this.budget.min === this.budget.max) {
-      return `${formatter.format(this.budget.min)} ${this.budget.type}`;
-    }
-    return `${formatter.format(this.budget.min)} - ${formatter.format(this.budget.max)} ${this.budget.type}`;
+  const minBudget = this.budgetMin || this.budget?.min;
+  const maxBudget = this.budgetMax || this.budget?.max;
+  const budgetType = this.budgetType || this.budget?.type || 'Fixed';
+  
+  if (!minBudget || !maxBudget) return 'Budget not specified';
+  
+  const formatter = new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  });
+  
+  if (minBudget === maxBudget) {
+    return `${formatter.format(minBudget)} ${budgetType}`;
   }
-  return 'Budget not specified';
+  return `${formatter.format(minBudget)} - ${formatter.format(maxBudget)} ${budgetType}`;
 });
 
-// ✅ NEW: Complete address display virtual
+// ✅ Complete address display virtual
 jobSchema.virtual('formattedAddress').get(function() {
   if (this.location !== 'On-site' || !this.businessAddress?.streetAddress) {
     return this.location || 'Remote';
@@ -336,7 +331,7 @@ jobSchema.virtual('formattedAddress').get(function() {
   return parts.length > 0 ? parts.join(', ') : 'On-site';
 });
 
-// ✅ NEW: Short address for cards
+// ✅ Short address for cards
 jobSchema.virtual('shortAddress').get(function() {
   if (this.location !== 'On-site' || !this.businessAddress?.city) {
     return this.location || 'Remote';
@@ -352,9 +347,7 @@ jobSchema.virtual('shortAddress').get(function() {
   return parts.length > 0 ? parts.join(', ') : 'On-site';
 });
 
-// ✅ CRITICAL FIX: Proper null checks for date formatting
 jobSchema.virtual('postedDate').get(function() {
-  // ✅ FIXED: Add null/undefined checks
   if (!this.createdAt || !(this.createdAt instanceof Date)) {
     return 'Date not available';
   }
@@ -371,9 +364,7 @@ jobSchema.virtual('postedDate').get(function() {
   }
 });
 
-// ✅ CRITICAL FIX: Days until deadline with proper null checks
 jobSchema.virtual('daysUntilDeadline').get(function() {
-  // ✅ FIXED: Add null/undefined checks
   if (!this.deadline || !(this.deadline instanceof Date)) {
     return null;
   }
@@ -382,7 +373,6 @@ jobSchema.virtual('daysUntilDeadline').get(function() {
     const now = new Date();
     const deadline = new Date(this.deadline);
     
-    // Check if deadline is valid
     if (isNaN(deadline.getTime())) {
       return null;
     }
@@ -397,21 +387,16 @@ jobSchema.virtual('daysUntilDeadline').get(function() {
   }
 });
 
-// ✅ MIDDLEWARE: Auto-migration for old budget structure
+// ✅ CRITICAL FIX: Middleware to populate nested budget AFTER validation passes
 jobSchema.pre('save', function(next) {
-  // Convert old budgetMin/budgetMax to new budget structure
-  if (this.budgetMin !== undefined && this.budgetMax !== undefined && !this.budget.min) {
+  // ✅ ONLY populate nested budget if flat fields exist
+  if (this.budgetMin !== undefined && this.budgetMax !== undefined) {
     this.budget = {
       min: this.budgetMin,
       max: this.budgetMax,
       type: this.budgetType || 'Fixed',
       currency: 'INR'
     };
-    
-    // Remove old fields
-    this.budgetMin = undefined;
-    this.budgetMax = undefined;
-    this.budgetType = undefined;
   }
   
   // Auto-expire check with proper date validation
@@ -443,35 +428,29 @@ jobSchema.statics.findWithAdvancedSearch = function(searchParams) {
     limit = 12
   } = searchParams;
 
-  // Build aggregation pipeline
   const pipeline = [];
-
-  // Match active jobs only
   const matchStage = { 
     status: 'open', 
     isExpired: { $ne: true } 
   };
 
-  // Add text search if provided
   if (search) {
     matchStage.$text = { $search: search };
   }
 
-  // Add filters
   if (category && category !== 'all') matchStage.category = category;
   if (location && location !== 'all') matchStage.location = location;
   if (experienceLevel && experienceLevel !== 'all') matchStage.experienceLevel = experienceLevel;
   if (duration && duration !== 'all') matchStage.duration = duration;
 
-  // Budget range filter
+  // ✅ Use flat budget fields for filtering
   if (minBudget || maxBudget) {
-    if (minBudget) matchStage['budget.min'] = { $gte: Number(minBudget) };
-    if (maxBudget) matchStage['budget.max'] = { $lte: Number(maxBudget) };
+    if (minBudget) matchStage['budgetMax'] = { $gte: Number(minBudget) };
+    if (maxBudget) matchStage['budgetMin'] = { $lte: Number(maxBudget) };
   }
 
   pipeline.push({ $match: matchStage });
 
-  // Add text search score for sorting
   if (search) {
     pipeline.push({ 
       $addFields: { 
@@ -480,7 +459,6 @@ jobSchema.statics.findWithAdvancedSearch = function(searchParams) {
     });
   }
 
-  // Lookup createdBy user
   pipeline.push({
     $lookup: {
       from: 'users',
@@ -497,7 +475,6 @@ jobSchema.statics.findWithAdvancedSearch = function(searchParams) {
     $unwind: '$createdBy'
   });
 
-  // Sort stage
   let sortStage = {};
   switch (sortBy) {
     case 'newest':
@@ -507,10 +484,10 @@ jobSchema.statics.findWithAdvancedSearch = function(searchParams) {
       sortStage = { createdAt: 1 };
       break;
     case 'highestBudget':
-      sortStage = { 'budget.max': -1 };
+      sortStage = { 'budgetMax': -1 };
       break;
     case 'lowestBudget':
-      sortStage = { 'budget.min': 1 };
+      sortStage = { 'budgetMin': 1 };
       break;
     case 'deadline':
       sortStage = { deadline: 1 };
@@ -528,7 +505,6 @@ jobSchema.statics.findWithAdvancedSearch = function(searchParams) {
 
   pipeline.push({ $sort: sortStage });
 
-  // Pagination
   const skip = (parseInt(page) - 1) * parseInt(limit);
   pipeline.push({ $skip: skip });
   pipeline.push({ $limit: parseInt(limit) });
@@ -536,7 +512,6 @@ jobSchema.statics.findWithAdvancedSearch = function(searchParams) {
   return this.aggregate(pipeline);
 };
 
-// ✅ STATIC METHOD: Auto-expire jobs with proper error handling
 jobSchema.statics.autoExpireJobs = async function() {
   try {
     const now = new Date();
