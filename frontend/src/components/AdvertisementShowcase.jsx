@@ -94,6 +94,7 @@ const VideoPlayer = React.memo(({ src, poster, title }) => {
         <p>Video unavailable</p>
         <small>Failed to load: {title}</small>
         <small>Network: {getNetworkInfo().isMobile ? 'Mobile' : 'Desktop'}</small>
+        <small>URL: {src}</small>
       </div>
     );
   }
@@ -119,7 +120,10 @@ const VideoPlayer = React.memo(({ src, poster, title }) => {
         style={{ display: isLoading ? 'none' : 'block' }}
         onLoadStart={() => console.log('🎥 Video element loading:', src)}
         onCanPlay={() => console.log('✅ Video element can play:', src)}
-        onError={(e) => console.error('❌ Video element error:', e)}
+        onError={(e) => {
+          console.error('❌ Video element error:', e);
+          console.error('❌ Video src causing error:', src);
+        }}
       />
       {!isPlaying && !isLoading && (
         <div className="video-overlay" onClick={handlePlayClick}>
@@ -173,27 +177,28 @@ const AdvertisementShowcase = () => {
         adsData = response.data.advertisements || response.data.data || [];
       }
 
-      // ✅ MOBILE COMPATIBLE: Process media URLs correctly
-      console.log('🔍 Processing advertisements for mobile compatibility:');
-      adsData = adsData.map(ad => {
-        // ✅ FIXED: Use getMediaUrl helper for mobile compatibility
+      // ✅ CRITICAL FIX: Process media URLs with enhanced debugging
+      console.log('🔍 Processing advertisements for HTTPS compatibility:');
+      adsData = adsData.map((ad, index) => {
+        // ✅ FIXED: Use getMediaUrl helper for HTTPS compatibility
         const processedAd = {
           ...ad,
           mediaUrl: getMediaUrl(ad.mediaUrl),
           poster: ad.poster ? getMediaUrl(ad.poster) : null
         };
         
-        console.log(`  📱 "${ad.title}"`);
+        console.log(`  🎬 Advertisement #${index + 1}: "${ad.title}"`);
         console.log(`     Type: ${ad.mediaType}`);
         console.log(`     Original URL: ${ad.mediaUrl}`);
-        console.log(`     Mobile URL: ${processedAd.mediaUrl}`);
+        console.log(`     Processed URL: ${processedAd.mediaUrl}`);
+        console.log(`     HTTPS Check: ${processedAd.mediaUrl?.startsWith('https://') ? '✅' : '❌'}`);
         console.log(`     Network: ${getNetworkInfo().isMobile ? 'Mobile' : 'Desktop'}`);
         
         return processedAd;
       });
 
       setAds(adsData);
-      console.log(`✅ Successfully loaded ${adsData.length} advertisements for ${getNetworkInfo().isMobile ? 'mobile' : 'desktop'}`);
+      console.log(`✅ Successfully loaded ${adsData.length} advertisements with HTTPS URLs`);
       
     } catch (error) {
       console.error('❌ Failed to fetch advertisements:', error);
@@ -378,10 +383,11 @@ const AdvertisementShowcase = () => {
                       alt={currentAd.title || 'Advertisement'}
                       className="ad-image"
                       loading="lazy"
-                      onLoad={() => console.log('✅ Ad image loaded successfully:', currentAd.title)}
+                      onLoad={() => console.log('✅ Ad image loaded successfully:', currentAd.title, currentAd.mediaUrl)}
                       onError={(e) => {
                         console.error('❌ Ad image failed to load:', currentAd.title);
-                        console.error('Network info:', getNetworkInfo());
+                        console.error('❌ Failed URL:', currentAd.mediaUrl);
+                        console.error('❌ Network info:', getNetworkInfo());
                         e.target.style.display = 'none';
                         const placeholder = e.target.parentNode.querySelector('.image-placeholder');
                         if (placeholder) placeholder.style.display = 'flex';
@@ -390,6 +396,7 @@ const AdvertisementShowcase = () => {
                     <div className="image-placeholder" style={{ display: 'none' }}>
                       <AlertCircle size={48} />
                       <span>Image unavailable</span>
+                      <small>{currentAd.mediaUrl}</small>
                     </div>
                   </div>
                 )}

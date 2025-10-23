@@ -93,13 +93,13 @@ export const getImageUrl = (imagePath) => {
   return finalUrl;
 };
 
-// ✅ FIXED: Media URL helper that handles Windows backslashes properly
+// ✅ CRITICAL FIX: Enhanced getMediaUrl function for HTTPS advertisement support
 export const getMediaUrl = (mediaPath) => {
   if (!mediaPath) return null;
   
   console.log('🎥 getMediaUrl - Input:', mediaPath);
   
-  // If already a complete URL, clean it and return
+  // If already a complete URL, clean it and ensure HTTPS in production
   if (mediaPath.startsWith('http://') || mediaPath.startsWith('https://')) {
     // ✅ CRITICAL FIX: Clean up Windows backslashes and double slashes in URLs
     let cleanUrl = mediaPath
@@ -107,6 +107,12 @@ export const getMediaUrl = (mediaPath) => {
       .replace(/\/+/g, '/') // Replace multiple slashes with single slash
       .replace('http:/', 'http://') // Fix http protocol
       .replace('https:/', 'https://'); // Fix https protocol
+    
+    // ✅ CRITICAL FIX: Force HTTPS in production for advertisement media
+    if (!isDevelopment && cleanUrl.startsWith('http://')) {
+      cleanUrl = cleanUrl.replace('http://', 'https://');
+      console.log('🔒 getMediaUrl - Forced HTTPS:', cleanUrl);
+    }
     
     // ✅ ADDITIONAL FIX: Remove duplicate uploads/ paths
     if (cleanUrl.includes('/uploads/uploads/')) {
@@ -1296,3 +1302,6 @@ export default api;
 
 // ✅ EXPORT BASE URLS FOR OTHER COMPONENTS
 export { API_BASE_URL, SOCKET_URL };
+
+console.log('✅ API service fully initialized with HTTPS advertisement media fix');
+console.log('🎯 Advertisement images and videos will now load with proper HTTPS URLs');
