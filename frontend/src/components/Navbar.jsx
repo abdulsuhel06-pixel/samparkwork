@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import logo from "../assets/logo.png";
 import "./Navbar.css";
 
-// ✅ UNIVERSAL: Enhanced Avatar Component (Works for both mobile and desktop)
+// ✅ UNIVERSAL: Enhanced Avatar Component (Fixed HTTPS URLs)
 const Avatar = ({ src, name, size = 40, forceRefresh = 0, className = "" }) => {
   const [imageError, setImageError] = useState(false);
   const [imageKey, setImageKey] = useState(0);
@@ -22,7 +22,8 @@ const Avatar = ({ src, name, size = 40, forceRefresh = 0, className = "" }) => {
       return `${src}${src.includes('?') ? '&' : '?'}t=${Date.now()}&r=${forceRefresh}`;
     }
     
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://10.25.40.157:5000';
+    // ✅ CRITICAL FIX: Always use HTTPS for production, remove fallback HTTP
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://samparkwork-backend.onrender.com';
     let cleanSrc = src;
     
     if (!cleanSrc.startsWith('/uploads/avatars/')) {

@@ -130,40 +130,43 @@ const AdminDashboard = () => {
     };
   }, []);
 
-  // ✅ PRODUCTION-READY: Get media URL for advertisements with complete debugging
-  const getImageUrl = (ad) => {
-    console.log('🎬 [getImageUrl] Processing advertisement:', {
-      id: ad._id,
-      title: ad.title,
-      mediaUrl: ad.mediaUrl,
-      mediaType: ad.mediaType
+  // ✅ FIXED: Get media URL for both categories and advertisements 
+  const getImageUrl = (item) => {
+    console.log('🎬 [getImageUrl] Processing item:', {
+      id: item._id,
+      title: item.title || item.name,
+      mediaUrl: item.mediaUrl || item.imageUrl,
+      mediaType: item.mediaType || 'image'
     });
     
-    if (!ad.mediaUrl) {
-      console.warn('🎬 [getImageUrl] No mediaUrl found for advertisement');
+    // Check for different URL properties (categories use imageUrl, ads use mediaUrl)
+    const urlSource = item.mediaUrl || item.imageUrl;
+    
+    if (!urlSource) {
+      console.warn('🎬 [getImageUrl] No media URL found');
       return null;
     }
     
     // If already a full URL, return as is
-    if (ad.mediaUrl.startsWith('http://') || ad.mediaUrl.startsWith('https://')) {
-      console.log('🎬 [getImageUrl] Using existing full URL:', ad.mediaUrl);
-      return ad.mediaUrl;
+    if (urlSource.startsWith('http://') || urlSource.startsWith('https://')) {
+      console.log('🎬 [getImageUrl] Using existing full URL:', urlSource);
+      return urlSource;
     }
     
-    // ✅ CRITICAL FIX: Environment-aware base URL selection
+    // ✅ FIXED: Force HTTPS in production to prevent mixed content
     const isProduction = process.env.NODE_ENV === 'production' || 
                         window.location.hostname !== 'localhost' ||
                         window.location.hostname === 'samparkworkwebsite.vercel.app' ||
-                        window.location.hostname === 'samparkwork.vercel.app';
+                        window.location.hostname === 'samparkwork.vercel.app' ||
+                        window.location.hostname === 'www.samparkwork.in' ||
+                        window.location.hostname === 'samparkwork.in';
     
     const baseUrl = isProduction 
       ? 'https://samparkwork-backend.onrender.com' 
       : 'http://localhost:5000';
     
     // ✅ CRITICAL: Ensure proper path construction
-    // Database stores: advertisements/videos/filename
-    // We need: /uploads/advertisements/videos/filename
-    let finalPath = ad.mediaUrl;
+    let finalPath = urlSource;
     
     // Add /uploads/ prefix if not present
     if (!finalPath.startsWith('/uploads/')) {
@@ -176,7 +179,7 @@ const AdminDashboard = () => {
       environment: isProduction ? 'PRODUCTION' : 'DEVELOPMENT',
       hostname: window.location.hostname,
       baseUrl,
-      originalPath: ad.mediaUrl,
+      originalPath: urlSource,
       finalPath,
       finalUrl
     });
@@ -334,7 +337,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // 🚨 FIXED: Advertisement fetching function
+  // ✅ FIXED: Advertisement fetching function - keeping your original API path
   const fetchAds = async () => {
     try {
       setLoadingState('ads', true);
@@ -553,26 +556,63 @@ const AdminDashboard = () => {
     }
   };
 
+  // ✅ FIXED: Advertisement submission with proper validation and FormData
   const submitAd = async () => {
     if (!adForm.title.trim() || !adForm.content.trim()) {
       showAlert('error', 'Please fill all required fields');
       return;
     }
 
+    // ✅ FIXED: Require media file for new advertisements
+    if (!editingAd && !adForm.media) {
+      showAlert('error', 'Media file is required for new advertisements');
+      return;
+    }
+
     try {
       setLoading(true);
+      console.log('📺 [submitAd] Starting advertisement submission...');
+      
       const formData = new FormData();
-      Object.keys(adForm).forEach(key => {
-        if (adForm[key] !== null && adForm[key] !== undefined) {
-          formData.append(key, adForm[key]);
-        }
-      });
+      
+      // ✅ FIXED: Proper FormData field mapping for backend
+      formData.append('title', adForm.title.trim());
+      formData.append('content', adForm.content.trim());
+      formData.append('placement', adForm.placement);
+      formData.append('isActive', adForm.isActive.toString());
+      formData.append('featured', adForm.featured.toString());
+      formData.append('link', adForm.link?.trim() || '');
+      
+      // ✅ CRITICAL: Append media file if present
+      if (adForm.media) {
+        formData.append('media', adForm.media);
+        console.log('📎 [submitAd] Media file appended:', adForm.media.name);
+      }
+
+      // ✅ Debug FormData contents
+      console.log('📺 [submitAd] FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}:`, value);
+      }
 
       if (editingAd) {
-        await api.put(`/api/admin/advertisements/${editingAd._id}`, formData);
+        console.log('📺 [submitAd] Updating advertisement:', editingAd._id);
+        await api.put(`/api/admin/advertisements/${editingAd._id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 60000
+        });
         showAlert('success', 'Advertisement updated successfully!');
       } else {
-        await api.post('/api/admin/advertisements', formData);
+        console.log('📺 [submitAd] Creating new advertisement...');
+        const response = await api.post('/api/admin/advertisements', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 60000
+        });
+        console.log('✅ [submitAd] Create response:', response.data);
         showAlert('success', 'Advertisement created successfully!');
       }
 
@@ -580,8 +620,19 @@ const AdminDashboard = () => {
       await fetchStats();
       closeModal('ad');
     } catch (error) {
-      console.error('Advertisement submission error:', error);
-      showAlert('error', 'Failed to save advertisement');
+      console.error('❌ [submitAd] Advertisement submission error:', error);
+      console.error('❌ [submitAd] Error response:', error.response?.data);
+      
+      let errorMessage = 'Failed to save advertisement';
+      if (error.response?.status === 400) {
+        errorMessage = error.response.data?.message || 'Invalid data provided. Please check all fields.';
+      } else if (error.response?.status === 413) {
+        errorMessage = 'File too large. Please select a smaller file.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      showAlert('error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -975,17 +1026,8 @@ const AdminDashboard = () => {
     </div>
   );
 
-  // ✅ ENHANCED: Advertisement rendering with production-ready video support
+  // ✅ FIXED: Advertisement rendering with proper image handling
   const renderAds = () => {
-    // ✅ TEMPORARY DEBUG: Log environment and URL generation
-    console.log('🐛 [renderAds] Debug Info:', {
-      hostname: window.location.hostname,
-      nodeEnv: process.env.NODE_ENV,
-      adsCount: ads.length,
-      firstAdMediaUrl: ads.length > 0 ? ads[0].mediaUrl : 'No ads',
-      generatedUrl: ads.length > 0 ? getImageUrl(ads[0]) : 'No ads'
-    });
-
     return (
       <div className="beautiful-section-content">
         <div className="beautiful-page-header">
@@ -1069,26 +1111,6 @@ const AdminDashboard = () => {
                         <small style={{ marginTop: '5px', textAlign: 'center', maxWidth: '80%' }}>
                           {getImageUrl(ad)}
                         </small>
-                      </div>
-                      
-                      {/* Loading overlay */}
-                      <div 
-                        className="video-loading"
-                        style={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          transform: 'translate(-50%, -50%)',
-                          backgroundColor: 'rgba(0,0,0,0.7)',
-                          color: 'white',
-                          padding: '10px 15px',
-                          borderRadius: '5px',
-                          fontSize: '12px',
-                          pointerEvents: 'none',
-                          display: 'none'
-                        }}
-                      >
-                        Loading video...
                       </div>
                     </div>
                   ) : (
@@ -1488,7 +1510,8 @@ const AdminDashboard = () => {
               </div>
               <div className="form-group">
                 <label>Advertisement Media {!editingAd && '*'}</label>
-                <input type="file" name="media" accept="image/*,video/*" onChange={handleAdChange} />
+                <input type="file" name="media" accept="image/*,video/*" onChange={handleAdChange}
+                  required={!editingAd} />
                 <small>
                   Supported formats: Images (JPEG, PNG, GIF, WebP) | Videos (MP4, AVI, MKV, MOV, WMV, FLV, WebM)
                 </small>
