@@ -22,6 +22,8 @@ const adminRoutes = require("./routes/adminRoutes.js");
 const categoryRoutes = require("./routes/categoryRoutes.js");
 const advertisementRoutes = require("./routes/advertisementRoutes.js");
 const messageRoutes = require('./routes/messageRoutes.js');
+// ✅ NEW: Google OAuth Routes
+const googleAuthRoutes = require('./routes/googleAuth.js');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -217,6 +219,16 @@ app.use((req, res, next) => {
   // ✅ NEW: Debug logging for messaging routes
   if (req.url.includes('/messages/')) {
     console.log('💬 Message Route Request:', {
+      method: req.method,
+      url: req.url,
+      body: req.method === 'POST' ? req.body : 'GET request',
+      contentType: req.get('Content-Type')
+    });
+  }
+
+  // ✅ NEW: Debug logging for Google OAuth routes
+  if (req.url.includes('/oauth/')) {
+    console.log('🔐 Google OAuth Route Request:', {
       method: req.method,
       url: req.url,
       body: req.method === 'POST' ? req.body : 'GET request',
@@ -458,7 +470,8 @@ app.get("/", (req, res) => {
       messaging: "Socket.IO Active",
       fileUploads: "Enabled",
       realTime: "Active",
-      cors: "Dynamic Origins Configured"
+      cors: "Dynamic Origins Configured",
+      googleOAuth: "Enabled" // ✅ NEW
     },
     endpoints: {
       health: "/api/health",
@@ -468,7 +481,8 @@ app.get("/", (req, res) => {
       messages: "/api/messages/*",
       admin: "/api/admin/*",
       categories: "/api/categories/*",
-      advertisements: "/api/advertisements/*"
+      advertisements: "/api/advertisements/*",
+      googleOAuth: "/api/oauth/google" // ✅ NEW
     },
     frontend: {
       development: "http://localhost:5173",
@@ -497,6 +511,8 @@ app.use("/api/admin/categories", categoryRoutes);
 app.use("/api/advertisements", advertisementRoutes);
 // ✅ MESSAGING ROUTES - PROPERLY MOUNTED
 app.use('/api/messages', messageRoutes);
+// ✅ NEW: Google OAuth Routes - PROPERLY MOUNTED
+app.use('/api/oauth', googleAuthRoutes);
 
 // ✅ COMPLETELY FIXED HEALTH CHECK - NO SOCKET.IO PACKAGE.JSON ACCESS
 app.get("/api/health", (req, res) => {
@@ -520,7 +536,7 @@ app.get("/api/health", (req, res) => {
   res.json({ 
     ok: true, 
     time: new Date(),
-    message: "SamparkWork Backend API Server is running with real-time messaging support",
+    message: "SamparkWork Backend API Server is running with real-time messaging support and Google OAuth",
     deployment: {
       platform: "Render",
       url: "https://samparkwork-backend.onrender.com",
@@ -541,7 +557,8 @@ app.get("/api/health", (req, res) => {
       authentication: true,
       compression: true,
       security: true,
-      videoStreaming: true // ✅ ADDED
+      videoStreaming: true,
+      googleOAuth: true // ✅ NEW
     },
     database: {
       type: "MongoDB Atlas",
@@ -565,7 +582,8 @@ app.get("/api/health", (req, res) => {
       helmetSecurityEnabled: true,
       compressionEnabled: true,
       cookieParsingEnabled: true,
-      morganLoggingEnabled: true
+      morganLoggingEnabled: true,
+      googleOAuthEnabled: true // ✅ NEW
     },
     uploads: {
       basePath: "https://samparkwork-backend.onrender.com/uploads",
@@ -591,6 +609,9 @@ app.get("/api/health", (req, res) => {
         "POST /api/auth/login", 
         "POST /api/auth/logout",
         "POST /api/auth/refresh"
+      ],
+      oauth: [
+        "POST /api/oauth/google - Google OAuth Login/Signup"
       ],
       users: [
         "GET /api/users/profile",
@@ -669,6 +690,16 @@ app.use((err, req, res, next) => {
     console.error("   Error:", err.message);
     console.error("   Stack:", err.stack);
   }
+
+  // ✅ NEW: Special logging for Google OAuth route errors
+  if (req.url.includes('/oauth/')) {
+    console.error("❌ Google OAuth Route Error:");
+    console.error("   Method:", req.method);
+    console.error("   URL:", req.url);
+    console.error("   Body:", JSON.stringify(req.body, null, 2));
+    console.error("   Error:", err.message);
+    console.error("   Stack:", err.stack);
+  }
   
   if (err.name === 'ValidationError') {
     const errors = Object.values(err.errors).map(e => e.message);
@@ -739,6 +770,7 @@ app.use((req, res) => {
       "GET /api/health - Comprehensive Health Check",
       "POST /api/auth/login - User Authentication",
       "POST /api/auth/register - User Registration",
+      "POST /api/oauth/google - Google OAuth Login", // ✅ NEW
       "GET /api/users/profile - User Profile",
       "PUT /api/users/profile - Update Profile", 
       "POST /api/users/profile/experience - Add Experience",
@@ -782,6 +814,7 @@ connectDB()
       console.log(`🧪 Health Check: https://samparkwork-backend.onrender.com/api/health`);
       console.log(`📱 API Base URL: https://samparkwork-backend.onrender.com/api`);
       console.log(`🔌 Socket.IO: wss://samparkwork-backend.onrender.com`);
+      console.log(`🔐 Google OAuth: https://samparkwork-backend.onrender.com/api/oauth/google`); // ✅ NEW
       
       // Production deployment info
       if (process.env.NODE_ENV === 'production') {
@@ -789,7 +822,7 @@ connectDB()
         console.log(`🌍 Live Backend URL: https://samparkwork-backend.onrender.com`);
         console.log(`🎯 Ready for Frontend Integration`);
         console.log(`🌐 CORS Origins: ${allowedOrigins.join(', ')}`);
-        console.log(`🔐 Security: Helmet + CORS + JWT Authentication`);
+        console.log(`🔐 Security: Helmet + CORS + JWT Authentication + Google OAuth`);
       }
       
       console.log(`\n✅ Services Status:`);
@@ -798,6 +831,7 @@ connectDB()
       console.log(`   🔄 Socket.IO WebSocket: RUNNING`);
       console.log(`   🌐 CORS Configuration: DYNAMIC`);
       console.log(`   🔐 JWT Authentication: ENABLED`);
+      console.log(`   🔐 Google OAuth: ENABLED`); // ✅ NEW
       console.log(`   🗜️  Compression: ENABLED`);
       console.log(`   🛡️  Security Headers: ENABLED`);
       console.log(`   🎥 Video Streaming: ENABLED WITH ACCEPT-RANGES`);
@@ -814,6 +848,7 @@ connectDB()
       console.log(`   🔌 Socket.IO: wss://samparkwork-backend.onrender.com`);
       console.log(`   📁 File Uploads: https://samparkwork-backend.onrender.com/uploads`);
       console.log(`   🧪 Health Check: https://samparkwork-backend.onrender.com/api/health`);
+      console.log(`   🔐 Google OAuth: https://samparkwork-backend.onrender.com/api/oauth/google`); // ✅ NEW
       
       console.log(`\n💬 Messaging API Endpoints:`);
       console.log(`   GET    https://samparkwork-backend.onrender.com/api/messages/conversations`);
@@ -821,6 +856,10 @@ connectDB()
       console.log(`   POST   https://samparkwork-backend.onrender.com/api/messages/send`);
       console.log(`   POST   https://samparkwork-backend.onrender.com/api/messages/upload`);
       console.log(`   PUT    https://samparkwork-backend.onrender.com/api/messages/read/:id`);
+
+      // ✅ NEW: Google OAuth Endpoints
+      console.log(`\n🔐 Google OAuth API Endpoints:`);
+      console.log(`   POST   https://samparkwork-backend.onrender.com/api/oauth/google`);
       
       console.log(`\n🔄 Socket.io Real-time Events:`);
       console.log(`   📨 send-message - Send messages instantly`);
@@ -832,11 +871,13 @@ connectDB()
       
       console.log(`\n🎯 Next Steps:`);
       console.log(`   1. ✅ Backend Deployed Successfully`);
-      console.log(`   2. 🔄 Deploy Frontend to Vercel`);
-      console.log(`   3. 🌐 Connect Custom Domain (samparkwork.in)`);
-      console.log(`   4. 🧪 Test Full Application`);
+      console.log(`   2. ✅ Google OAuth Integration Ready`); // ✅ NEW
+      console.log(`   3. 🔄 Update Frontend with Google OAuth`);
+      console.log(`   4. 🔄 Deploy Frontend to Vercel`);
+      console.log(`   5. 🌐 Connect Custom Domain (samparkwork.in)`);
+      console.log(`   6. 🧪 Test Full Application with Google Login`);
       
-      console.log(`\n🚀 Backend is LIVE and ready for your frontend integration!`);
+      console.log(`\n🚀 Backend is LIVE and ready for your frontend integration with Google OAuth!`);
     });
   })
   .catch((err) => {

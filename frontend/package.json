@@ -22,6 +22,7 @@
     "axios": "^1.11.0",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
+    "gapi-script": "^1.2.0",
     "helmet": "^8.1.0",
     "lucide-react": "^0.539.0",
     "react": "^19.1.1",

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import GoogleLogin from "../components/GoogleLogin"; // ✅ NEW: Import GoogleLogin component
 import "./Auth.css";
 import logo from "../assets/logo.png";
 
@@ -14,12 +15,11 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ NEW: Load saved credentials on component mount
+  // ✅ Load saved credentials
   useEffect(() => {
     const savedEmail = localStorage.getItem('rememberedEmail');
     const savedRememberMe = localStorage.getItem('rememberMe') === 'true';
@@ -42,12 +42,12 @@ const Login = () => {
     if (error) setError("");
   };
 
-  // ✅ NEW: Toggle password visibility
+  // ✅ Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  // ✅ NEW: Handle Remember Me functionality
+  // ✅ Handle Remember Me functionality
   const handleRememberMe = (email, rememberMe) => {
     if (rememberMe) {
       localStorage.setItem('rememberedEmail', email);
@@ -58,33 +58,17 @@ const Login = () => {
     }
   };
 
-  // ✅ NEW: Google OAuth handler
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true);
-    setError("");
+  // ✅ NEW: Google OAuth success handler
+  const handleGoogleLoginSuccess = (result) => {
+    console.log('✅ Google login successful!', result.user.name);
+    // Redirect to home page after successful login
+    navigate('/', { replace: true });
+  };
 
-    try {
-      // Initialize Google OAuth (you'll need to install @google-oauth/client)
-      // This is a placeholder - you'll need to implement actual Google OAuth
-      
-      console.log("🔍 Initiating Google OAuth...");
-      
-      // For now, show a message that Google OAuth needs to be configured
-      setError("Google OAuth integration needs to be configured with your Google Client ID");
-      
-      // Actual implementation would be:
-      // const response = await window.google.accounts.oauth2.initTokenClient({
-      //   client_id: 'YOUR_GOOGLE_CLIENT_ID',
-      //   scope: 'email profile',
-      //   callback: handleGoogleCallback
-      // });
-      
-    } catch (err) {
-      console.error("❌ Google login error:", err);
-      setError("Google login failed. Please try again.");
-    } finally {
-      setGoogleLoading(false);
-    }
+  // ✅ NEW: Google OAuth error handler
+  const handleGoogleLoginError = (error) => {
+    console.error('❌ Google login error:', error);
+    setError('Google login failed: ' + error);
   };
 
   const handleSubmit = async (e) => {
@@ -153,7 +137,7 @@ const Login = () => {
       <div className="auth-card">
         <div className="auth-header">
           <div className="logo-placeholder">
-            <img src={logo} alt="Sampark Connect" className="auth-logo" />
+            <img src={logo} alt="Sampark Work" className="auth-logo" />
           </div>
           <h2>Welcome Back</h2>
           <p>Sign in to your account to continue</p>
@@ -170,13 +154,13 @@ const Login = () => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              disabled={loading || googleLoading}
+              disabled={loading}
               required
               autoComplete="email"
             />
           </div>
 
-          {/* ✅ NEW: Enhanced password field with eye toggle */}
+          {/* ✅ Enhanced password field with eye toggle */}
           <div className="form-group password-group">
             <div className="password-input-wrapper">
               <input
@@ -186,7 +170,7 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                disabled={loading || googleLoading}
+                disabled={loading}
                 required
                 autoComplete="current-password"
               />
@@ -194,7 +178,7 @@ const Login = () => {
                 type="button"
                 className="password-toggle"
                 onClick={togglePasswordVisibility}
-                disabled={loading || googleLoading}
+                disabled={loading}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -203,7 +187,7 @@ const Login = () => {
           </div>
 
           <div className="form-options">
-            {/* ✅ NEW: Enhanced Remember Me checkbox */}
+            {/* ✅ Enhanced Remember Me checkbox */}
             <div className="form-check">
               <input
                 type="checkbox"
@@ -211,7 +195,7 @@ const Login = () => {
                 name="rememberMe"
                 checked={formData.rememberMe}
                 onChange={handleInputChange}
-                disabled={loading || googleLoading}
+                disabled={loading}
                 className="custom-checkbox"
               />
               <label htmlFor="remember" className="checkbox-label">
@@ -224,7 +208,7 @@ const Login = () => {
             </Link>
           </div>
 
-          <button type="submit" className="btn-auth primary" disabled={loading || googleLoading}>
+          <button type="submit" className="btn-auth primary" disabled={loading}>
             {loading ? (
               <>
                 <span className="spinner"></span>
@@ -236,27 +220,18 @@ const Login = () => {
           </button>
         </form>
 
+        {/* ✅ NEW: Divider for Google OAuth */}
         <div className="auth-divider">
           <span>Or sign in with</span>
         </div>
 
-        {/* ✅ NEW: Enhanced Google OAuth button */}
+        {/* ✅ NEW: Google OAuth Integration */}
         <div className="social-auth">
-          <button
-            type="button"
-            className="google-auth-btn"
-            onClick={handleGoogleLogin}
-            disabled={loading || googleLoading}
-          >
-            {googleLoading ? (
-              <span className="spinner google-spinner"></span>
-            ) : (
-              <FaGoogle />
-            )}
-            <span>
-              {googleLoading ? "Signing in..." : "Continue with Google"}
-            </span>
-          </button>
+          <GoogleLogin 
+            onSuccess={handleGoogleLoginSuccess}
+            onError={handleGoogleLoginError}
+            disabled={loading}
+          />
         </div>
 
         <div className="auth-footer">

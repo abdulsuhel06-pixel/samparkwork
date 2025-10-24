@@ -204,6 +204,14 @@ const userSchema = new mongoose.Schema({
   password: { type: String, default: '' },
   role: { type: String, default: "professional" }, // professional, client, admin
   
+  // ✅ GOOGLE OAUTH FIELDS - NEW ADDITION
+  googleId: { type: String, default: '' }, // Google OAuth ID
+  profilePicture: { type: String, default: '' }, // Google profile picture URL
+  isEmailVerified: { type: Boolean, default: false }, // Google emails are auto-verified
+  authProvider: { type: String, default: 'local' }, // 'local', 'google', etc.
+  providerId: { type: String, default: '' }, // Provider-specific ID
+  providerData: { type: mongoose.Schema.Types.Mixed, default: {} }, // Additional provider data
+  
   // ===== PROFILE FIELDS =====
   title: { type: String, default: '' }, // Job title / Professional title
   headline: { type: String, default: '' }, // Short professional headline
@@ -534,6 +542,16 @@ userSchema.methods.isAvailableForWork = function() {
   return this.availability?.status === 'Available' && this.isActive && !this.isBlocked;
 };
 
+// ✅ NEW: Check if user is using Google OAuth
+userSchema.methods.isGoogleUser = function() {
+  return this.authProvider === 'google' && this.googleId;
+};
+
+// ✅ NEW: Get profile picture URL with fallback
+userSchema.methods.getProfilePictureUrl = function() {
+  return this.profilePicture || this.avatar || this.avatarUrl || this.profilePhoto || '';
+};
+
 // ✅ VIRTUAL: Full address as string
 userSchema.virtual('fullAddressString').get(function() {
   if (this.contact?.address) return this.contact.address;
@@ -554,6 +572,7 @@ userSchema.virtual('primarySocialLink').get(function() {
 // ✅ INDEXES for better performance (commented out to avoid any validation issues)
 /*
 userSchema.index({ email: 1 });
+userSchema.index({ googleId: 1 }); // New Google OAuth index
 userSchema.index({ role: 1 });
 userSchema.index({ category: 1 });
 userSchema.index({ location: 1 });
@@ -563,6 +582,6 @@ userSchema.index({ profileCompletion: -1 });
 userSchema.index({ createdAt: -1 });
 */
 
-console.log("✅ Enhanced User model loaded with maximum flexibility and zero validation");
+console.log("✅ Enhanced User model loaded with Google OAuth support, maximum flexibility and zero validation");
 
 module.exports = mongoose.model("User", userSchema);

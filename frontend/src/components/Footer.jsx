@@ -15,15 +15,15 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="footer-brand-section">
             <Link to="/" className="footer-brand">
-              <img src={logo} alt="Sampark Connect" className="footer-logo" />
-              <span className="brand-name">Sampark Connect</span>
+              <img src={logo} alt="Sampark Work" className="footer-logo" />
+              <span className="brand-name">Sampark Work</span>
             </Link>
             <p className="footer-tagline">
               Connect with top talent and bring your projects to life. Your trusted platform for jewellery and textile professionals.
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* Links Section - Quick Links and Support in One Row on Mobile */}
           <div className="footer-links-section">
             <div className="footer-column">
               <h5>Quick Links</h5>
@@ -57,10 +57,6 @@ const Footer = () => {
                 <FaPhoneAlt className="contact-icon" />
                 <a href="tel:+919883359285">+91 9883359285</a>
               </div>
-              <div className="contact-item">
-                <FaMapMarkerAlt className="contact-icon" />
-                <span>Surat, Gujarat, India</span>
-              </div>
             </div>
 
             <div className="social-links">
@@ -83,7 +79,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className="footer-bottom">
           <div className="copyright">
-            © 2024 Sampark Connect. All rights reserved.
+            © 2024 Sampark Work. All rights reserved.
           </div>
           <div className="legal-links">
             <Link to="/privacy">Privacy Policy</Link>

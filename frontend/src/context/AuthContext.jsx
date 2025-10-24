@@ -186,17 +186,34 @@ export const AuthProvider = ({ children }) => {
     };
   }, [token, getAvatarUrl, dispatchAuthEvent]);
 
-  const login = async (credentials) => {
+  // ✅ UPDATED: Enhanced login function with Google Auth support
+  const login = async (credentials, authType = 'manual') => {
     try {
-      console.log('🔑 [AuthContext] Login attempt:', { email: credentials.email });
+      console.log(`🔑 [AuthContext] ${authType} login attempt:`, { 
+        email: credentials.email,
+        authType 
+      });
       setLoading(true);
       
-      const response = await apiHelpers.login(credentials);
+      let response;
+      if (authType === 'google') {
+        // Handle Google Auth login
+        response = await apiHelpers.googleAuth({
+          ...credentials,
+          action: 'login'
+        });
+      } else {
+        // Handle manual login
+        response = await apiHelpers.login(credentials);
+      }
       
       if (response.success && response.token && response.user) {
-        console.log('✅ [AuthContext] Login successful for:', response.user.email);
+        console.log(`✅ [AuthContext] ${authType} login successful for:`, response.user.email);
         
-        const userData = { ...response.user };
+        const userData = { 
+          ...response.user,
+          authType // Track how user logged in
+        };
         
         if (userData.avatar && !userData.avatarUrl) {
           userData.avatarUrl = getAvatarUrl(userData.avatar);
@@ -213,15 +230,72 @@ export const AuthProvider = ({ children }) => {
         
         return { success: true, user: userData };
       } else {
-        throw new Error(response.message || 'Login failed');
+        throw new Error(response.message || `${authType} login failed`);
       }
     } catch (error) {
-      console.error('❌ [AuthContext] Login error:', error);
-      const errorInfo = handleApiError(error, 'Login'); // ✅ Pass context for better error handling
+      console.error(`❌ [AuthContext] ${authType} login error:`, error);
+      const errorInfo = handleApiError(error, `${authType} Login`); // ✅ Pass context for better error handling
       return { 
         success: false, 
         error: errorInfo.message 
       };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ FIXED: Google OAuth login function - CRITICAL FIX
+  const googleLogin = async (credential) => {
+    setLoading(true);
+    
+    try {
+      console.log('🔐 [AuthContext] Google OAuth login attempt...');
+      
+      // ✅ CRITICAL FIX: Use correct API endpoint
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/oauth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ credential }),
+      });
+
+      const data = await response.json();
+      
+      console.log('🔐 [AuthContext] Backend response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || `Google authentication failed (${response.status})`);
+      }
+
+      console.log('✅ [AuthContext] Google OAuth successful:', data.user.name);
+
+      const userData = { 
+        ...data.user,
+        authType: 'google' // Mark as Google OAuth user
+      };
+
+      if (userData.avatar && !userData.avatarUrl) {
+        userData.avatarUrl = getAvatarUrl(userData.avatar);
+      }
+      
+      // Store user and token
+      localStorage.setItem('wn_token', data.token);
+      localStorage.setItem('wn_user', JSON.stringify(userData));
+      
+      setToken(data.token);
+      setUser(userData);
+      setIsAuthenticated(true);
+      
+      dispatchAuthEvent(userData, true);
+
+      return { success: true, user: userData };
+      
+    } catch (error) {
+      console.error('❌ [AuthContext] Google OAuth error:', error);
+      const errorInfo = handleApiError(error, 'Google OAuth');
+      throw new Error(errorInfo.message);
     } finally {
       setLoading(false);
     }
@@ -240,37 +314,52 @@ export const AuthProvider = ({ children }) => {
     dispatchAuthEvent(null, false);
   }, [dispatchAuthEvent]);
 
-  const register = async (userData) => {
+  // ✅ UPDATED: Enhanced register function with Google Auth support
+  const register = async (userData, authType = 'manual') => {
     try {
-      console.log('📝 [AuthContext] Registration attempt...');
+      console.log(`📝 [AuthContext] ${authType} registration attempt...`);
       setLoading(true);
       
-      const response = await apiHelpers.register(userData);
+      let response;
+      if (authType === 'google') {
+        // Handle Google Auth registration
+        response = await apiHelpers.googleAuth({
+          ...userData,
+          action: 'register'
+        });
+      } else {
+        // Handle manual registration
+        response = await apiHelpers.register(userData);
+      }
       
       if (response.success && response.token && response.user) {
-        console.log('✅ [AuthContext] Registration successful:', response.user.email);
+        console.log(`✅ [AuthContext] ${authType} registration successful:`, response.user.email);
         
-        const userDataWithAvatar = { ...response.user };
-        if (userDataWithAvatar.avatar && !userDataWithAvatar.avatarUrl) {
-          userDataWithAvatar.avatarUrl = getAvatarUrl(userDataWithAvatar.avatar);
+        const userDataWithAuth = { 
+          ...response.user,
+          authType // Track how user registered
+        };
+        
+        if (userDataWithAuth.avatar && !userDataWithAuth.avatarUrl) {
+          userDataWithAuth.avatarUrl = getAvatarUrl(userDataWithAuth.avatar);
         }
         
         localStorage.setItem('wn_token', response.token); // ✅ FIXED: Use wn_token
-        localStorage.setItem('wn_user', JSON.stringify(userDataWithAvatar));
+        localStorage.setItem('wn_user', JSON.stringify(userDataWithAuth));
         
         setToken(response.token);
-        setUser(userDataWithAvatar);
+        setUser(userDataWithAuth);
         setIsAuthenticated(true);
         
-        dispatchAuthEvent(userDataWithAvatar, true);
+        dispatchAuthEvent(userDataWithAuth, true);
         
-        return { success: true, user: userDataWithAvatar };
+        return { success: true, user: userDataWithAuth };
       } else {
-        throw new Error(response.message || 'Registration failed');
+        throw new Error(response.message || `${authType} registration failed`);
       }
     } catch (error) {
-      console.error('❌ [AuthContext] Registration error:', error);
-      const errorInfo = handleApiError(error);
+      console.error(`❌ [AuthContext] ${authType} registration error:`, error);
+      const errorInfo = handleApiError(error, `${authType} Registration`);
       return { 
         success: false, 
         error: errorInfo.message 
@@ -318,7 +407,8 @@ export const AuthProvider = ({ children }) => {
         category: newUserData.category,
         subcategory: newUserData.subcategory,
         phone: newUserData.contact?.phone,
-        address: newUserData.contact?.address
+        address: newUserData.contact?.address,
+        authType: newUserData.authType
       });
       
       try {
@@ -360,12 +450,18 @@ export const AuthProvider = ({ children }) => {
     }
   }, [getAvatarUrl, dispatchAuthEvent]);
 
+  // ✅ NEW: Helper function to check if user is using Google Auth
+  const isGoogleAuth = useCallback(() => {
+    return user?.authType === 'google';
+  }, [user?.authType]);
+
   const value = React.useMemo(() => ({
     user,
     token,
     loading,
     isAuthenticated,
     login,
+    googleLogin, // ✅ NEW: Add Google OAuth login function
     register,
     logout,
     updateUser,
@@ -374,12 +470,14 @@ export const AuthProvider = ({ children }) => {
     isProfessional,
     isAdmin,
     canPostJobs,
-    canApplyToJobs
+    canApplyToJobs,
+    isGoogleAuth // ✅ NEW: Expose Google Auth status
   }), [
     user,
     token,
     loading,
     isAuthenticated,
+    googleLogin, // ✅ NEW: Include in dependencies
     logout,
     updateUser,
     refreshAuth,
@@ -387,7 +485,8 @@ export const AuthProvider = ({ children }) => {
     isProfessional,
     isAdmin,
     canPostJobs,
-    canApplyToJobs
+    canApplyToJobs,
+    isGoogleAuth
   ]);
 
   return (
