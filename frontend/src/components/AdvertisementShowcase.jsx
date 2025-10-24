@@ -301,7 +301,7 @@ const AdvertisementShowcase = () => {
     );
   }
 
-  // Error state and error handleing
+  // Error state
   if (error) {
     return (
       <section className="advertisement-showcase">

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// ✅ Production-ready configuration ready to use
+// ✅ Production-ready configuration
 const isDevelopment = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
