@@ -34,16 +34,29 @@ const protect = asyncHandler(async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log("🔐 [protect] Token decoded successfully:", {
       id: decoded.id,
+      userId: decoded.userId, // ✅ NEW: Also log userId
       iat: decoded.iat,
       exp: decoded.exp
     });
 
+    // ✅ CRITICAL FIX: Support both 'id' and 'userId' for backward compatibility
+    const userId = decoded.id || decoded.userId;
+    
+    if (!userId) {
+      console.error("❌ [protect] No user ID found in token payload:", decoded);
+      return res.status(401).json({ 
+        success: false,
+        message: 'Not authorized, invalid token format',
+        error: 'Token missing user identifier'
+      });
+    }
+
     // Get user from token
-    console.log("🔐 [protect] Fetching user from database...");
-    const user = await User.findById(decoded.id).select('-password');
+    console.log("🔐 [protect] Fetching user from database with ID:", userId);
+    const user = await User.findById(userId).select('-password');
     
     if (!user) {
-      console.error("❌ [protect] User not found for token ID:", decoded.id);
+      console.error("❌ [protect] User not found for token ID:", userId);
       return res.status(401).json({ 
         success: false,
         message: 'Not authorized, user not found',
@@ -55,7 +68,8 @@ const protect = asyncHandler(async (req, res, next) => {
     console.log("✅ [protect] User details:", {
       id: user._id,
       email: user.email,
-      role: user.role
+      role: user.role,
+      authProvider: user.authProvider // ✅ NEW: Log auth provider
     });
 
     // Attach user to request object
