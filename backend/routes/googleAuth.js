@@ -6,11 +6,13 @@ const router = express.Router();
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// ✅ FIXED: Complete Google OAuth Login/Signup
+// ✅ FIXED: Complete Google OAuth Login/Signup WITH ROLE SUPPORT
 router.post('/google', async (req, res) => {
   try {
     console.log('🔐 [Google OAuth] Authentication request received');
-    const { credential } = req.body;
+    const { credential, role } = req.body; // ✅ CRITICAL FIX: Extract role from request body
+    
+    console.log('📝 [Google OAuth] Role received:', role); // ✅ Log the role
     
     if (!credential) {
       return res.status(400).json({
@@ -18,6 +20,10 @@ router.post('/google', async (req, res) => {
         message: 'Google credential is required'
       });
     }
+    
+    // ✅ CRITICAL FIX: Validate and set the role (default to 'professional' instead of 'client')
+    const userRole = role && ['client', 'professional', 'admin'].includes(role) ? role : 'professional';
+    console.log('✅ [Google OAuth] Using role:', userRole);
     
     // Verify the Google token
     console.log('🔍 [Google OAuth] Verifying Google token...');
@@ -40,7 +46,14 @@ router.post('/google', async (req, res) => {
     });
     
     if (user) {
-      console.log('👤 [Google OAuth] Existing user found:', email);
+      console.log('👤 [Google OAuth] Existing user found:', email, '- Current role:', user.role);
+      
+      // ✅ CRITICAL FIX: Update role if different (allow role changes via Google OAuth)
+      if (user.role !== userRole) {
+        console.log('🔄 [Google OAuth] Updating user role from', user.role, 'to', userRole);
+        user.role = userRole;
+      }
+      
       // Update Google ID if needed
       if (!user.googleId) {
         user.googleId = googleId;
@@ -54,9 +67,10 @@ router.post('/google', async (req, res) => {
         user.isEmailVerified = true;
       }
       await user.save();
+      console.log('✅ [Google OAuth] User updated with role:', user.role);
     } else {
-      console.log('🆕 [Google OAuth] Creating new user for:', email);
-      // Create new user with required fields
+      console.log('🆕 [Google OAuth] Creating new user for:', email, '- Role:', userRole);
+      // Create new user with specified role
       user = new User({
         name: name || email.split('@')[0],
         email: email,
@@ -64,7 +78,7 @@ router.post('/google', async (req, res) => {
         avatar: picture,
         isEmailVerified: email_verified || true,
         authProvider: 'google',
-        role: 'client', // Default role
+        role: userRole, // ✅ CRITICAL FIX: Use the role from request
         title: '',
         bio: '',
         category: '',
@@ -105,7 +119,7 @@ router.post('/google', async (req, res) => {
       });
       
       await user.save();
-      console.log('✅ [Google OAuth] New user created successfully');
+      console.log('✅ [Google OAuth] New user created successfully with role:', user.role);
     }
     
     // ✅ CRITICAL FIX: Generate JWT token with 'id' to match authController
@@ -120,7 +134,7 @@ router.post('/google', async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: user.role, // ✅ This will now be the correct role
       title: user.title || '',
       bio: user.bio || '',
       avatar: user.avatar || picture,
@@ -144,7 +158,7 @@ router.post('/google', async (req, res) => {
       updatedAt: user.updatedAt
     };
     
-    console.log('✅ [Google OAuth] Authentication successful for:', user.email);
+    console.log('✅ [Google OAuth] Authentication successful for:', user.email, '- Final role:', responseUser.role);
     
     res.status(200).json({
       success: true,
