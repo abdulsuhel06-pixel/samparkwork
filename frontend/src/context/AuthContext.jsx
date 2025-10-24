@@ -244,21 +244,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ✅ FIXED: Google OAuth login function - CRITICAL FIX
-  const googleLogin = async (credential) => {
+  // ✅ FIXED: Google OAuth login function - CRITICAL FIX WITH ROLE SUPPORT
+  const googleLogin = async (credential, role = 'professional') => {
     setLoading(true);
     
     try {
-      console.log('🔐 [AuthContext] Google OAuth login attempt...');
+      console.log('🔐 [AuthContext] Google OAuth login attempt with role:', role);
       
-      // ✅ CRITICAL FIX: Use correct API endpoint
+      // ✅ CRITICAL FIX: Use correct API endpoint and send role
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/oauth/google`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ credential }),
+        body: JSON.stringify({ 
+          credential, 
+          role  // ✅ CRITICAL FIX: Send role to backend
+        }),
       });
 
       const data = await response.json();
@@ -269,7 +272,7 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || `Google authentication failed (${response.status})`);
       }
 
-      console.log('✅ [AuthContext] Google OAuth successful:', data.user.name);
+      console.log('✅ [AuthContext] Google OAuth successful:', data.user.name, '- Role:', data.user.role);
 
       const userData = { 
         ...data.user,
@@ -461,7 +464,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     isAuthenticated,
     login,
-    googleLogin, // ✅ NEW: Add Google OAuth login function
+    googleLogin, // ✅ NEW: Add Google OAuth login function with role support
     register,
     logout,
     updateUser,

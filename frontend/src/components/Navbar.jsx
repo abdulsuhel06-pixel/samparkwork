@@ -106,7 +106,7 @@ const RoleSelectionModal = ({ isOpen, onClose, onSelect, onLoginClick }) => {
               <i className="fas fa-user-tie"></i>
             </div>
             <div className="role-card-content">
-              <h3>I'm a client, hiring for a project</h3>
+              <h3>I'm a client, hiring skilled professionals</h3>
               <p>Find talented professionals for your business needs</p>
             </div>
             <div className="role-card-radio">
@@ -122,8 +122,8 @@ const RoleSelectionModal = ({ isOpen, onClose, onSelect, onLoginClick }) => {
               <i className="fas fa-briefcase"></i>
             </div>
             <div className="role-card-content">
-              <h3>I'm a freelancer, looking for work</h3>
-              <p>Showcase your skills and find great projects</p>
+              <h3>I'm a skilled professional, looking for work</h3>
+              <p>Finds best work opportunities</p>
             </div>
             <div className="role-card-radio">
               <div className="radio-button"></div>

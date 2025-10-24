@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
-const GoogleLogin = ({ onSuccess, onError, disabled = false, className = '' }) => {
+const GoogleLogin = ({ onSuccess, onError, disabled = false, className = '', role = 'professional' }) => {
   const { googleLogin } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoaded, setGoogleLoaded] = useState(false);
@@ -42,7 +42,7 @@ const GoogleLogin = ({ onSuccess, onError, disabled = false, className = '' }) =
     setIsLoading(true);
 
     try {
-      console.log('🚀 Initializing Google OAuth...');
+      console.log('🚀 Initializing Google OAuth with role:', role);
 
       // ✅ WORKING SOLUTION: Initialize and prompt in one go
       window.google.accounts.id.initialize({
@@ -58,8 +58,9 @@ const GoogleLogin = ({ onSuccess, onError, disabled = false, className = '' }) =
           }
 
           try {
-            console.log('🔄 Processing login...');
-            const result = await googleLogin(response.credential);
+            console.log('🔄 Processing login with role:', role);
+            // ✅ CRITICAL FIX: Pass role to googleLogin function
+            const result = await googleLogin(response.credential, role);
             console.log('✅ Login successful:', result.user?.name || result.user?.email);
             onSuccess?.(result);
           } catch (error) {

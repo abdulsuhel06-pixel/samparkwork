@@ -8,7 +8,7 @@ import logo from '../assets/logo.png';
 
 const Signup = () => {
   const [searchParams] = useSearchParams();
-  const initialRole = searchParams.get('role') || 'client';
+  const initialRole = searchParams.get('role') || 'professional';
   
   const [userRole, setUserRole] = useState(initialRole);
   const [formData, setFormData] = useState({
@@ -180,7 +180,7 @@ const Signup = () => {
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,
-        role: userRole,
+        role: userRole, // ✅ KEEPING EXACT ROLE VALUES: 'professional' or 'client'
         authType: 'manual'
       });
 
@@ -208,14 +208,16 @@ const Signup = () => {
     }
   };
 
+  // ✅ UPDATED: Changed "Freelancer" to "Skilled Professional"
   const getRoleDisplayName = (role) => {
-    return role === 'professional' ? 'Freelancer' : 'Client';
+    return role === 'professional' ? 'Skilled Professional' : 'Client';
   };
 
+  // ✅ UPDATED: Better description for skilled professionals
   const getRoleDescription = (role) => {
     return role === 'professional' 
-      ? 'Looking for work opportunities' 
-      : 'Hiring for projects';
+      ? 'Finds best work opportunities' 
+      : 'Find talented professionals for your business needs';
   };
 
   // ✅ Get password strength color
@@ -260,7 +262,7 @@ const Signup = () => {
             </div>
             <button 
               className="change-role-btn"
-              onClick={() => handleRoleSelect(userRole === 'client' ? 'professional' : 'client')}
+              onClick={() => handleRoleSelect(userRole === 'client' ? 'professional' : 'client')} // ✅ Toggle between exact role values
               type="button"
               disabled={loading}
             >
@@ -498,6 +500,7 @@ const Signup = () => {
         {/* ✅ Google OAuth Integration */}
         <div className="social-auth">
           <GoogleLogin 
+            role={userRole}  
             onSuccess={handleGoogleSignupSuccess}
             onError={handleGoogleSignupError}
             disabled={loading}
