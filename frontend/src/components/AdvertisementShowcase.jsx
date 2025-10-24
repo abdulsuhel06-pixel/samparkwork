@@ -301,7 +301,7 @@ const AdvertisementShowcase = () => {
     );
   }
 
-  // Error state
+  // Error state and error handleing
   if (error) {
     return (
       <section className="advertisement-showcase">
@@ -326,7 +326,7 @@ const AdvertisementShowcase = () => {
     );
   }
 
-  // No ads state
+  // No ads state 
   if (ads.length === 0) {
     return null;
   }
