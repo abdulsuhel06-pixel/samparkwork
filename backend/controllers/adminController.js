@@ -96,7 +96,7 @@ const getUsers = async (req, res) => {
   try {
     console.log('👥 Fetching users for admin dashboard...');
     
-    const { page = 1, limit = 10, search = "" } = req.query;
+    const { page = 1, limit = 500, search = "" } = req.query;
     const query = search
       ? {
           $or: [
@@ -155,7 +155,7 @@ const getJobs = async (req, res) => {
   try {
     console.log('💼 Fetching jobs for admin dashboard...');
     
-    const { page = 1, limit = 10, status, category } = req.query;
+    const { page = 1, limit = 500, status, category } = req.query;
     let filter = {};
 
     if (status) filter.status = status;

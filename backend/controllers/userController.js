@@ -194,7 +194,7 @@ const getProfessionals = asyncHandler(async (req, res) => {
     search,
     sortBy = "createdAt",
     page = 1,
-    limit = 12
+    limit = 500
   } = req.query;
 
   const filter = { role: "professional" };
