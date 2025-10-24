@@ -155,7 +155,7 @@ export const getNetworkInfo = () => {
   };
 };
 
-// ✅ ALL YOUR EXISTING API HELPERS (keeping exactly as they are)
+// ✅ ALL YOUR EXISTING API HELPERS + NEW FORGOT PASSWORD ENDPOINTS
 export const apiHelpers = {
   // AUTH ENDPOINTS
   login: async (credentials) => {
@@ -171,6 +171,55 @@ export const apiHelpers = {
     console.log('✅ API: Register response', response.data);
     return response.data;
   },
+
+  // ✅ NEW: FORGOT PASSWORD ENDPOINTS
+  forgotPasswordRequest: async (email) => {
+  console.log('📧 API: Forgot password request for email:', email);
+  try {
+    const response = await api.post('/api/password-reset/forgot-password', { email });
+    console.log('✅ API: Forgot password response:', response.data);
+    
+    // ✅ CRITICAL FIX: Return the FULL response object so frontend can access response.data
+    return response;
+  } catch (error) {
+    console.error('❌ API: Forgot password request failed:', error);
+    throw error;
+  }
+},
+
+  verifyResetCode: async (email, code, resetToken) => {
+  console.log('🔢 API: Verifying reset code for email:', email, 'with code:', code);
+  try {
+    // ✅ CRITICAL FIX: Send correct parameter names that match backend
+    const response = await api.post('/api/password-reset/verify-code', { 
+      email, 
+      code: code.toString(), // ✅ Backend expects 'code', not 'resetCode'
+      resetToken: resetToken
+    });
+    console.log('✅ API: Reset code verification response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('❌ API: Reset code verification failed:', error);
+    throw error;
+  }
+},
+  
+resetPassword: async (email, newPassword, resetToken) => {
+  console.log('🔑 API: Resetting password for email:', email);
+  try {
+    // ✅ CRITICAL FIX: Send correct parameters that match backend
+    const response = await api.post('/api/password-reset/reset-password', {
+      email,
+      newPassword, // ✅ Backend expects 'newPassword', not 'resetCode'
+      resetToken   // ✅ Backend expects 'resetToken'
+    });
+    console.log('✅ API: Password reset response:', response.data);
+    return response;
+  } catch (error) {
+    console.error('❌ API: Password reset failed:', error);
+    throw error;
+  }
+},
   
   getMe: async () => {
     console.log('👤 API: Get current user request');
@@ -1303,5 +1352,5 @@ export default api;
 // ✅ EXPORT BASE URLS FOR OTHER COMPONENTS
 export { API_BASE_URL, SOCKET_URL };
 
-console.log('✅ API service fully initialized with HTTPS advertisement media fix');
-console.log('🎯 Advertisement images and videos will now load with proper HTTPS URLs');
+console.log('✅ API service fully initialized with FORGOT PASSWORD endpoints added! 🎉');
+console.log('🔑 Forgot password system now ready to use!');

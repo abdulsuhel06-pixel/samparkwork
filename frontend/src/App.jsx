@@ -20,6 +20,8 @@ import Category from "./pages/CategoryPage.jsx";
 import About from "./pages/About.jsx";
 import RoleBasedProfile from './components/RoleBasedProfile.jsx';
 import Applications from './pages/Applications.jsx';
+// ✅ NEW: Import ForgotPassword component
+import ForgotPassword from './pages/ForgotPassword.jsx';
 
 const Protected = ({ children }) => {
   const { user, loading } = useAuth();
@@ -137,6 +139,9 @@ const AppContent = () => {
         {/* Authentication Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        {/* ✅ NEW: Forgot Password Route */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ForgotPassword />} />
         
         {/* Protected User Routes */}
         <Route path="/bids" element={<Protected><Bids /></Protected>} />

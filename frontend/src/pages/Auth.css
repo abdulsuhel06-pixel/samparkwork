@@ -1052,3 +1052,176 @@
 .auth-card::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* ✅ Progress Steps Styling */
+.progress-steps {
+  margin: 2rem 0;
+  padding: 0 1rem;
+}
+
+.steps-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.step {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.step.pending {
+  background: #e5e7eb;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+}
+
+.step.active {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: 2px solid #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+  transform: scale(1.1);
+}
+
+.step.completed {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: 2px solid #10b981;
+}
+
+.step-line {
+  width: 60px;
+  height: 2px;
+  background: #e5e7eb;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.step-line.completed {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.step-icon {
+  font-size: 1.1rem;
+}
+
+.step-number {
+  font-weight: 700;
+}
+
+/* ✅ Code Input Styling */
+.code-input {
+  font-family: 'Courier New', monospace !important;
+  font-weight: 600;
+  letter-spacing: 0.3rem !important;
+}
+
+/* ✅ Form Helper Text */
+.form-helper {
+  display: block;
+  margin-top: 0.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.form-helper strong {
+  color: #10b981;
+}
+
+/* ✅ Secondary Button Styling */
+.btn-auth.secondary {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  margin-top: 1rem;
+}
+
+.btn-auth.secondary:hover {
+  background: #f9fafb;
+  color: #374151;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.btn-auth.secondary:active {
+  transform: translateY(0);
+}
+
+/* ✅ Success Message Styling */
+.success-message {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  border: 1px solid #10b981;
+  color: #065f46;
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  animation: slideInDown 0.3s ease-out;
+}
+
+.success-message::before {
+  content: '✅';
+  font-size: 1.2rem;
+}
+
+/* ✅ Enhanced Animations */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ✅ Mobile Responsive Improvements */
+@media (max-width: 480px) {
+  .progress-steps {
+    margin: 1.5rem 0;
+    padding: 0 0.5rem;
+  }
+  
+  .step {
+    width: 35px;
+    height: 35px;
+    font-size: 0.8rem;
+  }
+  
+  .step-line {
+    width: 40px;
+  }
+  
+  .code-input {
+    font-size: 1.1rem !important;
+    letter-spacing: 0.2rem !important;
+  }
+}
+
+/* ✅ Enhanced Focus States */
+.form-control:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.btn-auth:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
