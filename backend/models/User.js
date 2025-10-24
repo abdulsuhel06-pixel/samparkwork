@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
+
 // ✅ CRITICAL FIX: Completely flexible Education Schema - Zero validation
 const educationSchema = new mongoose.Schema({
   // Core fields
@@ -36,6 +37,7 @@ const educationSchema = new mongoose.Schema({
   strict: false,
   minimize: false
 });
+
 
 // ✅ CRITICAL FIX: Completely flexible Experience Schema - Zero validation
 const experienceSchema = new mongoose.Schema({
@@ -73,6 +75,7 @@ const experienceSchema = new mongoose.Schema({
   minimize: false
 });
 
+
 // ✅ CRITICAL FIX: Completely flexible Certificate Schema - Zero validation
 const certificationSchema = new mongoose.Schema({
   // Core fields
@@ -107,6 +110,7 @@ const certificationSchema = new mongoose.Schema({
   strict: false,
   minimize: false
 });
+
 
 // ✅ CRITICAL FIX: Completely flexible Portfolio Schema - Zero validation
 const portfolioSchema = new mongoose.Schema({
@@ -150,6 +154,7 @@ const portfolioSchema = new mongoose.Schema({
   minimize: false
 });
 
+
 // ✅ ENHANCED: Social Media Schema
 const socialSchema = new mongoose.Schema({
   facebook: { type: String, default: '' },
@@ -169,6 +174,7 @@ const socialSchema = new mongoose.Schema({
   strict: false,
   minimize: false
 });
+
 
 // ✅ ENHANCED: Address Schema
 const addressSchema = new mongoose.Schema({
@@ -194,6 +200,7 @@ const addressSchema = new mongoose.Schema({
   strict: false,
   minimize: false
 });
+
 
 // ✅ CRITICAL FIX: Main User Schema - ZERO VALIDATION, MAXIMUM FLEXIBILITY
 const userSchema = new mongoose.Schema({
@@ -328,6 +335,11 @@ const userSchema = new mongoose.Schema({
   isFeatured: { type: Boolean, default: false },
   isPremium: { type: Boolean, default: false },
   
+  // ===== PASSWORD RESET FIELDS ===== ✅ NEW ADDITION FOR FORGOT PASSWORD
+  resetPasswordToken: { type: String, default: null },
+  resetPasswordExpires: { type: Date, default: null },
+  resetPasswordCode: { type: String, default: null },
+  
   // ===== ACTIVITY TRACKING =====
   lastLoginAt: { type: Date },
   lastActiveAt: { type: Date },
@@ -372,11 +384,13 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
+
 // ✅ DISABLE ALL PRE-VALIDATION HOOKS
 userSchema.pre('validate', function(next) {
   // Skip all validation
   next();
 });
+
 
 // ✅ ENHANCED: Password hashing with better error handling
 userSchema.pre('save', async function(next) {
@@ -400,6 +414,7 @@ userSchema.pre('save', async function(next) {
   }
 });
 
+
 // ✅ ENHANCED: Password comparison with better error handling
 userSchema.methods.matchPassword = async function(enteredPassword) {
   if (!this.password || !enteredPassword) {
@@ -417,6 +432,7 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
   }
 };
 
+
 // ✅ ENHANCED: Get safe user data without sensitive fields
 userSchema.methods.getSafeData = function() {
   const userObj = this.toObject();
@@ -429,6 +445,7 @@ userSchema.methods.getSafeData = function() {
   
   return userObj;
 };
+
 
 // ✅ ENHANCED: Profile completion calculation with more factors
 userSchema.methods.calculateProfileCompletion = function() {
@@ -507,11 +524,13 @@ userSchema.methods.calculateProfileCompletion = function() {
   return completionPercentage;
 };
 
+
 // ✅ ENHANCED: Update last active timestamp
 userSchema.methods.updateLastActive = function() {
   this.lastActiveAt = new Date();
   return this.save({ validateBeforeSave: false });
 };
+
 
 // ✅ ENHANCED: Add skill with deduplication
 userSchema.methods.addSkill = function(skill) {
@@ -524,6 +543,7 @@ userSchema.methods.addSkill = function(skill) {
   return this;
 };
 
+
 // ✅ ENHANCED: Remove skill
 userSchema.methods.removeSkill = function(skill) {
   if (!this.skills) return this;
@@ -532,25 +552,30 @@ userSchema.methods.removeSkill = function(skill) {
   return this;
 };
 
+
 // ✅ ENHANCED: Get full name or fallback
 userSchema.methods.getDisplayName = function() {
   return this.name || this.username || this.email || 'User';
 };
+
 
 // ✅ ENHANCED: Check if user is available for work
 userSchema.methods.isAvailableForWork = function() {
   return this.availability?.status === 'Available' && this.isActive && !this.isBlocked;
 };
 
+
 // ✅ NEW: Check if user is using Google OAuth
 userSchema.methods.isGoogleUser = function() {
   return this.authProvider === 'google' && this.googleId;
 };
 
+
 // ✅ NEW: Get profile picture URL with fallback
 userSchema.methods.getProfilePictureUrl = function() {
   return this.profilePicture || this.avatar || this.avatarUrl || this.profilePhoto || '';
 };
+
 
 // ✅ VIRTUAL: Full address as string
 userSchema.virtual('fullAddressString').get(function() {
@@ -563,11 +588,13 @@ userSchema.virtual('fullAddressString').get(function() {
   return parts.filter(Boolean).join(', ');
 });
 
+
 // ✅ VIRTUAL: Primary social link
 userSchema.virtual('primarySocialLink').get(function() {
   const socials = this.contact?.socials || {};
   return socials.linkedin || socials.portfolio || socials.website || socials.github || '';
 });
+
 
 // ✅ INDEXES for better performance (commented out to avoid any validation issues)
 /*
@@ -582,6 +609,8 @@ userSchema.index({ profileCompletion: -1 });
 userSchema.index({ createdAt: -1 });
 */
 
-console.log("✅ Enhanced User model loaded with Google OAuth support, maximum flexibility and zero validation");
+
+console.log("✅ Enhanced User model loaded with Google OAuth support, password reset fields, maximum flexibility and zero validation");
+
 
 module.exports = mongoose.model("User", userSchema);

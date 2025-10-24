@@ -24,6 +24,8 @@ const advertisementRoutes = require("./routes/advertisementRoutes.js");
 const messageRoutes = require('./routes/messageRoutes.js');
 // ✅ NEW: Google OAuth Routes
 const googleAuthRoutes = require('./routes/googleAuth.js');
+// ✅ NEW: Password-Reset Routes
+const passwordResetRoutes = require('./routes/passwordReset.js'); 
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -513,6 +515,8 @@ app.use("/api/advertisements", advertisementRoutes);
 app.use('/api/messages', messageRoutes);
 // ✅ NEW: Google OAuth Routes - PROPERLY MOUNTED
 app.use('/api/oauth', googleAuthRoutes);
+// ✅ NEW: Password-Reset Routes - PROPERLY MOUNTED
+app.use('/api/password-reset', passwordResetRoutes); 
 
 // ✅ COMPLETELY FIXED HEALTH CHECK - NO SOCKET.IO PACKAGE.JSON ACCESS
 app.get("/api/health", (req, res) => {
@@ -558,7 +562,8 @@ app.get("/api/health", (req, res) => {
       compression: true,
       security: true,
       videoStreaming: true,
-      googleOAuth: true // ✅ NEW
+      googleOAuth: true, // ✅ NEW
+      passwordReset: true // ✅ NEW PASSWORD RESET FEATURE
     },
     database: {
       type: "MongoDB Atlas",
