@@ -51,7 +51,7 @@ const Footer = () => {
             <div className="contact-info">
               <div className="contact-item">
                 <FaEnvelope className="contact-icon" />
-                <a href="mailto:skillconnect@gmail.com">skillconnect@gmail.com</a>
+                <a href="mailto:samparkconnect08@gmail.com">samparkconnect08@gmail.com</a>
               </div>
               <div className="contact-item">
                 <FaPhoneAlt className="contact-icon" />
