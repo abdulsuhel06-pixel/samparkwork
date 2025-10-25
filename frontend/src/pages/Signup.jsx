@@ -160,7 +160,7 @@ const Signup = () => {
 
     // Terms validation
     if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the Terms & Conditions';
+      newErrors.agreeToTerms = 'You must agree to the Terms & Conditions and Privacy Policy';
     }
 
     setErrors(newErrors);
@@ -216,7 +216,7 @@ const Signup = () => {
   // ✅ UPDATED: Better description for skilled professionals
   const getRoleDescription = (role) => {
     return role === 'professional' 
-      ? 'Finds best work opportunities' 
+      ? 'Find the best work opportunities' 
       : 'Find talented professionals for your business needs';
   };
 
@@ -240,7 +240,7 @@ const Signup = () => {
 
         <div className="auth-header">
           <div className="logo-placeholder">
-            <img src={logo} alt="Sampark Work" className="auth-logo" />
+            <img src={logo} alt="SamparkWork" className="auth-logo" />
           </div>
           <h2>Create your account</h2>
           <p>Join as a {getRoleDisplayName(userRole).toLowerCase()}</p>
@@ -391,93 +391,157 @@ const Signup = () => {
             {errors.confirmPassword && <div className="field-error">{errors.confirmPassword}</div>}
           </div>
 
-          {/* ✅ CUSTOM CHECKBOX THAT WILL DEFINITELY WORK */}
-          <div className="form-group" style={{ marginBottom: '20px' }}>
-            <label 
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '10px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                lineHeight: '1.4',
-                color: '#4b5563',
-                fontWeight: '400'
-              }}
-            >
-              {/* ✅ HIDDEN REAL CHECKBOX */}
-              <input
-                type="checkbox"
-                name="agreeToTerms"
-                checked={formData.agreeToTerms}
-                onChange={handleInputChange}
-                required
-                disabled={loading}
+          {/* ✅ UPDATED: Enhanced Terms & Conditions Agreement Section */}
+          <div className="form-group terms-agreement" style={{ marginBottom: '24px' }}>
+            <div className="terms-container">
+              <label 
+                className="terms-label"
                 style={{
-                  position: 'absolute',
-                  opacity: 0,
-                  width: 0,
-                  height: 0
-                }}
-              />
-              
-              {/* ✅ CUSTOM VISIBLE CHECKBOX */}
-              <div
-                style={{
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid #d1d5db',
-                  borderRadius: '3px',
-                  backgroundColor: formData.agreeToTerms ? '#16a34a' : '#ffffff',
-                  borderColor: formData.agreeToTerms ? '#16a34a' : '#d1d5db',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  marginTop: '2px',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  lineHeight: '1.5',
+                  color: '#374151',
+                  fontWeight: '400',
+                  padding: '16px',
+                  backgroundColor: '#f9fafb',
+                  border: `2px solid ${errors.agreeToTerms ? '#ef4444' : '#e5e7eb'}`,
+                  borderRadius: '8px',
                   transition: 'all 0.2s ease'
                 }}
+                onMouseOver={(e) => {
+                  if (!errors.agreeToTerms) {
+                    e.currentTarget.style.borderColor = '#16a34a';
+                    e.currentTarget.style.backgroundColor = '#f0fdf4';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!errors.agreeToTerms) {
+                    e.currentTarget.style.borderColor = '#e5e7eb';
+                    e.currentTarget.style.backgroundColor = '#f9fafb';
+                  }
+                }}
               >
-                {formData.agreeToTerms && (
-                  <div
-                    style={{
-                      width: '4px',
-                      height: '8px',
-                      border: 'solid white',
-                      borderWidth: '0 2px 2px 0',
-                      transform: 'rotate(45deg)',
-                      marginTop: '-2px'
-                    }}
-                  />
-                )}
+                {/* ✅ HIDDEN REAL CHECKBOX */}
+                <input
+                  type="checkbox"
+                  name="agreeToTerms"
+                  checked={formData.agreeToTerms}
+                  onChange={handleInputChange}
+                  required
+                  disabled={loading}
+                  style={{
+                    position: 'absolute',
+                    opacity: 0,
+                    width: 0,
+                    height: 0
+                  }}
+                />
+                
+                {/* ✅ CUSTOM VISIBLE CHECKBOX */}
+                <div
+                  className="custom-checkbox"
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    border: '2px solid #d1d5db',
+                    borderRadius: '4px',
+                    backgroundColor: formData.agreeToTerms ? '#16a34a' : '#ffffff',
+                    borderColor: formData.agreeToTerms ? '#16a34a' : '#d1d5db',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    marginTop: '2px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: formData.agreeToTerms ? '0 2px 4px rgba(22, 163, 74, 0.2)' : 'none'
+                  }}
+                >
+                  {formData.agreeToTerms && (
+                    <div
+                      style={{
+                        width: '5px',
+                        height: '9px',
+                        border: 'solid white',
+                        borderWidth: '0 2px 2px 0',
+                        transform: 'rotate(45deg)',
+                        marginTop: '-1px'
+                      }}
+                    />
+                  )}
+                </div>
+                
+                {/* ✅ UPDATED TEXT WITH PROPER LINKS */}
+                <div className="terms-text" style={{ flex: 1 }}>
+                  <p style={{ margin: '0 0 8px 0', fontWeight: '500', color: '#1f2937' }}>
+                    By creating an account, I agree to:
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div>
+                       <Link 
+                        to="/terms" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ 
+                          color: '#16a34a', 
+                          textDecoration: 'none',
+                          fontWeight: '600',
+                          borderBottom: '1px dotted #16a34a'
+                        }}
+                        onMouseOver={(e) => {
+                          e.target.style.color = '#0d7500';
+                          e.target.style.textDecoration = 'underline';
+                          e.target.style.borderBottom = '1px solid #0d7500';
+                        }}
+                        onMouseOut={(e) => {
+                          e.target.style.color = '#16a34a';
+                          e.target.style.textDecoration = 'none';
+                          e.target.style.borderBottom = '1px dotted #16a34a';
+                        }}
+                      >Terms & Conditions</Link>
+                    </div>
+                    <div>
+                      <Link 
+                        to="/privacy" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ 
+                          color: '#16a34a', 
+                          textDecoration: 'none',
+                          fontWeight: '600',
+                          borderBottom: '1px dotted #16a34a'
+                        }}
+                        onMouseOver={(e) => {
+                          e.target.style.color = '#0d7500';
+                          e.target.style.textDecoration = 'underline';
+                          e.target.style.borderBottom = '1px solid #0d7500';
+                        }}
+                        onMouseOut={(e) => {
+                          e.target.style.color = '#16a34a';
+                          e.target.style.textDecoration = 'none';
+                          e.target.style.borderBottom = '1px dotted #16a34a';
+                        }}
+                      >Privacy Policy</Link>
+                    </div>
+                  </div>
+                  <p style={{ 
+                    margin: '8px 0 0 0', 
+                    fontSize: '12px', 
+                    color: '#6b7280',
+                    fontStyle: 'italic'
+                  }}>
+                    
+                  </p>
+                </div>
+              </label>
+            </div>
+            {errors.agreeToTerms && (
+              <div className="field-error" style={{ marginTop: '8px' }}>
+                {errors.agreeToTerms}
               </div>
-              
-              {/* ✅ TEXT */}
-              <span>
-                I agree to the <Link 
-                  to="/terms" 
-                  target="_blank" 
-                  style={{ 
-                    color: '#16a34a', 
-                    textDecoration: 'none',
-                    fontWeight: '500'
-                  }}
-                  onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                  onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-                >Terms & Conditions</Link> and <Link 
-                  to="/privacy" 
-                  target="_blank" 
-                  style={{ 
-                    color: '#16a34a', 
-                    textDecoration: 'none',
-                    fontWeight: '500'
-                  }}
-                  onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
-                  onMouseOut={(e) => e.target.style.textDecoration = 'none'}
-                >Privacy Policy</Link>
-              </span>
-            </label>
-            {errors.agreeToTerms && <div className="field-error">{errors.agreeToTerms}</div>}
+            )}
           </div>
 
           <button type="submit" className="btn-auth primary" disabled={loading}>

@@ -22,6 +22,9 @@ import RoleBasedProfile from './components/RoleBasedProfile.jsx';
 import Applications from './pages/Applications.jsx';
 // ✅ NEW: Import ForgotPassword component
 import ForgotPassword from './pages/ForgotPassword.jsx';
+import TermsConditions from './pages/TermsConditions.jsx';
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
+
 
 const Protected = ({ children }) => {
   const { user, loading } = useAuth();
@@ -193,6 +196,14 @@ const AppContent = () => {
         <Route path="/register" element={<Signup />} />
         <Route path="/sign-in" element={<Login />} />
         <Route path="/sign-up" element={<Signup />} />
+
+        {/* Add these routes to your existing routes */}
+<Route path="/terms" element={<TermsConditions />} />
+<Route path="/privacy" element={<PrivacyPolicy />} />
+<Route path="/terms-conditions" element={<TermsConditions />} />
+<Route path="/privacy-policy" element={<PrivacyPolicy />} />
+<Route path="/terms-and-conditions" element={<TermsConditions />} />
+
         
         {/* Catch-all Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
