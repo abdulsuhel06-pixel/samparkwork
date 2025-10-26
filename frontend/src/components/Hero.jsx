@@ -51,7 +51,7 @@ const Hero = () => {
       <div className="hero-content-wrapper">
         <div className="hero-content-container">
           
-          {/* Hero Headlines */}
+          {/* Hero Headlines - Only Title, No Subtitle */}
           <header className="hero-header">
             <h1 className="hero-main-title">
               {device === 'mobile' ? (
@@ -66,25 +66,14 @@ const Hero = () => {
                 </>
               )}
             </h1>
-            <p className="hero-description">
-              {device === 'mobile'
-                ? "Connecting companies with talented professionals worldwide. Your perfect opportunity awaits."
-                : "Connecting companies with talented jewellery and textile professionals worldwide. Your next opportunity or perfect hire is just a click away."
-              }
-            </p>
           </header>
 
-          {/* Call-to-Action */}
+          {/* Call-to-Action - Only Get Started Free Button */}
           <div className="hero-actions">
-            <Link to="/find-jobs" className="primary-cta">
-              <span className="cta-icon">💼</span>
-              <span>Find Jobs</span>
+            <Link to="/signup" className="primary-cta">
+              <span className="cta-icon"></span>
+              <span>Get Started Free</span>
             </Link>
-            <div className="secondary-actions">
-              <Link to="/find-talents" className="secondary-link">Hire Talent</Link>
-              <span className="divider">•</span>
-              <Link to="/signup" className="secondary-link">Get Started Free</Link>
-            </div>
           </div>
         </div>
       </div>

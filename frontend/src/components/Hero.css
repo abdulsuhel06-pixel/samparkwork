@@ -1,5 +1,4 @@
-/* ===== MODERN HERO SECTION - 2025 PROFESSIONAL DESIGN (SEARCH REMOVED) ===== */
-
+/* ===== MODERN HERO SECTION - PROPER MOBILE/TABLET BUTTON POSITIONING ===== */
 
 /* ===== MOBILE-FIRST BASE STYLES ===== */
 .modern-hero-section {
@@ -7,19 +6,16 @@
   min-height: 100vh;
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   overflow: hidden;
   background: #000;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   
-  /* ✅ CRITICAL FIX: Higher z-index to prevent advertisement overlay */
   z-index: 100;
   isolation: isolate;
   
-  /* ✅ MOBILE NAVBAR COMPENSATION */
-  padding-top: 80px; /* 60px navbar + 20px breathing room */
+  padding-top: 80px;
 }
-
 
 /* ===== PROFESSIONAL BACKGROUND SYSTEM ===== */
 .modern-hero-section .hero-background-container {
@@ -28,43 +24,40 @@
   z-index: 1;
 }
 
-
 .modern-hero-section .hero-background-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center center;
-  filter: brightness(0.7) contrast(1.2) saturate(1.1);
+  filter: brightness(0.85) contrast(1.1) saturate(1.05);
   transition: all 0.4s ease;
 }
-
 
 .modern-hero-section .hero-background-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(0, 0, 0, 0.8) 0%,
-    rgba(0, 0, 0, 0.5) 40%,
-    rgba(0, 0, 0, 0.3) 70%,
-    rgba(0, 0, 0, 0.75) 100%
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.1) 40%,
+    rgba(0, 0, 0, 0.05) 70%,
+    rgba(0, 0, 0, 0.2) 100%
   );
   z-index: 2;
 }
 
-
-/* ===== MODERN CONTENT STRUCTURE (CENTERED LAYOUT) ===== */
+/* ===== FLEXIBLE CONTENT STRUCTURE ===== */
 .modern-hero-section .hero-content-wrapper {
   position: relative;
-  z-index: 10; /* ✅ CRITICAL FIX: Higher z-index for content */
+  z-index: 10;
   width: 100%;
-  min-height: calc(100vh - 80px); /* Adjust for mobile navbar */
+  min-height: calc(100vh - 80px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 3rem 0; /* ✅ INCREASED: More padding without search section */
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
-
 
 .modern-hero-section .hero-content-container {
   width: 100%;
@@ -74,33 +67,35 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 3rem; /* ✅ INCREASED: More spacing between sections */
   position: relative;
-  z-index: 15; /* ✅ CRITICAL FIX: Highest z-index for text content */
+  z-index: 15;
+  padding-top: 1rem;
+  
+  /* ✅ MOBILE/TABLET FIX: Use flex gap instead of justify-content */
+  gap: 2rem; /* Base gap between title and button */
 }
-
 
 /* ===== ENHANCED TYPOGRAPHY SYSTEM ===== */
 .modern-hero-section .hero-header {
   text-align: center;
   max-width: 100%;
   position: relative;
-  z-index: 20; /* ✅ CRITICAL FIX: Maximum z-index for headers */
+  z-index: 20;
+  margin-bottom: 0;
+  flex-shrink: 0;
 }
-
 
 .modern-hero-section .hero-main-title {
   font-size: clamp(2.2rem, 5.5vw, 3rem);
   font-weight: 800;
   color: #ffffff;
   line-height: 1.2;
-  margin-bottom: 1.5rem; /* ✅ INCREASED: More space below title */
+  margin: 0;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
   letter-spacing: -0.02em;
   position: relative;
-  z-index: 25; /* ✅ CRITICAL FIX: Ensure title always on top */
+  z-index: 25;
 }
-
 
 .modern-hero-section .title-accent {
   background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF6B35 100%);
@@ -109,9 +104,8 @@
   background-clip: text;
   position: relative;
   display: inline-block;
-  z-index: 30; /* ✅ CRITICAL FIX: Accent text highest priority */
+  z-index: 30;
 }
-
 
 .modern-hero-section .title-accent::after {
   content: '';
@@ -126,7 +120,6 @@
   animation: heroGlow 3s ease-in-out infinite alternate;
 }
 
-
 @keyframes heroGlow {
   0% {
     opacity: 0.7;
@@ -138,253 +131,215 @@
   }
 }
 
-
-.modern-hero-section .hero-description {
-  font-size: clamp(1rem, 2.8vw, 1.2rem);
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
-  margin: 0;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
-  font-weight: 400;
-  max-width: 600px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 20; /* ✅ CRITICAL FIX: Description protected from overlap */
-}
-
-
-/* ===== ENHANCED PRIMARY CTA SYSTEM (CENTERED & PROMINENT) ===== */
+/* ===== BOTTOM-POSITIONED CTA BUTTON SYSTEM ===== */
 .modern-hero-section .hero-actions {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem; /* ✅ INCREASED: More spacing between elements */
-  margin-top: 1rem; /* ✅ ADDED: Extra top margin */
+  gap: 0;
+  margin-top: 0;
   position: relative;
-  z-index: 20; /* ✅ CRITICAL FIX: Actions protected from overlap */
+  z-index: 20;
+  flex-shrink: 0;
+  align-self: center;
+  
+  /* ✅ MOBILE/TABLET FIX: Add margin to push away from images */
+  margin-top: auto; /* Push to bottom on mobile */
 }
-
 
 .modern-hero-section .primary-cta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px; /* ✅ INCREASED: More gap between icon and text */
-  padding: 18px 36px; /* ✅ INCREASED: Larger padding for prominence */
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #333;
-  border: none;
-  border-radius: 16px; /* ✅ INCREASED: More rounded corners */
-  font-weight: 700;
-  font-size: 1.15rem; /* ✅ INCREASED: Larger font size */
+  gap: 10px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #333333;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
   text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 35px rgba(255, 215, 0, 0.4); /* ✅ ENHANCED: Bigger shadow */
-  min-width: 220px;
-  transform: translateY(0); /* ✅ ADDED: Base transform for hover effect */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  transform: translateY(0);
   position: relative;
-  z-index: 25; /* ✅ CRITICAL FIX: CTA button highest priority */
+  z-index: 25;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
-
 
 .modern-hero-section .primary-cta:hover {
-  transform: translateY(-4px); /* ✅ INCREASED: More pronounced hover effect */
-  box-shadow: 0 15px 45px rgba(255, 215, 0, 0.6); /* ✅ ENHANCED: Bigger hover shadow */
-  background: linear-gradient(135deg, #FFE55C 0%, #FFB84D 100%); /* ✅ ADDED: Hover gradient */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #222222;
 }
-
 
 .modern-hero-section .cta-icon {
-  font-size: 1.3rem; /* ✅ INCREASED: Larger icon */
+  font-size: 1.1rem;
 }
-
-
-/* Subtle Secondary Actions */
-.modern-hero-section .secondary-actions {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem; /* ✅ INCREASED: More spacing */
-  position: relative;
-  z-index: 20; /* ✅ CRITICAL FIX: Secondary actions protected */
-}
-
-
-.modern-hero-section .secondary-link {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1rem; /* ✅ INCREASED: Slightly larger font */
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 25; /* ✅ CRITICAL FIX: Links protected from overlay */
-}
-
-
-.modern-hero-section .secondary-link:hover {
-  color: #FFD700;
-  transform: translateY(-1px);
-}
-
-
-/* ✅ ADDED: Underline effect for secondary links */
-.modern-hero-section .secondary-link::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 2px;
-  bottom: -4px;
-  left: 50%;
-  background: #FFD700;
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
-}
-
-
-.modern-hero-section .secondary-link:hover::after {
-  width: 100%;
-}
-
-
-.modern-hero-section .divider {
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: 300;
-  font-size: 1.2rem; /* ✅ INCREASED: Larger divider */
-}
-
 
 /* ===== DESKTOP OPTIMIZATIONS ===== */
-@media (min-width: 769px) {
-  /* ✅ DESKTOP: Remove mobile padding, use full height */
+@media (min-width: 1025px) {
   .modern-hero-section {
-    padding-top: 0; /* Remove mobile padding */
-    min-height: 100vh; /* Full height for desktop */
+    padding-top: 0;
+    min-height: 100vh;
+    align-items: flex-start;
   }
   
   .modern-hero-section .hero-content-wrapper {
-    min-height: 100vh; /* Full height for desktop */
-    padding: 4rem 0; /* ✅ INCREASED: More padding for desktop */
+    min-height: 100vh;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    align-items: flex-start;
   }
   
   .modern-hero-section .hero-content-container {
     max-width: 1000px;
-    gap: 3.5rem; /* ✅ INCREASED: Even more spacing on desktop */
+    padding-top: 2rem;
+    
+    /* ✅ DESKTOP: Use space-between for desktop layout */
+    justify-content: space-between;
+    min-height: calc(100vh - 120px);
+    gap: 0; /* Remove gap on desktop, use space-between instead */
   }
   
   .modern-hero-section .hero-main-title {
-    font-size: clamp(2.8rem, 4.5vw, 3.8rem); /* ✅ INCREASED: Larger max size */
-    margin-bottom: 2rem; /* ✅ INCREASED: More space below title */
+    font-size: clamp(2.8rem, 4.5vw, 3.8rem);
     line-height: 1.1;
   }
   
-  .modern-hero-section .hero-description {
-    font-size: clamp(1.1rem, 2.5vw, 1.3rem); /* ✅ INCREASED: Larger text */
-    max-width: 700px;
-    margin-bottom: 1rem; /* ✅ ADDED: Space below description */
-  }
-  
-  /* ✅ ENHANCED: Desktop CTA styling */
   .modern-hero-section .hero-actions {
-    gap: 2.5rem;
-    margin-top: 1.5rem;
+    margin-top: 0; /* Reset margin-top on desktop */
   }
   
   .modern-hero-section .primary-cta {
-    padding: 20px 40px;
-    font-size: 1.2rem;
-    min-width: 250px;
-    border-radius: 18px;
-  }
-  
-  .modern-hero-section .secondary-actions {
-    gap: 2rem;
-  }
-  
-  .modern-hero-section .secondary-link {
+    padding: 14px 28px;
     font-size: 1.1rem;
+    min-width: 180px;
+    border-radius: 10px;
   }
 }
 
-
-/* ===== MOBILE-SPECIFIC OPTIMIZATIONS ===== */
-@media (max-width: 768px) {
-  /* ✅ ENHANCED MOBILE SPACING */
+/* ===== TABLET-SPECIFIC OPTIMIZATIONS ===== */
+@media (min-width: 769px) and (max-width: 1024px) {
   .modern-hero-section {
-    padding-top: 85px; /* 60px navbar + 25px breathing room */
-    min-height: calc(100vh - 60px); /* Account for navbar */
+    padding-top: 0;
+    min-height: 100vh;
   }
   
   .modern-hero-section .hero-content-wrapper {
-    min-height: calc(100vh - 85px);
-    padding: 2rem 0; /* ✅ ADJUSTED: Better mobile padding */
-  }
-  
-  .modern-hero-section .hero-content-container {
-    gap: 2.5rem; /* ✅ ADJUSTED: Good mobile spacing */
-  }
-  
-  .modern-hero-section .hero-header {
-    margin-bottom: 0; /* ✅ REMOVED: Let gap handle spacing */
-  }
-  
-  .modern-hero-section .hero-actions {
-    gap: 2rem;
-    margin-top: 0.5rem;
-  }
-  
-  .modern-hero-section .primary-cta {
-    width: 100%; /* ✅ ADDED: Full width on mobile */
-    max-width: 300px; /* ✅ ADDED: But limit max width */
-  }
-}
-
-
-@media (max-width: 480px) {
-  /* ✅ SMALL MOBILE OPTIMIZATIONS */
-  .modern-hero-section {
-    padding-top: 90px; /* Extra spacing for very small screens */
+    min-height: 100vh;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
   }
   
   .modern-hero-section .hero-content-container {
     max-width: 95%;
-    gap: 2rem; /* ✅ ADJUSTED: Tighter spacing on small screens */
+    padding-top: 1.5rem;
+    
+    /* ✅ TABLET FIX: Use gap layout, not space-between */
+    gap: 3rem; /* Large gap to separate title from button */
+    justify-content: flex-start;
+    min-height: auto; /* Don't force full height */
+  }
+  
+  .modern-hero-section .hero-actions {
+    margin-top: 2rem; /* ✅ TABLET: Extra margin to push below images */
+  }
+  
+  .modern-hero-section .primary-cta {
+    padding: 13px 26px;
+    font-size: 1.05rem;
+    min-width: 170px;
+    border-radius: 9px;
+  }
+}
+
+/* ===== MOBILE-SPECIFIC OPTIMIZATIONS ===== */
+@media (max-width: 768px) {
+  .modern-hero-section {
+    padding-top: 85px;
+    min-height: calc(100vh - 60px);
+    align-items: flex-start;
+  }
+  
+  .modern-hero-section .hero-content-wrapper {
+    min-height: calc(100vh - 85px);
+    padding-top: 1rem;
+    padding-bottom: 1.5rem;
+    align-items: flex-start;
+  }
+  
+  .modern-hero-section .hero-content-container {
+    padding-top: 0.5rem;
+    
+    /* ✅ MOBILE FIX: Use gap layout with large spacing */
+    gap: 4rem; /* Large gap to ensure button is below images */
+    justify-content: flex-start;
+    min-height: auto; /* Don't force full height */
+  }
+  
+  .modern-hero-section .hero-actions {
+    margin-top: 3rem; /* ✅ MOBILE: Large margin to push well below images */
+  }
+  
+  .modern-hero-section .primary-cta {
+    width: auto;
+    max-width: 200px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modern-hero-section {
+    padding-top: 90px;
+  }
+  
+  .modern-hero-section .hero-content-container {
+    max-width: 95%;
+    padding-top: 0.2rem;
+    
+    /* ✅ SMALL MOBILE FIX: Even larger gap */
+    gap: 5rem; /* Extra large gap for small screens */
+  }
+  
+  .modern-hero-section .hero-actions {
+    margin-top: 4rem; /* ✅ SMALL MOBILE: Maximum margin */
   }
   
   .modern-hero-section .hero-main-title {
     font-size: clamp(1.9rem, 5vw, 2.5rem);
-    margin-bottom: 1.2rem;
-  }
-  
-  .modern-hero-section .hero-description {
-    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
   }
   
   .modern-hero-section .primary-cta {
-    padding: 16px 28px;
-    font-size: 1rem;
+    padding: 9px 18px;
+    font-size: 0.9rem;
     min-width: auto;
-  }
-  
-  .modern-hero-section .secondary-actions {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .modern-hero-section .divider {
-    display: none; /* ✅ ADDED: Hide divider when stacked */
+    max-width: 180px;
   }
 }
 
-
 @media (max-width: 380px) {
-  /* ✅ EXTRA SMALL MOBILE */
   .modern-hero-section {
-    padding-top: 95px; /* Maximum spacing for tiny screens */
+    padding-top: 95px;
   }
   
   .modern-hero-section .hero-content-container {
     max-width: 92%;
-    gap: 1.8rem;
+    padding-top: 0;
+    
+    /* ✅ EXTRA SMALL MOBILE FIX: Maximum gap */
+    gap: 6rem; /* Maximum gap for tiny screens */
+  }
+  
+  .modern-hero-section .hero-actions {
+    margin-top: 5rem; /* ✅ EXTRA SMALL: Maximum margin */
   }
   
   .modern-hero-section .hero-main-title {
@@ -392,53 +347,53 @@
   }
   
   .modern-hero-section .primary-cta {
-    padding: 14px 24px;
-    font-size: 0.95rem;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    max-width: 160px;
   }
 }
-
 
 /* Large desktop enhancements */
 @media (min-width: 1200px) {
+  .modern-hero-section .hero-content-wrapper {
+    padding-top: 4rem;
+    padding-bottom: 3rem;
+  }
+  
   .modern-hero-section .hero-content-container {
     max-width: 1200px;
-    gap: 4rem; /* ✅ INCREASED: Maximum spacing on large screens */
+    padding-top: 2.5rem;
+    
+    /* ✅ LARGE DESKTOP: Maintain space-between layout */
+    justify-content: space-between;
+    min-height: calc(100vh - 140px);
+    gap: 0;
   }
   
   .modern-hero-section .hero-main-title {
-    font-size: clamp(3.2rem, 5vw, 4.2rem); /* ✅ INCREASED: Even larger on big screens */
-    margin-bottom: 2.5rem;
-  }
-  
-  .modern-hero-section .hero-description {
-    font-size: clamp(1.2rem, 2.8vw, 1.4rem);
-    max-width: 800px;
-    margin-bottom: 1.5rem;
+    font-size: clamp(3.2rem, 5vw, 4.2rem);
   }
   
   .modern-hero-section .hero-actions {
-    gap: 3rem;
-    margin-top: 2rem;
+    margin-top: 0; /* Reset margin on large desktop */
   }
   
   .modern-hero-section .primary-cta {
-    padding: 22px 44px;
-    font-size: 1.25rem;
-    min-width: 280px;
+    padding: 16px 32px;
+    font-size: 1.15rem;
+    min-width: 200px;
+    border-radius: 12px;
   }
 }
-
 
 /* ===== PERFORMANCE & ACCESSIBILITY ===== */
 .modern-hero-section .hero-background-image {
   will-change: transform;
 }
 
-
 .modern-hero-section .primary-cta {
   will-change: transform;
 }
-
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -450,89 +405,62 @@
   }
 }
 
-
 /* ===== DEVICE-SPECIFIC CLASSES ===== */
 .modern-hero-section.mobile-hero .hero-main-title {
   line-height: 1.25;
 }
 
-
 .modern-hero-section.desktop-hero .hero-main-title {
   line-height: 1.1;
 }
 
-
 .modern-hero-section.tablet-hero .hero-main-title {
   line-height: 1.2;
 }
-
 
 /* Dark mode compatibility */
 @media (prefers-color-scheme: dark) {
   .modern-hero-section .hero-background-overlay {
     background: linear-gradient(
       135deg,
-      rgba(0, 0, 0, 0.85) 0%,
-      rgba(0, 0, 0, 0.6) 40%,
-      rgba(0, 0, 0, 0.4) 70%,
-      rgba(0, 0, 0, 0.8) 100%
+      rgba(0, 0, 0, 0.4) 0%,
+      rgba(0, 0, 0, 0.2) 40%,
+      rgba(0, 0, 0, 0.1) 70%,
+      rgba(0, 0, 0, 0.3) 100%
     );
   }
 }
 
-
 /* ===== CRITICAL: MOBILE NAVBAR COMPENSATION ===== */
 @media (max-width: 768px) {
-  /* Force proper spacing on all mobile devices */
   .modern-hero-section {
-    padding-top: 85px !important; /* 60px navbar + 25px spacing */
+    padding-top: 85px !important;
   }
   
-  /* Ensure hero content doesn't overlap navbar */
   .modern-hero-section .hero-content-wrapper {
-    padding-top: 0;
+    padding-top: 1rem;
     margin-top: 0;
   }
 }
 
-
 /* ===== LANDSCAPE MOBILE FIX ===== */
 @media (max-width: 768px) and (orientation: landscape) {
   .modern-hero-section {
-    padding-top: 75px; /* Slightly less spacing in landscape */
+    padding-top: 75px;
     min-height: 100vh;
   }
   
   .modern-hero-section .hero-content-container {
-    gap: 1.5rem; /* ✅ ADJUSTED: Tighter spacing in landscape */
+    gap: 3rem; /* ✅ LANDSCAPE: Moderate gap for landscape */
+  }
+  
+  .modern-hero-section .hero-actions {
+    margin-top: 2rem; /* ✅ LANDSCAPE: Moderate margin */
   }
 }
-
 
 /* ===== FOCUS STYLES FOR ACCESSIBILITY ===== */
-.modern-hero-section .primary-cta:focus,
-.modern-hero-section .secondary-link:focus {
-  outline: 2px solid #FFD700;
+.modern-hero-section .primary-cta:focus {
+  outline: 2px solid #333333;
   outline-offset: 2px;
-}
-
-
-/* ✅ ADDED: Subtle pulse animation for CTA */
-@keyframes ctaPulse {
-  0%, 100% {
-    box-shadow: 0 10px 35px rgba(255, 215, 0, 0.4);
-  }
-  50% {
-    box-shadow: 0 10px 35px rgba(255, 215, 0, 0.6);
-  }
-}
-
-
-.modern-hero-section .primary-cta {
-  animation: ctaPulse 4s ease-in-out infinite;
-}
-
-
-.modern-hero-section .primary-cta:hover {
-  animation: none; /* ✅ ADDED: Stop pulse on hover */
 }
