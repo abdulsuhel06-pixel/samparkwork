@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaPrint, FaDownload, FaExternalLinkAlt, FaShieldAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaPrint, FaDownload, FaExternalLinkAlt, FaShieldAlt, FaExclamationTriangle } from 'react-icons/fa';
 import './LegalPages.css';
 
 const PrivacyPolicy = () => {
@@ -58,6 +58,7 @@ const PrivacyPolicy = () => {
   };
 
   const tableOfContents = [
+    { id: 'data-disclaimer', title: '⚠️ Data Protection Notice' },
     { id: 'introduction', title: '1. Introduction' },
     { id: 'information-collected', title: '2. Information We Collect' },
     { id: 'how-we-use', title: '3. How We Use Information' },
@@ -149,6 +150,32 @@ const PrivacyPolicy = () => {
               applicable Indian data protection laws to ensure your information remains secure and private.
             </div>
           </div>
+
+          {/* ===== DATA PROTECTION DISCLAIMER ===== */}
+          <section id="data-disclaimer" className="urgent-legal-disclaimer privacy-disclaimer" data-section="data-disclaimer">
+            <div className="urgent-disclaimer-header">
+              <FaExclamationTriangle className="warning-icon" />
+              <h3>⚠️ IMPORTANT - DATA PROTECTION & PLATFORM NOTICE</h3>
+            </div>
+            <div className="urgent-disclaimer-content">
+              <p>
+                <strong>SamparkWork operates as a marketplace platform connecting users.</strong> 
+                While we implement robust security measures to protect your data, users should be aware 
+                that sharing personal information with other platform users (professionals or clients) 
+                is done <strong>at your own discretion and risk</strong>.
+              </p>
+              <p className="disclaimer-emphasis">
+                <strong>Third-Party Interactions:</strong> We cannot control how other users handle 
+                information you choose to share with them directly. Always exercise caution when 
+                sharing sensitive personal or business information with unknown parties.
+              </p>
+              <div className="disclaimer-warning-box">
+                <strong>🔒 PRIVACY TIP:</strong> Only share necessary information required for project 
+                completion. Keep financial and highly sensitive data secure through our platform's 
+                official channels whenever possible.
+              </div>
+            </div>
+          </section>
 
           {/* Section 1: Introduction */}
           <section id="introduction" className="legal-section" data-section="introduction">
@@ -578,7 +605,7 @@ const PrivacyPolicy = () => {
           {/* Footer */}
           <div className="legal-footer">
             <p>
-              <strong>Document Version:</strong> 1.0 | <strong>Effective Date:</strong> October 25, 2025
+              <strong>Document Version:</strong> 1.1 | <strong>Effective Date:</strong> October 25, 2025
             </p>
             <p>
               For privacy-related questions or concerns, please contact our Privacy Team at 

@@ -266,6 +266,155 @@
   margin: 24px 0;
 }
 
+/* ===== URGENT LEGAL DISCLAIMER STYLES ===== */
+.urgent-legal-disclaimer {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 2px solid #f59e0b;
+  border-left: 6px solid #dc2626;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 32px 0 48px 0;
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.urgent-legal-disclaimer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #dc2626, #f59e0b, #dc2626);
+  animation: urgent-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes urgent-pulse {
+  0% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.urgent-disclaimer-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f59e0b;
+}
+
+.urgent-disclaimer-header h3 {
+  color: #dc2626;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.warning-icon {
+  color: #dc2626;
+  font-size: 24px;
+  animation: warning-blink 1.5s ease-in-out infinite;
+}
+
+@keyframes warning-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.urgent-disclaimer-content p {
+  color: #92400e;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.urgent-disclaimer-content strong {
+  color: #7c2d12;
+  font-weight: 700;
+}
+
+.disclaimer-emphasis {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid #f87171;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+  font-weight: 600 !important;
+  color: #7f1d1d !important;
+}
+
+.disclaimer-warning-box {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border: 1px solid #f87171;
+  border-left: 4px solid #dc2626;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+  color: #7f1d1d;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1);
+}
+
+/* Privacy-specific disclaimer styling */
+.privacy-disclaimer {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-color: #3b82f6;
+  border-left-color: #1d4ed8;
+}
+
+.privacy-disclaimer::before {
+  background: linear-gradient(90deg, #1d4ed8, #3b82f6, #1d4ed8);
+}
+
+.privacy-disclaimer .urgent-disclaimer-header {
+  border-bottom-color: #3b82f6;
+}
+
+.privacy-disclaimer .urgent-disclaimer-header h3 {
+  color: #1d4ed8;
+}
+
+.privacy-disclaimer .warning-icon {
+  color: #1d4ed8;
+}
+
+.privacy-disclaimer .urgent-disclaimer-content p {
+  color: #1e3a8a;
+}
+
+.privacy-disclaimer .urgent-disclaimer-content strong {
+  color: #1e40af;
+}
+
+.privacy-disclaimer .disclaimer-emphasis {
+  background: rgba(29, 78, 216, 0.1);
+  border-color: #60a5fa;
+  color: #1e3a8a !important;
+}
+
+.privacy-disclaimer .disclaimer-warning-box {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-color: #60a5fa;
+  border-left-color: #1d4ed8;
+  color: #1e3a8a;
+}
+
+/* Enhanced TOC styling for urgent sections */
+.legal-toc button:first-child {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border: 1px solid #f59e0b;
+  font-weight: 600;
+}
+
+.legal-toc button:first-child:hover {
+  background: linear-gradient(135deg, #fde68a, #fbbf24);
+  color: #78350f;
+}
+
 /* ===== SECTIONS ===== */
 .legal-section {
   margin-bottom: 48px;
@@ -471,6 +620,30 @@
     height: 60px;
     font-size: 24px;
   }
+
+  /* Mobile responsive styles for disclaimer */
+  .urgent-legal-disclaimer {
+    padding: 20px 16px;
+    margin: 24px 0 32px 0;
+  }
+
+  .urgent-disclaimer-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .urgent-disclaimer-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .warning-icon {
+    font-size: 20px;
+  }
+
+  .urgent-disclaimer-content p {
+    font-size: 1rem;
+  }
 }
 
 /* ===== SMALL MOBILE STYLES ===== */
@@ -505,6 +678,19 @@
 
   .legal-footer-links span {
     display: none;
+  }
+
+  .urgent-legal-disclaimer {
+    padding: 16px 12px;
+  }
+
+  .urgent-disclaimer-header h3 {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .urgent-disclaimer-content p {
+    font-size: 0.95rem;
   }
 }
 
@@ -545,6 +731,28 @@
 
   .legal-section h2 {
     page-break-after: avoid;
+  }
+
+  /* Print styles for disclaimers */
+  .urgent-legal-disclaimer {
+    background: white !important;
+    border: 2px solid #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .urgent-legal-disclaimer::before {
+    display: none !important;
+  }
+
+  .urgent-disclaimer-header h3,
+  .urgent-disclaimer-content p,
+  .disclaimer-emphasis,
+  .disclaimer-warning-box {
+    color: #000000 !important;
+  }
+
+  .warning-icon {
+    color: #000000 !important;
   }
 }
 

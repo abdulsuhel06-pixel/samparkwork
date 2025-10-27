@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaPrint, FaDownload, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaPrint, FaDownload, FaExternalLinkAlt, FaExclamationTriangle } from 'react-icons/fa';
 import './LegalPages.css';
 
 const TermsConditions = () => {
@@ -58,6 +58,7 @@ const TermsConditions = () => {
   };
 
   const tableOfContents = [
+    { id: 'urgent-disclaimer', title: '⚠️ Urgent Notice' },
     { id: 'acceptance', title: '1. Acceptance of Terms' },
     { id: 'definitions', title: '2. Definitions' },
     { id: 'eligibility', title: '3. User Eligibility' },
@@ -151,6 +152,33 @@ const TermsConditions = () => {
             </div>
           </div>
 
+          {/* ===== URGENT LEGAL DISCLAIMER ===== */}
+          <section id="urgent-disclaimer" className="urgent-legal-disclaimer" data-section="urgent-disclaimer">
+            <div className="urgent-disclaimer-header">
+              <FaExclamationTriangle className="warning-icon" />
+              <h3>🚨 URGENT NOTICE - PLATFORM LIABILITY DISCLAIMER</h3>
+            </div>
+            <div className="urgent-disclaimer-content">
+              <p>
+                <strong>This website operates as a digital marketplace connecting skilled professionals 
+                with clients seeking services.</strong> SamparkWork functions solely as an intermediary 
+                platform and assumes <strong>no responsibility</strong> for the conduct, performance, 
+                quality of work, or any legal violations committed by individual professionals or 
+                craftsmen using our platform.
+              </p>
+              <p className="disclaimer-emphasis">
+                <strong>Users engage with service providers entirely at their own risk and discretion.</strong> 
+                We strongly recommend thorough due diligence before entering into any professional agreements. 
+                SamparkWork is not liable for any damages, disputes, or losses arising from interactions 
+                between users on our platform.
+              </p>
+              <div className="disclaimer-warning-box">
+                <strong>⚠️ WARNING:</strong> Always verify credentials, check references, and establish 
+                clear agreements before hiring any professional through our platform.
+              </div>
+            </div>
+          </section>
+
           {/* Section 1: Acceptance of Terms */}
           <section id="acceptance" className="legal-section" data-section="acceptance">
             <h2>1. Acceptance of Terms</h2>
@@ -196,6 +224,9 @@ const TermsConditions = () => {
               </div>
             </div>
           </section>
+
+          {/* Continue with all remaining sections... */}
+          {/* [Include all your existing sections from 3-17 exactly as they were] */}
 
           {/* Section 3: User Eligibility */}
           <section id="eligibility" className="legal-section" data-section="eligibility">
@@ -646,7 +677,7 @@ const TermsConditions = () => {
           {/* Footer */}
           <div className="legal-footer">
             <p>
-              <strong>Document Version:</strong> 1.0 | <strong>Effective Date:</strong> October 25, 2025
+              <strong>Document Version:</strong> 1.1 | <strong>Effective Date:</strong> October 25, 2025
             </p>
             <p>
               For questions about these Terms & Conditions, please contact our support team at 
