@@ -1,3 +1,5 @@
+// ✅ NOTIFICATION IMPORT - ADD THIS AT THE TOP
+const { createNotification } = require('./notificationController');
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
 const User = require('../models/User');
@@ -217,8 +219,8 @@ const getMessages = asyncHandler(async (req, res) => {
   }
 });
 
-// ✅ CRITICAL FIX: Send Message with PERFECT Socket.IO integration and complete user data
-// @desc    Send a message - ✅ FIXED with proper Socket.io integration
+// ✅ CRITICAL FIX: Send Message with PERFECT Socket.IO integration and COMPLETE NOTIFICATION SYSTEM
+// @desc    Send a message - ✅ ENHANCED with email notifications
 // @route   POST /api/messages/send
 // @access  Private
 const sendMessage = asyncHandler(async (req, res) => {
@@ -283,7 +285,7 @@ const sendMessage = asyncHandler(async (req, res) => {
           metadata: metadata || {}
         });
         await conversation.save();
-
+        
         console.log(`✅ [sendMessage] Created new conversation: ${conversation._id}`);
       } else {
         // ✅ CRITICAL FIX: Update existing conversation with job context
@@ -408,7 +410,33 @@ const sendMessage = asyncHandler(async (req, res) => {
       console.warn(`⚠️ [sendMessage] Socket.IO not available for real-time events`);
     }
 
-    console.log(`✅ [sendMessage] Message sent successfully with complete user data`);
+    // ✅ NEW: CREATE EMAIL NOTIFICATION FOR NEW MESSAGE
+    try {
+      // Create notification for new message
+      await createNotification({
+        recipient: receiverId,
+        sender: senderId,
+        type: 'new_message',
+        title: `New message from ${sender.name}`,
+        message: messageType === 'text' ? 
+          (content.length > 100 ? content.substring(0, 100) + '...' : content) :
+          `📎 ${messageType} attachment`,
+        relatedData: {
+          messageId: message._id,
+          conversationId: conversation._id
+        },
+        emailPreferences: {
+          immediate: true // Send email immediately
+        }
+      });
+      
+      console.log('✅ [sendMessage] Email notification created successfully');
+    } catch (notificationError) {
+      console.error('❌ [sendMessage] Failed to create notification:', notificationError);
+      // Don't fail the message send if notification fails
+    }
+
+    console.log(`✅ [sendMessage] Message sent successfully with complete user data and email notification`);
 
     res.status(201).json({
       success: true,
@@ -1333,7 +1361,7 @@ const deleteConversation = asyncHandler(async (req, res) => {
 module.exports = {
   getConversations,
   getMessages,
-  sendMessage,              // ✅ CRITICAL FIX: Now includes complete user data and perfect Socket.IO events
+  sendMessage,              // ✅ ENHANCED: Now includes EMAIL NOTIFICATIONS
   uploadMessageFile,        // ✅ CRITICAL FIX: COMPLETELY ENHANCED with full form data handling
   markMessagesAsRead,       // ✅ ENHANCED: Now includes read receipt Socket.IO events
   searchMessages,

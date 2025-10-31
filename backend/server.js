@@ -26,6 +26,8 @@ const messageRoutes = require('./routes/messageRoutes.js');
 const googleAuthRoutes = require('./routes/googleAuth.js');
 // ✅ NEW: Password-Reset Routes
 const passwordResetRoutes = require('./routes/passwordReset.js'); 
+// ✅ NEW: Notification Routes - EMAIL NOTIFICATION SYSTEM
+const notificationRoutes = require('./routes/notificationRoutes.js');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -209,7 +211,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads"), {
   }
 }));
 
-// Enhanced request logging with messaging support
+// Enhanced request logging with messaging and notification support
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   
@@ -234,6 +236,16 @@ app.use((req, res, next) => {
       method: req.method,
       url: req.url,
       body: req.method === 'POST' ? req.body : 'GET request',
+      contentType: req.get('Content-Type')
+    });
+  }
+
+  // ✅ NEW: Debug logging for notification routes
+  if (req.url.includes('/notifications/')) {
+    console.log('🔔 Notification Route Request:', {
+      method: req.method,
+      url: req.url,
+      body: req.method === 'POST' || req.method === 'PUT' ? req.body : 'GET request',
       contentType: req.get('Content-Type')
     });
   }
@@ -453,7 +465,7 @@ io.on('connect_error', (error) => {
 // Make io available to routes
 app.set('io', io);
 
-// ✅ WELCOME ROUTE - UPDATED WITH ACTUAL RENDER URL
+// ✅ WELCOME ROUTE - UPDATED WITH EMAIL NOTIFICATION SYSTEM
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -473,7 +485,9 @@ app.get("/", (req, res) => {
       fileUploads: "Enabled",
       realTime: "Active",
       cors: "Dynamic Origins Configured",
-      googleOAuth: "Enabled" // ✅ NEW
+      googleOAuth: "Enabled",
+      emailNotifications: "Enabled", // ✅ NEW
+      notificationSystem: "Active" // ✅ NEW
     },
     endpoints: {
       health: "/api/health",
@@ -481,10 +495,11 @@ app.get("/", (req, res) => {
       users: "/api/users/*",
       jobs: "/api/jobs/*", 
       messages: "/api/messages/*",
+      notifications: "/api/notifications/*", // ✅ NEW
       admin: "/api/admin/*",
       categories: "/api/categories/*",
       advertisements: "/api/advertisements/*",
-      googleOAuth: "/api/oauth/google" // ✅ NEW
+      googleOAuth: "/api/oauth/google"
     },
     frontend: {
       development: "http://localhost:5173",
@@ -517,8 +532,10 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/oauth', googleAuthRoutes);
 // ✅ NEW: Password-Reset Routes - PROPERLY MOUNTED
 app.use('/api/password-reset', passwordResetRoutes); 
+// ✅ NEW: Notification Routes - EMAIL NOTIFICATION SYSTEM
+app.use('/api/notifications', notificationRoutes);
 
-// ✅ COMPLETELY FIXED HEALTH CHECK - NO SOCKET.IO PACKAGE.JSON ACCESS
+// ✅ COMPLETELY FIXED HEALTH CHECK - WITH EMAIL NOTIFICATION SYSTEM
 app.get("/api/health", (req, res) => {
   const getDirectoryFileCount = (dirPath) => {
     try {
@@ -540,7 +557,7 @@ app.get("/api/health", (req, res) => {
   res.json({ 
     ok: true, 
     time: new Date(),
-    message: "SamparkWork Backend API Server is running with real-time messaging support and Google OAuth",
+    message: "SamparkWork Backend API Server is running with real-time messaging, email notifications and Google OAuth",
     deployment: {
       platform: "Render",
       url: "https://samparkwork-backend.onrender.com",
@@ -548,7 +565,7 @@ app.get("/api/health", (req, res) => {
       status: "Live and Operational"
     },
     express_version: "5.x",
-    socketio_version: "4.8.1", // ✅ FIXED: Hardcoded version instead of require
+    socketio_version: "4.8.1",
     node_version: process.version,
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime(),
@@ -562,8 +579,11 @@ app.get("/api/health", (req, res) => {
       compression: true,
       security: true,
       videoStreaming: true,
-      googleOAuth: true, // ✅ NEW
-      passwordReset: true // ✅ NEW PASSWORD RESET FEATURE
+      googleOAuth: true,
+      passwordReset: true,
+      emailNotifications: true, // ✅ NEW
+      notificationSystem: true, // ✅ NEW
+      emailService: process.env.EMAIL_SERVICE || 'not configured' // ✅ NEW
     },
     database: {
       type: "MongoDB Atlas",
@@ -588,7 +608,8 @@ app.get("/api/health", (req, res) => {
       compressionEnabled: true,
       cookieParsingEnabled: true,
       morganLoggingEnabled: true,
-      googleOAuthEnabled: true // ✅ NEW
+      googleOAuthEnabled: true,
+      notificationMiddlewareEnabled: true // ✅ NEW
     },
     uploads: {
       basePath: "https://samparkwork-backend.onrender.com/uploads",
@@ -643,6 +664,15 @@ app.get("/api/health", (req, res) => {
         "GET /api/messages/unread-count",
         "DELETE /api/messages/:messageId",
         "PUT /api/messages/conversation/:conversationId/archive"
+      ],
+      // ✅ NEW: Notification endpoints
+      notifications: [
+        "GET /api/notifications - Get user notifications",
+        "GET /api/notifications/unread-count - Get unread count", 
+        "PUT /api/notifications/mark-read - Mark as read",
+        "PUT /api/notifications/mark-all-read - Mark all as read",
+        "DELETE /api/notifications/:id - Delete notification",
+        "PUT /api/notifications/preferences - Update preferences"
       ]
     },
     socketEvents: [
@@ -668,11 +698,17 @@ app.get("/api/health", (req, res) => {
       },
       socketConnection: "wss://samparkwork-backend.onrender.com",
       apiBase: "https://samparkwork-backend.onrender.com/api"
+    },
+    // ✅ NEW: Email notification status
+    emailService: {
+      configured: !!process.env.EMAIL_SERVICE,
+      service: process.env.EMAIL_SERVICE || 'not configured',
+      status: process.env.EMAIL_USER ? 'Ready' : 'Not configured'
     }
   });
 });
 
-// Enhanced error handling with messaging support
+// Enhanced error handling with messaging and notification support
 app.use((err, req, res, next) => {
   console.error("❌ Global Error Handler:", err);
   
@@ -699,6 +735,16 @@ app.use((err, req, res, next) => {
   // ✅ NEW: Special logging for Google OAuth route errors
   if (req.url.includes('/oauth/')) {
     console.error("❌ Google OAuth Route Error:");
+    console.error("   Method:", req.method);
+    console.error("   URL:", req.url);
+    console.error("   Body:", JSON.stringify(req.body, null, 2));
+    console.error("   Error:", err.message);
+    console.error("   Stack:", err.stack);
+  }
+
+  // ✅ NEW: Special logging for notification route errors
+  if (req.url.includes('/notifications/')) {
+    console.error("❌ Notification Route Error:");
     console.error("   Method:", req.method);
     console.error("   URL:", req.url);
     console.error("   Body:", JSON.stringify(req.body, null, 2));
@@ -758,7 +804,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ✅ UPDATED 404 HANDLER WITH ACTUAL RENDER URL
+// ✅ UPDATED 404 HANDLER WITH NOTIFICATION ENDPOINTS
 app.use((req, res) => {
   console.log(`❌ 404 - Route not found: ${req.method} ${req.originalUrl}`);
   
@@ -775,7 +821,7 @@ app.use((req, res) => {
       "GET /api/health - Comprehensive Health Check",
       "POST /api/auth/login - User Authentication",
       "POST /api/auth/register - User Registration",
-      "POST /api/oauth/google - Google OAuth Login", // ✅ NEW
+      "POST /api/oauth/google - Google OAuth Login",
       "GET /api/users/profile - User Profile",
       "PUT /api/users/profile - Update Profile", 
       "POST /api/users/profile/experience - Add Experience",
@@ -789,7 +835,14 @@ app.use((req, res) => {
       "POST /api/messages/upload - Upload File",
       "PUT /api/messages/read/:conversationId - Mark as Read",
       "GET /api/messages/search - Search Messages",
-      "GET /api/messages/unread-count - Get Unread Count"
+      "GET /api/messages/unread-count - Get Unread Count",
+      // ✅ NEW: Notification endpoints
+      "GET /api/notifications - Get Notifications",
+      "GET /api/notifications/unread-count - Get Unread Count",
+      "PUT /api/notifications/mark-read - Mark as Read",
+      "PUT /api/notifications/mark-all-read - Mark All as Read",
+      "DELETE /api/notifications/:id - Delete Notification",
+      "PUT /api/notifications/preferences - Update Preferences"
     ],
     realTimeEndpoints: [
       "WebSocket connection: wss://samparkwork-backend.onrender.com",
@@ -803,7 +856,7 @@ app.use((req, res) => {
   });
 });
 
-// ✅ UPDATED: Start server with actual Render URL information
+// ✅ UPDATED: Start server with EMAIL NOTIFICATION SYSTEM information
 connectDB()
   .then(() => {
     console.log("✅ Database connected successfully");
@@ -819,7 +872,8 @@ connectDB()
       console.log(`🧪 Health Check: https://samparkwork-backend.onrender.com/api/health`);
       console.log(`📱 API Base URL: https://samparkwork-backend.onrender.com/api`);
       console.log(`🔌 Socket.IO: wss://samparkwork-backend.onrender.com`);
-      console.log(`🔐 Google OAuth: https://samparkwork-backend.onrender.com/api/oauth/google`); // ✅ NEW
+      console.log(`🔐 Google OAuth: https://samparkwork-backend.onrender.com/api/oauth/google`);
+      console.log(`📧 Email Notifications: ${process.env.EMAIL_SERVICE ? 'CONFIGURED' : 'NOT CONFIGURED'}`); // ✅ NEW
       
       // Production deployment info
       if (process.env.NODE_ENV === 'production') {
@@ -827,7 +881,7 @@ connectDB()
         console.log(`🌍 Live Backend URL: https://samparkwork-backend.onrender.com`);
         console.log(`🎯 Ready for Frontend Integration`);
         console.log(`🌐 CORS Origins: ${allowedOrigins.join(', ')}`);
-        console.log(`🔐 Security: Helmet + CORS + JWT Authentication + Google OAuth`);
+        console.log(`🔐 Security: Helmet + CORS + JWT Authentication + Google OAuth + Email Notifications`);
       }
       
       console.log(`\n✅ Services Status:`);
@@ -836,7 +890,9 @@ connectDB()
       console.log(`   🔄 Socket.IO WebSocket: RUNNING`);
       console.log(`   🌐 CORS Configuration: DYNAMIC`);
       console.log(`   🔐 JWT Authentication: ENABLED`);
-      console.log(`   🔐 Google OAuth: ENABLED`); // ✅ NEW
+      console.log(`   🔐 Google OAuth: ENABLED`);
+      console.log(`   📧 Email Notifications: ${process.env.EMAIL_SERVICE ? 'ENABLED' : 'NOT CONFIGURED'}`); // ✅ NEW
+      console.log(`   🔔 Notification System: ENABLED`); // ✅ NEW
       console.log(`   🗜️  Compression: ENABLED`);
       console.log(`   🛡️  Security Headers: ENABLED`);
       console.log(`   🎥 Video Streaming: ENABLED WITH ACCEPT-RANGES`);
@@ -853,7 +909,7 @@ connectDB()
       console.log(`   🔌 Socket.IO: wss://samparkwork-backend.onrender.com`);
       console.log(`   📁 File Uploads: https://samparkwork-backend.onrender.com/uploads`);
       console.log(`   🧪 Health Check: https://samparkwork-backend.onrender.com/api/health`);
-      console.log(`   🔐 Google OAuth: https://samparkwork-backend.onrender.com/api/oauth/google`); // ✅ NEW
+      console.log(`   🔐 Google OAuth: https://samparkwork-backend.onrender.com/api/oauth/google`);
       
       console.log(`\n💬 Messaging API Endpoints:`);
       console.log(`   GET    https://samparkwork-backend.onrender.com/api/messages/conversations`);
@@ -865,6 +921,15 @@ connectDB()
       // ✅ NEW: Google OAuth Endpoints
       console.log(`\n🔐 Google OAuth API Endpoints:`);
       console.log(`   POST   https://samparkwork-backend.onrender.com/api/oauth/google`);
+
+      // ✅ NEW: Notification API Endpoints
+      console.log(`\n🔔 Notification API Endpoints:`);
+      console.log(`   GET    https://samparkwork-backend.onrender.com/api/notifications`);
+      console.log(`   GET    https://samparkwork-backend.onrender.com/api/notifications/unread-count`);
+      console.log(`   PUT    https://samparkwork-backend.onrender.com/api/notifications/mark-read`);
+      console.log(`   PUT    https://samparkwork-backend.onrender.com/api/notifications/mark-all-read`);
+      console.log(`   DELETE https://samparkwork-backend.onrender.com/api/notifications/:id`);
+      console.log(`   PUT    https://samparkwork-backend.onrender.com/api/notifications/preferences`);
       
       console.log(`\n🔄 Socket.io Real-time Events:`);
       console.log(`   📨 send-message - Send messages instantly`);
@@ -873,16 +938,32 @@ connectDB()
       console.log(`   👀 message-read - Read receipts`);
       console.log(`   🟢 update-status - Online/offline status`);
       console.log(`   👥 get-online-users - Get online users list`);
+
+      // ✅ NEW: Email notification status
+      console.log(`\n📧 Email Notification System:`);
+      if (process.env.EMAIL_SERVICE) {
+        console.log(`   ✅ Service: ${process.env.EMAIL_SERVICE.toUpperCase()}`);
+        console.log(`   ✅ User: ${process.env.EMAIL_USER || 'Not configured'}`);
+        console.log(`   ✅ Status: READY FOR SENDING`);
+        console.log(`   ✅ Templates: Professional HTML emails`);
+        console.log(`   ✅ Features: Message notifications, Job alerts, System updates`);
+      } else {
+        console.log(`   ⚠️  Service: NOT CONFIGURED`);
+        console.log(`   ⚠️  Note: Add EMAIL_SERVICE, EMAIL_USER, EMAIL_APP_PASSWORD to .env`);
+        console.log(`   ⚠️  Supported: Gmail, SMTP, SendGrid`);
+      }
       
       console.log(`\n🎯 Next Steps:`);
       console.log(`   1. ✅ Backend Deployed Successfully`);
-      console.log(`   2. ✅ Google OAuth Integration Ready`); // ✅ NEW
-      console.log(`   3. 🔄 Update Frontend with Google OAuth`);
-      console.log(`   4. 🔄 Deploy Frontend to Vercel`);
-      console.log(`   5. 🌐 Connect Custom Domain (samparkwork.in)`);
-      console.log(`   6. 🧪 Test Full Application with Google Login`);
+      console.log(`   2. ✅ Google OAuth Integration Ready`);
+      console.log(`   3. ✅ Email Notification System Ready`); // ✅ NEW
+      console.log(`   4. 🔄 Configure Email Service (if not done)`);
+      console.log(`   5. 🔄 Update Frontend with Notification System`);
+      console.log(`   6. 🔄 Deploy Frontend to Vercel`);
+      console.log(`   7. 🌐 Connect Custom Domain (samparkwork.in)`);
+      console.log(`   8. 🧪 Test Full Application with Email Notifications`);
       
-      console.log(`\n🚀 Backend is LIVE and ready for your frontend integration with Google OAuth!`);
+      console.log(`\n🚀 Backend is LIVE and ready with COMPLETE EMAIL NOTIFICATION SYSTEM! 🎉`);
     });
   })
   .catch((err) => {
