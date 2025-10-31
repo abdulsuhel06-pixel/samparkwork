@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useParams } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { 
@@ -15,12 +16,14 @@ import {
   Briefcase,
   Award,
   GraduationCap,
-  Camera
+  Camera,
+  Shield
 } from 'lucide-react';
 import './Profile.css';
 
 const Profile = () => {
-  const { user: currentUser, token, updateUser } = useContext(AuthContext);
+  const { profileId } = useParams(); // ✅ NEW: Get profile ID from URL
+  const { user: currentUser, token, updateUser, isAdmin } = useContext(AuthContext);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,8 +33,9 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, [token]);
+  }, [profileId, token]);
 
+  // ✅ NEW: Enhanced fetchProfile to handle both own profile and other profiles
   const fetchProfile = async () => {
     if (!token) {
       setError("Please log in to view profile");
@@ -44,16 +48,37 @@ const Profile = () => {
     
     try {
       console.log("🔍 Fetching profile data...");
-      const response = await api.get('/api/users/profile');
+      let response;
+      
+      if (profileId) {
+        // ✅ NEW: Fetch specific user profile by ID
+        console.log(`📋 Fetching profile for user ID: ${profileId}`);
+        response = await api.get(`/api/users/profile/${profileId}`);
+      } else {
+        // ✅ EXISTING: Fetch current user's own profile
+        console.log("📋 Fetching current user's profile");
+        response = await api.get('/api/users/profile');
+      }
       
       if (response.data.success || response.data.user || response.data) {
         const profileData = response.data.user || response.data;
         console.log("✅ Profile data loaded:", profileData);
         
         setProfile(profileData);
-        setIsOwnProfile(currentUser && (currentUser._id === profileData._id || currentUser.id === profileData._id));
         
-        if (updateUser) {
+        // ✅ NEW: Determine if this is the user's own profile
+        const isOwn = !profileId || (currentUser && (
+          currentUser._id === profileData._id || 
+          currentUser.id === profileData._id ||
+          currentUser._id === profileId ||
+          currentUser.id === profileId
+        ));
+        
+        setIsOwnProfile(isOwn);
+        console.log(`🔐 Profile ownership: ${isOwn ? 'Own Profile' : 'Other User Profile'}`);
+        
+        // Only update current user data if viewing own profile
+        if (isOwn && updateUser) {
           updateUser(profileData);
         }
       } else {
@@ -77,6 +102,26 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ✅ NEW: Phone visibility control function
+  const canViewPhone = () => {
+    if (!currentUser || !profile) return false;
+    
+    // Admin can see all phone numbers
+    if (isAdmin()) {
+      console.log("🔐 Phone visible: Admin access");
+      return true;
+    }
+    
+    // Profile owner can see their own phone number
+    if (isOwnProfile) {
+      console.log("🔐 Phone visible: Own profile");
+      return true;
+    }
+    
+    console.log("🔐 Phone hidden: Not authorized");
+    return false;
   };
 
   const handleFileUpload = async (file, type, data = {}) => {
@@ -188,7 +233,7 @@ const Profile = () => {
     return (
       <div className="profile-loading">
         <div className="loading-spinner"></div>
-        <p>Loading your profile...</p>
+        <p>Loading profile...</p>
       </div>
     );
   }
@@ -366,7 +411,7 @@ const Profile = () => {
           )}
         </div>
 
-        {/* Contact Information */}
+        {/* ✅ UPDATED: Contact Information with Phone Privacy */}
         <div className="profile-section">
           <div className="section-header">
             <h3>
@@ -391,13 +436,23 @@ const Profile = () => {
               profile.contact[key]
             ) ? (
               <>
+                {/* ✅ NEW: Phone number with privacy control */}
                 {profile.contact.phone && (
                   <div className="contact-item">
                     <Phone size={16} />
-                    <span>{profile.contact.phone}</span>
+                    {canViewPhone() ? (
+                      <span>{profile.contact.phone}</span>
+                    ) : (
+                      <div className="phone-hidden">
+                        <span>•••••••••</span>
+                        <Shield size={14} className="privacy-icon" />
+                        <span className="privacy-text">Phone hidden</span>
+                      </div>
+                    )}
                   </div>
                 )}
                 
+                {/* ✅ UNCHANGED: Email and address visible to everyone */}
                 {profile.contact.address && (
                   <div className="contact-item">
                     <MapPin size={16} />
@@ -606,7 +661,7 @@ const Profile = () => {
   );
 };
 
-// Form Components
+// Form Components (unchanged)
 
 const BasicInfoForm = ({ profile, onSubmit, onCancel, uploading }) => {
   const [formData, setFormData] = useState({

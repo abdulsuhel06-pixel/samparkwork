@@ -147,6 +147,8 @@ const Navbar = () => {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [avatarRefreshKey, setAvatarRefreshKey] = useState(0);
   const [authState, setAuthState] = useState({ user: null, isAuthenticated: false });
+  // ✅ NEW: Notification states
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const dropdownRef = useRef(null);
 
   // ✅ CRITICAL FIX: Proper auth state handling to prevent render-time updates
@@ -187,6 +189,37 @@ const Navbar = () => {
       });
     }
   }, [user?.avatar, user?.avatarUrl, user?._id, isAuthenticated]);
+
+  // ✅ NEW: Fetch notification count when user is authenticated
+  useEffect(() => {
+    if (user && isAuthenticated) {
+      fetchUnreadCount();
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user, isAuthenticated]);
+
+  // ✅ NEW: Fetch unread notification count
+  const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'https://samparkwork-backend.onrender.com'}/api/notifications/unread-count`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadNotifications(data.unreadCount || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
 
   // ✅ CRITICAL: Desktop dropdown click outside handler
   useEffect(() => {
@@ -242,6 +275,8 @@ const Navbar = () => {
     navigate("/");
     setIsMobileMenuOpen(false);
     setIsDesktopDropdownOpen(false);
+    // ✅ NEW: Reset notifications
+    setUnreadNotifications(0);
   }, [logout, navigate]);
 
   const getAvatarSrc = useCallback(() => {
@@ -257,7 +292,7 @@ const Navbar = () => {
 
   return (
     <>
-      {/* ✅ MOBILE-FIRST NAVBAR */}
+      {/* ✅ MOBILE-FIRST NAVBAR - ADDED NOTIFICATION BELL */}
       <nav className="mobile-first-navbar">
         <div className="mobile-navbar-container">
           {/* Left: Menu Button */}
@@ -281,22 +316,32 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Right: Sign Up or User Profile */}
+          {/* Right: Sign Up or User Profile + Notification */}
           <div className="mobile-navbar-right">
             {loading ? (
               <div className="mobile-loading">
                 <div className="mobile-spinner"></div>
               </div>
             ) : user ? (
-              <div className="mobile-user-profile">
-                <Avatar 
-                  src={avatarSrc} 
-                  name={user?.name} 
-                  size={36} 
-                  forceRefresh={avatarRefreshKey}
-                  className="mobile-avatar"
-                />
-                <span className="mobile-username">{firstName}</span>
+              <div className="mobile-user-section">
+                {/* ✅ NEW: Mobile notification bell */}
+                <Link to="/notifications" className="mobile-notification-bell">
+                  <i className="fas fa-bell"></i>
+                  {unreadNotifications > 0 && (
+                    <span className="mobile-notification-count">{unreadNotifications}</span>
+                  )}
+                </Link>
+                
+                <div className="mobile-user-profile">
+                  <Avatar 
+                    src={avatarSrc} 
+                    name={user?.name} 
+                    size={36} 
+                    forceRefresh={avatarRefreshKey}
+                    className="mobile-avatar"
+                  />
+                  <span className="mobile-username">{firstName}</span>
+                </div>
               </div>
             ) : (
               <button className="mobile-signup-btn" onClick={handleSignUpClick}>
@@ -307,7 +352,7 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* ✅ MOBILE MENU OVERLAY */}
+      {/* ✅ MOBILE MENU OVERLAY - UNCHANGED */}
       {isMobileMenuOpen && (
         <>
           <div className="mobile-menu-overlay" onClick={closeMobileMenu}></div>
@@ -371,6 +416,16 @@ const Navbar = () => {
                         <span>Messages</span>
                       </NavLink>
                     </li>
+                    {/* ✅ NEW: Notifications menu item */}
+                    <li>
+                      <NavLink to="/notifications" onClick={closeMobileMenu}>
+                        <i className="fas fa-bell"></i>
+                        <span>Notifications</span>
+                        {unreadNotifications > 0 && (
+                          <span className="notification-badge">{unreadNotifications}</span>
+                        )}
+                      </NavLink>
+                    </li>
                     {user?.role === "admin" && (
                       <li>
                         <NavLink to="/admin" onClick={closeMobileMenu}>
@@ -390,7 +445,7 @@ const Navbar = () => {
                 </div>
               </>
             ) : (
-              // Guest Menu
+              // Guest Menu - UNCHANGED
               <>
                 <div className="mobile-menu-header">
                   <h3>Menu</h3>
@@ -450,7 +505,7 @@ const Navbar = () => {
         </>
       )}
 
-      {/* ✅ FIXED: Role Selection Modal with proper login navigation */}
+      {/* ✅ FIXED: Role Selection Modal with proper login navigation - UNCHANGED */}
       <RoleSelectionModal 
         isOpen={isRoleModalOpen}
         onClose={() => setIsRoleModalOpen(false)}
@@ -458,7 +513,7 @@ const Navbar = () => {
         onLoginClick={handleLoginFromModal}
       />
 
-      {/* ✅ DESKTOP NAV (FIXED: Shows both Login and Signup buttons) */}
+      {/* ✅ DESKTOP NAV - NOTIFICATION BELL ALREADY ADDED */}
       <nav className="desktop-navbar">
         <div className="navbar-container">
           <Link to="/" className="navbar-brand">
@@ -486,106 +541,128 @@ const Navbar = () => {
                 <span>Loading...</span>
               </div>
             ) : user ? (
-              // ✅ CRITICAL: Proper Desktop User Dropdown
-              <div className="user-dropdown-section" ref={dropdownRef}>
-                <button 
-                  type="button"
-                  className={`user-menu-trigger ${isDesktopDropdownOpen ? 'active' : ''}`}
-                  onClick={toggleDesktopDropdown}
-                  aria-expanded={isDesktopDropdownOpen}
-                >
-                  <Avatar 
-                    src={avatarSrc} 
-                    name={user?.name} 
-                    size={40} 
-                    forceRefresh={avatarRefreshKey}
-                    className="desktop-avatar"
-                  />
-                  <div className="user-info">
-                    <span className="user-name">{user?.name || "User"}</span>
-                    <span className="user-role">
-                      {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "User"}
-                    </span>
-                  </div>
-                  <i className={`fas fa-chevron-down dropdown-arrow ${isDesktopDropdownOpen ? 'open' : ''}`}></i>
-                </button>
-                
-                {/* ✅ CRITICAL: Working Desktop Dropdown Menu */}
-                <div className={`user-dropdown-menu ${isDesktopDropdownOpen ? 'show' : ''}`}>
-                  <div className="dropdown-header">
-                    <div className="dropdown-user-info">
-                      <Avatar 
-                        src={avatarSrc} 
-                        name={user?.name} 
-                        size={44} 
-                        forceRefresh={avatarRefreshKey}
-                        className="desktop-avatar"
-                      />
-                      <div className="dropdown-user-details">
-                        <div className="dropdown-user-name">{user?.name || "User"}</div>
-                        <div className="dropdown-user-email">{user?.email}</div>
-                        <div className="dropdown-user-role">
-                          <i className="fas fa-crown"></i>
-                          {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "User"}
+              // ✅ DESKTOP: Notification bell + user dropdown
+              <div className="navbar-user-section">
+                {/* ✅ Desktop notification bell */}
+                <Link to="/notifications" className="notification-bell">
+                  <i className="fas fa-bell"></i>
+                  {unreadNotifications > 0 && (
+                    <span className="notification-count">{unreadNotifications}</span>
+                  )}
+                </Link>
+
+                {/* ✅ UNCHANGED: Existing user dropdown */}
+                <div className="user-dropdown-section" ref={dropdownRef}>
+                  <button 
+                    type="button"
+                    className={`user-menu-trigger ${isDesktopDropdownOpen ? 'active' : ''}`}
+                    onClick={toggleDesktopDropdown}
+                    aria-expanded={isDesktopDropdownOpen}
+                  >
+                    <Avatar 
+                      src={avatarSrc} 
+                      name={user?.name} 
+                      size={40} 
+                      forceRefresh={avatarRefreshKey}
+                      className="desktop-avatar"
+                    />
+                    <div className="user-info">
+                      <span className="user-name">{user?.name || "User"}</span>
+                      <span className="user-role">
+                        {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "User"}
+                      </span>
+                    </div>
+                    <i className={`fas fa-chevron-down dropdown-arrow ${isDesktopDropdownOpen ? 'open' : ''}`}></i>
+                  </button>
+                  
+                  {/* ✅ UNCHANGED: Working Desktop Dropdown Menu */}
+                  <div className={`user-dropdown-menu ${isDesktopDropdownOpen ? 'show' : ''}`}>
+                    <div className="dropdown-header">
+                      <div className="dropdown-user-info">
+                        <Avatar 
+                          src={avatarSrc} 
+                          name={user?.name} 
+                          size={44} 
+                          forceRefresh={avatarRefreshKey}
+                          className="desktop-avatar"
+                        />
+                        <div className="dropdown-user-details">
+                          <div className="dropdown-user-name">{user?.name || "User"}</div>
+                          <div className="dropdown-user-email">{user?.email}</div>
+                          <div className="dropdown-user-role">
+                            <i className="fas fa-crown"></i>
+                            {user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "User"}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="dropdown-body">
-                    <Link className="dropdown-item" to="/profile" onClick={closeDesktopDropdown}>
-                      <div className="dropdown-icon">
-                        <i className="fas fa-user"></i>
-                      </div>
-                      <span className="dropdown-text">View Profile</span>
-                    </Link>
                     
-                    <Link className="dropdown-item" to="/messages" onClick={closeDesktopDropdown}>
-                      <div className="dropdown-icon">
-                        <i className="fas fa-envelope"></i>
-                      </div>
-                      <span className="dropdown-text">Messages</span>
-                      {unreadMessagesCount > 0 && (
-                        <span className="notification-badge">{unreadMessagesCount}</span>
+                    <div className="dropdown-body">
+                      <Link className="dropdown-item" to="/profile" onClick={closeDesktopDropdown}>
+                        <div className="dropdown-icon">
+                          <i className="fas fa-user"></i>
+                        </div>
+                        <span className="dropdown-text">View Profile</span>
+                      </Link>
+                      
+                      <Link className="dropdown-item" to="/messages" onClick={closeDesktopDropdown}>
+                        <div className="dropdown-icon">
+                          <i className="fas fa-envelope"></i>
+                        </div>
+                        <span className="dropdown-text">Messages</span>
+                        {unreadMessagesCount > 0 && (
+                          <span className="notification-badge">{unreadMessagesCount}</span>
+                        )}
+                      </Link>
+
+                      {/* ✅ NEW: Notifications dropdown item */}
+                      <Link className="dropdown-item" to="/notifications" onClick={closeDesktopDropdown}>
+                        <div className="dropdown-icon">
+                          <i className="fas fa-bell"></i>
+                        </div>
+                        <span className="dropdown-text">Notifications</span>
+                        {unreadNotifications > 0 && (
+                          <span className="notification-badge">{unreadNotifications}</span>
+                        )}
+                      </Link>
+                      
+                      <Link className="dropdown-item" to="/settings" onClick={closeDesktopDropdown}>
+                        <div className="dropdown-icon">
+                          <i className="fas fa-cog"></i>
+                        </div>
+                        <span className="dropdown-text">Settings</span>
+                      </Link>
+                      
+                      {user?.role === "admin" && (
+                        <>
+                          <div className="dropdown-divider"></div>
+                          <Link className="dropdown-item admin-item" to="/dashboard" onClick={closeDesktopDropdown}>
+                            <div className="dropdown-icon">
+                              <i className="fas fa-tachometer-alt"></i>
+                            </div>
+                            <span className="dropdown-text">Dashboard</span>
+                          </Link>
+                        </>
                       )}
-                    </Link>
-                    
-                    <Link className="dropdown-item" to="/settings" onClick={closeDesktopDropdown}>
-                      <div className="dropdown-icon">
-                        <i className="fas fa-cog"></i>
-                      </div>
-                      <span className="dropdown-text">Settings</span>
-                    </Link>
-                    
-                    {user?.role === "admin" && (
-                      <>
-                        <div className="dropdown-divider"></div>
-                        <Link className="dropdown-item admin-item" to="/dashboard" onClick={closeDesktopDropdown}>
-                          <div className="dropdown-icon">
-                            <i className="fas fa-tachometer-alt"></i>
-                          </div>
-                          <span className="dropdown-text">Dashboard</span>
-                        </Link>
-                      </>
-                    )}
-                    
-                    <div className="dropdown-divider"></div>
-                    
-                    <button 
-                      type="button"
-                      className="dropdown-item logout-item" 
-                      onClick={handleLogout}
-                    >
-                      <div className="dropdown-icon">
-                        <i className="fas fa-sign-out-alt"></i>
-                      </div>
-                      <span className="dropdown-text">Logout</span>
-                    </button>
+                      
+                      <div className="dropdown-divider"></div>
+                      
+                      <button 
+                        type="button"
+                        className="dropdown-item logout-item" 
+                        onClick={handleLogout}
+                      >
+                        <div className="dropdown-icon">
+                          <i className="fas fa-sign-out-alt"></i>
+                        </div>
+                        <span className="dropdown-text">Logout</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             ) : (
-              // ✅ FIXED: Shows BOTH Login and Signup buttons in desktop view
+              // ✅ UNCHANGED: Shows BOTH Login and Signup buttons in desktop view
               <div className="auth-buttons-professional">
                 <Link 
                   to="/login" 

@@ -1428,3 +1428,230 @@ body, html {
     border-radius: 16px;
   }
 }
+/* ✅ NOTIFICATION SYSTEM STYLES - ALL SCREEN SIZES */
+
+/* ===============================
+   DESKTOP NOTIFICATION STYLES
+   =============================== */
+
+/* Desktop Navbar User Section with Notification Bell */
+.navbar-user-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Desktop Notification Bell */
+.notification-bell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+  color: #333;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.notification-bell:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.notification-bell i {
+  font-size: 18px;
+}
+
+/* Desktop Notification Count Badge */
+.notification-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  animation: pulse 2s infinite;
+}
+
+/* ===============================
+   MOBILE NOTIFICATION STYLES
+   =============================== */
+
+/* Mobile User Section Container */
+.mobile-user-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Mobile Notification Bell */
+.mobile-notification-bell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 50%;
+  color: #333;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.mobile-notification-bell:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #2563eb;
+}
+
+.mobile-notification-bell i {
+  font-size: 14px;
+}
+
+/* Mobile Notification Count Badge */
+.mobile-notification-count {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: #ef4444;
+  color: white;
+  font-size: 9px;
+  font-weight: 600;
+  min-width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid white;
+  animation: pulse 2s infinite;
+}
+
+/* ===============================
+   UNIVERSAL NOTIFICATION STYLES
+   =============================== */
+
+/* Notification Badge Animation */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Existing notification badges in dropdowns */
+.notification-badge {
+  background: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===============================
+   RESPONSIVE ADJUSTMENTS
+   =============================== */
+
+/* Tablet View (768px - 1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .notification-bell {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .notification-bell i {
+    font-size: 16px;
+  }
+  
+  .notification-count {
+    min-width: 16px;
+    height: 16px;
+    font-size: 10px;
+  }
+  
+  .navbar-user-section {
+    gap: 12px;
+  }
+}
+
+/* Mobile View (up to 768px) */
+@media (max-width: 768px) {
+  /* Desktop notification bell hidden on mobile */
+  .notification-bell {
+    display: none;
+  }
+  
+  /* Mobile notification bell visible */
+  .mobile-notification-bell {
+    display: flex;
+  }
+  
+  /* Ensure mobile user section is properly aligned */
+  .mobile-user-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+/* Very Small Mobile (up to 480px) */
+@media (max-width: 480px) {
+  .mobile-notification-bell {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .mobile-notification-bell i {
+    font-size: 12px;
+  }
+  
+  .mobile-notification-count {
+    min-width: 12px;
+    height: 12px;
+    font-size: 8px;
+    top: -2px;
+    right: -2px;
+  }
+  
+  .mobile-user-section {
+    gap: 6px;
+  }
+}
+
+/* ===============================
+   DESKTOP-ONLY STYLES
+   =============================== */
+
+/* Hide mobile notification bell on desktop */
+@media (min-width: 769px) {
+  .mobile-notification-bell {
+    display: none;
+  }
+  
+  .mobile-user-section {
+    display: contents; /* Let children behave as if parent doesn't exist */
+  }
+}

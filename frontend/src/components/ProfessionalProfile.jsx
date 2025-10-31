@@ -6,13 +6,14 @@ import {
   User, Mail, Phone, MapPin, Globe, Edit3, Plus, X, Upload, 
   Eye, Trash2, Briefcase, Star, Clock, Camera, Save, Loader, 
   CheckCircle, AlertCircle, FileText, Calendar, ExternalLink,
-  GraduationCap, Award, Zap, Facebook, ZoomIn, Download
+  GraduationCap, Award, Zap, Facebook, ZoomIn, Download, Shield,
+  MessageSquare  // ✅ ADDED ONLY THIS LINE
 } from 'lucide-react';
 import './Profile.css';
 
 const ProfessionalProfile = ({ user: propUser, isViewOnly = false }) => {
   const navigate = useNavigate();
-  const { user: currentUser, token, updateUser } = useContext(AuthContext);
+  const { user: currentUser, token, updateUser, isAdmin } = useContext(AuthContext);
   const user = propUser || currentUser;
   const isOwner = !propUser || (currentUser && currentUser._id === user?._id);
   
@@ -25,6 +26,9 @@ const ProfessionalProfile = ({ user: propUser, isViewOnly = false }) => {
   const [uploading, setUploading] = useState({});
   const [editingItem, setEditingItem] = useState(null);
 
+  // ✅ ADDED ONLY THESE 2 LINES
+  const [sendingMessage, setSendingMessage] = useState(false);
+
   // ✅ NEW: Lightbox state - ONLY ADDITION 
   const [lightbox, setLightbox] = useState({
     isOpen: false,
@@ -33,6 +37,23 @@ const ProfessionalProfile = ({ user: propUser, isViewOnly = false }) => {
     title: '',
     description: ''
   });
+
+  // ✅ NEW: Phone privacy control function - ONLY ADDITION
+  const canViewPhone = () => {
+    if (!currentUser || !profile) return false;
+    
+    // Admin can see all phone numbers
+    if (isAdmin && isAdmin()) {
+      return true;
+    }
+    
+    // Profile owner can see their own phone number
+    if (isOwner) {
+      return true;
+    }
+    
+    return false;
+  };
 
   // ✅ NEW: Lightbox functions - ONLY ADDITION
   const openLightbox = (url, title = '', description = '') => {
@@ -54,6 +75,38 @@ const ProfessionalProfile = ({ user: propUser, isViewOnly = false }) => {
       description: ''
     });
   };
+
+  // ✅ ADDED THESE MESSAGE FUNCTIONS
+  // ✅ NEW: Message functionality
+  const handleMessage = useCallback(async () => {
+    if (!currentUser || !profile) return;
+
+    try {
+      setSendingMessage(true);
+      
+      // Navigate to messages with the professional's user ID
+      navigate(`/messages?user=${profile._id}`, {
+        state: {
+          recipientId: profile._id,
+          recipientName: profile.name,
+          recipientTitle: profile.title
+        }
+      });
+    } catch (error) {
+      console.error('Error initiating conversation:', error);
+    } finally {
+      setSendingMessage(false);
+    }
+  }, [currentUser, profile, navigate]);
+
+  // ✅ NEW: Check if current user can message this professional
+  const canMessage = useCallback(() => {
+    if (!currentUser || !profile) return false;
+    if (isOwner) return false; // Can't message yourself
+    
+    // Only clients and admins can message professionals
+    return currentUser.role === 'client' || currentUser.role === 'admin';
+  }, [currentUser, profile, isOwner]);
 
   // ✅ Helper function to safely render budget values
   const formatBudget = useCallback((budgetValue) => {
@@ -584,9 +637,9 @@ const ProfessionalProfile = ({ user: propUser, isViewOnly = false }) => {
               )}
             </div>
 
-            {/* ✅ FIXED: Navigation and Button Sizing */}
+            {/* ✅ UPDATED: Action Buttons with Message Feature */}
             <div className="profile-action-buttons">
-              {isOwner && (
+              {isOwner ? (
                 <>
                   <button 
                     className="btn btn-primary"
@@ -598,6 +651,31 @@ const ProfessionalProfile = ({ user: propUser, isViewOnly = false }) => {
                   <button 
                     className="btn btn-secondary"
                     onClick={() => navigate('/find-talents')}
+                  >
+                    <Briefcase size={14} />
+                    Find Jobs
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* ✅ NEW: Message Button - Only for clients/admins viewing professionals */}
+                  {canMessage() && (
+                    <button 
+                      onClick={handleMessage}
+                      className="btn btn-primary message-btn"
+                      disabled={sendingMessage}
+                    >
+                      {sendingMessage ? (
+                        <Loader size={14} className="spinning" />
+                      ) : (
+                        <MessageSquare size={14} />
+                      )}
+                      {sendingMessage ? 'Opening...' : 'Message'}
+                    </button>
+                  )}
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={() => navigate('/find-jobs')}
                   >
                     <Briefcase size={14} />
                     Find Jobs
@@ -671,7 +749,7 @@ const ProfessionalProfile = ({ user: propUser, isViewOnly = false }) => {
         </div>
       </div>
 
-      {/* CONTACT SECTION - ✅ REMOVED WEBSITE FIELD */}
+      {/* CONTACT SECTION - ✅ WITH PHONE PRIVACY */}
       <div className="profile-contact-section">
         <div className="section-header">
           <div className="section-title">
@@ -702,7 +780,17 @@ const ProfessionalProfile = ({ user: propUser, isViewOnly = false }) => {
             <Phone size={18} className="contact-icon" />
             <div className="contact-details">
               <div className="contact-label">Phone</div>
-              <div className="contact-value">{profile.contact?.phone || 'Not provided'}</div>
+              <div className="contact-value">
+                {canViewPhone() ? (
+                  profile.contact?.phone || 'Not provided'
+                ) : (
+                  <div className="phone-hidden">
+                    <span>•••••••••</span>
+                    <Shield size={14} className="privacy-icon" />
+                    <span className="privacy-text"></span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
