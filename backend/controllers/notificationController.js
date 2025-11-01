@@ -2,6 +2,9 @@ const Notification = require('../models/Notification');
 const User = require('../models/User');
 const asyncHandler = require('express-async-handler');
 
+// ✅ ENHANCED: Import email service
+const emailService = require('../services/emailService');
+
 // ✅ GET ALL NOTIFICATIONS FOR USER
 const getNotifications = asyncHandler(async (req, res) => {
   const userId = req.user.id;
@@ -158,14 +161,46 @@ const getUnreadCount = asyncHandler(async (req, res) => {
   const userId = req.user.id;
 
   try {
-    const count = await Notification.countDocuments({
+    // Get notification unread count
+    const notificationCount = await Notification.countDocuments({
       recipient: userId,
       read: false
     });
 
+    // Get message unread count from conversations
+    const Conversation = require('../models/Conversation');
+    const conversations = await Conversation.find({
+      participants: {
+        $elemMatch: {
+          userId,
+          isActive: true
+        }
+      },
+      isDeleted: false
+    });
+
+    let messageUnreadCount = 0;
+    conversations.forEach(conversation => {
+      const participant = conversation.participants.find(p => 
+        p.userId.toString() === userId
+      );
+      if (participant) {
+        messageUnreadCount += participant.unreadCount || 0;
+      }
+    });
+
+    const totalUnreadCount = notificationCount + messageUnreadCount;
+
     res.json({
       success: true,
-      unreadCount: count
+      totalUnreadCount,
+      notificationUnreadCount: notificationCount,
+      messageUnreadCount,
+      breakdown: {
+        notifications: notificationCount,
+        messages: messageUnreadCount,
+        total: totalUnreadCount
+      }
     });
 
   } catch (error) {
@@ -174,7 +209,7 @@ const getUnreadCount = asyncHandler(async (req, res) => {
       success: false,
       message: 'Error getting unread count',
       error: error.message,
-      unreadCount: 0
+      totalUnreadCount: 0
     });
   }
 });
@@ -268,7 +303,7 @@ const updateNotificationPreferences = asyncHandler(async (req, res) => {
   }
 });
 
-// ✅ CREATE NOTIFICATION (Helper function for other controllers)
+// ✅ ENHANCED: Create notification with email integration
 const createNotification = async (data) => {
   try {
     const {
@@ -278,8 +313,23 @@ const createNotification = async (data) => {
       title,
       message,
       relatedData = {},
-      emailPreferences = { immediate: true }
+      emailPreferences = { immediate: false }
     } = data;
+
+    console.log('📬 [createNotification] Creating notification:', { 
+      recipient, sender, type, title, emailEnabled: emailPreferences.immediate 
+    });
+
+    // Validate required fields
+    if (!recipient || !sender || !type || !title || !message) {
+      throw new Error('Missing required notification fields');
+    }
+
+    // Check if recipient exists and get their preferences
+    const recipientUser = await User.findById(recipient);
+    if (!recipientUser) {
+      throw new Error('Recipient user not found');
+    }
 
     // Create notification
     const notification = await Notification.create({
@@ -295,37 +345,77 @@ const createNotification = async (data) => {
     // Populate sender data
     await notification.populate('sender', 'name email avatar');
 
-    // Emit real-time notification via Socket.IO
-    const io = require('../server').io; // Assuming io is exported from server
-    if (io) {
-      io.to(`user_${recipient}`).emit('new-notification', {
-        notification,
-        unreadCount: await Notification.countDocuments({
+    // ✅ ENHANCED: Send email notification if enabled
+    if (emailPreferences.immediate && recipientUser.notificationPreferences?.email !== false) {
+      try {
+        console.log('📧 [createNotification] Sending email notification');
+        
+        // Get sender data for email
+        const senderUser = await User.findById(sender);
+        const senderName = senderUser?.name || 'SamparkWork User';
+        
+        // Determine email context
+        let jobTitle = null;
+        if (relatedData.jobId) {
+          const Job = require('../models/Job');
+          const job = await Job.findById(relatedData.jobId);
+          jobTitle = job?.title;
+        }
+
+        // Send email notification
+        const emailSent = await emailService.sendNewMessageNotification(
+          recipient,
+          senderName,
+          message.length > 100 ? message.substring(0, 100) + '...' : message,
+          relatedData.conversationId,
+          jobTitle
+        );
+
+        if (emailSent) {
+          notification.emailSent = true;
+          notification.emailSentAt = new Date();
+          await notification.save();
+          console.log('✅ [createNotification] Email notification sent successfully');
+        }
+        
+      } catch (emailError) {
+        console.error('❌ [createNotification] Email notification error:', emailError);
+        // Don't throw error - notification should still be created even if email fails
+      }
+    }
+
+    // ✅ ENHANCED: Emit real-time notification via Socket.IO
+    try {
+      const io = require('../server').io || global.io;
+      if (io) {
+        // Get current unread count
+        const unreadCount = await Notification.countDocuments({
           recipient,
           read: false
-        })
-      });
+        });
+
+        // Emit to user's room
+        io.to(`user_${recipient}`).emit('new-notification', {
+          notification: {
+            _id: notification._id,
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            sender: notification.sender,
+            relatedData: notification.relatedData,
+            read: notification.read,
+            createdAt: notification.createdAt
+          },
+          unreadCount
+        });
+
+        console.log('🔔 [createNotification] Real-time notification sent to user:', recipient);
+      }
+    } catch (socketError) {
+      console.error('❌ [createNotification] Socket notification error:', socketError);
     }
 
-    // Send email if enabled
-    if (emailPreferences.immediate && type === 'new_message') {
-      const emailService = require('../services/emailService');
-      const messagePreview = message.length > 100 ? 
-        message.substring(0, 100) + '...' : message;
-      
-      await emailService.sendNewMessageNotification(
-        recipient,
-        notification.sender.name,
-        messagePreview,
-        relatedData.conversationId
-      );
-      
-      // Update notification to mark email as sent
-      notification.emailSent = true;
-      notification.emailSentAt = new Date();
-      await notification.save();
-    }
-
+    console.log('✅ [createNotification] Notification created successfully');
     return notification;
 
   } catch (error) {
@@ -334,6 +424,80 @@ const createNotification = async (data) => {
   }
 };
 
+// ✅ ENHANCED: Bulk create notifications
+const createBulkNotifications = async (notifications) => {
+  try {
+    const results = [];
+    
+    for (const notificationData of notifications) {
+      try {
+        const notification = await createNotification(notificationData);
+        results.push({ success: true, notification });
+      } catch (error) {
+        console.error('❌ [createBulkNotifications] Failed to create notification:', error);
+        results.push({ 
+          success: false, 
+          error: error.message, 
+          data: notificationData 
+        });
+      }
+    }
+
+    return results;
+  } catch (error) {
+    console.error('❌ [createBulkNotifications] Error:', error);
+    throw error;
+  }
+};
+
+// ✅ NEW: Test email notification system
+const testEmailNotification = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Test email service connection
+    const emailServiceReady = await emailService.testEmailConnection();
+    if (!emailServiceReady) {
+      return res.status(500).json({
+        success: false,
+        message: 'Email service is not configured properly'
+      });
+    }
+
+    // Send test email
+    const testSent = await emailService.sendNewMessageNotification(
+      userId,
+      'SamparkWork Test',
+      'This is a test notification to verify your email notifications are working correctly.',
+      null,
+      'Test Job Notification'
+    );
+
+    res.json({
+      success: testSent,
+      message: testSent ? 
+        'Test email sent successfully! Check your inbox.' : 
+        'Failed to send test email. Please check your email configuration.'
+    });
+
+  } catch (error) {
+    console.error('❌ [testEmailNotification] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error testing email notification',
+      error: error.message
+    });
+  }
+});
+
 module.exports = {
   getNotifications,
   markAsRead,
@@ -341,5 +505,7 @@ module.exports = {
   getUnreadCount,
   deleteNotification,
   updateNotificationPreferences,
-  createNotification
+  createNotification,
+  createBulkNotifications,
+  testEmailNotification
 };
