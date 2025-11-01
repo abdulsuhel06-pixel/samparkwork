@@ -24,7 +24,7 @@ import Applications from './pages/Applications.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
 import TermsConditions from './pages/TermsConditions.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
-import Notifications from './pages/Notifications.jsx';
+
 
 const Protected = ({ children }) => {
   const { user, loading } = useAuth();
@@ -203,7 +203,7 @@ const AppContent = () => {
 <Route path="/terms-conditions" element={<TermsConditions />} />
 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 <Route path="/terms-and-conditions" element={<TermsConditions />} />
-<Route path="/notifications" element={<Notifications />} />
+
         
         {/* Catch-all Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
