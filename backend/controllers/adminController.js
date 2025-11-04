@@ -55,7 +55,9 @@ const getDashboardStats = async (req, res) => {
       totalJobs,
       openJobs,
       totalCategories,
-      totalAdvertisements
+      totalAdvertisements,
+      // ✅ NEW: Add popup advertisements count
+      totalPopupAds
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ role: "professional" }),
@@ -63,7 +65,14 @@ const getDashboardStats = async (req, res) => {
       Job.countDocuments(),
       Job.countDocuments({ status: "open" }),
       Category.countDocuments(),
-      Advertisement.countDocuments()
+      Advertisement.countDocuments(),
+      // ✅ NEW: Count popup advertisements specifically
+      Advertisement.countDocuments({
+        $or: [
+          { isPopup: true },
+          { placement: 'popup' }
+        ]
+      })
     ]);
 
     const statsResponse = {
@@ -74,6 +83,8 @@ const getDashboardStats = async (req, res) => {
       openJobs: openJobs,
       categories: totalCategories,
       advertisements: totalAdvertisements,
+      // ✅ NEW: Include popup ads in dashboard stats
+      popupAds: totalPopupAds,
       totalPayments: 0,
       lastUpdated: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development'
@@ -221,7 +232,7 @@ const deleteJob = async (req, res) => {
   }
 };
 
-// ================= FIXED: Advertisement Management =================
+// ================= ENHANCED: Advertisement Management =================
 
 // ✅ FIXED: GET ADVERTISEMENTS - Proper response format
 const getAdvertisements = async (req, res) => {
@@ -269,7 +280,7 @@ const getAdvertisements = async (req, res) => {
   }
 };
 
-// ✅ FIXED: CREATE ADVERTISEMENT - Proper file handling
+// ✅ ENHANCED: CREATE ADVERTISEMENT - With popup support
 const createAdvertisement = async (req, res) => {
   try {
     console.log('📺 Admin creating new advertisement...');
@@ -289,7 +300,20 @@ const createAdvertisement = async (req, res) => {
       });
     }
 
-    const { title, content, placement, isActive, link, featured } = req.body;
+    const { 
+      title, 
+      content, 
+      placement, 
+      isActive, 
+      link, 
+      featured,
+      // ✅ NEW: Support popup-specific fields
+      isPopup,
+      popupFrequency,
+      popupDelay,
+      popupDuration,
+      targetAudience
+    } = req.body;
 
     // ✅ CRITICAL FIX: Validate required fields
     if (!title || !content) {
@@ -322,7 +346,12 @@ const createAdvertisement = async (req, res) => {
       isActive: isActive === "true" || isActive === true,
       link: link || '',
       featured: featured === "true" || featured === true,
-      targetAudience: 'all' // Default value
+      targetAudience: targetAudience || 'all',
+      // ✅ NEW: Handle popup-specific fields
+      isPopup: isPopup === "true" || isPopup === true || placement === 'popup',
+      popupFrequency: popupFrequency || 'daily',
+      popupDelay: parseInt(popupDelay) || 3000,
+      popupDuration: parseInt(popupDuration) || 0,
     });
 
     const createdAd = await advertisement.save();
@@ -361,14 +390,28 @@ const createAdvertisement = async (req, res) => {
   }
 };
 
-// ✅ FIXED: UPDATE ADVERTISEMENT - Better error handling
+// ✅ ENHANCED: UPDATE ADVERTISEMENT - With popup support
 const updateAdvertisement = async (req, res) => {
   try {
     console.log('📺 Admin updating advertisement:', req.params.id);
     console.log('📺 Environment:', process.env.NODE_ENV);
     console.log('📁 New file uploaded:', req.file ? req.file.filename : 'No file');
     
-    const { title, content, isActive, link, featured } = req.body;
+    const { 
+      title, 
+      content, 
+      isActive, 
+      link, 
+      featured, 
+      placement,
+      // ✅ NEW: Support popup-specific fields in updates
+      isPopup,
+      popupFrequency,
+      popupDelay,
+      popupDuration,
+      targetAudience
+    } = req.body;
+    
     const advertisement = await Advertisement.findById(req.params.id);
 
     if (!advertisement) {
@@ -386,6 +429,8 @@ const updateAdvertisement = async (req, res) => {
     if (title) advertisement.title = title;
     if (content) advertisement.content = content;
     if (link !== undefined) advertisement.link = link;
+    if (placement) advertisement.placement = placement;
+    if (targetAudience) advertisement.targetAudience = targetAudience;
     
     if (isActive !== undefined) {
       advertisement.isActive = isActive === "true" || isActive === true;
@@ -393,6 +438,19 @@ const updateAdvertisement = async (req, res) => {
     
     if (featured !== undefined) {
       advertisement.featured = featured === "true" || featured === true;
+    }
+
+    // ✅ NEW: Update popup-specific fields
+    if (isPopup !== undefined) {
+      advertisement.isPopup = isPopup === "true" || isPopup === true;
+    }
+    if (popupFrequency) advertisement.popupFrequency = popupFrequency;
+    if (popupDelay !== undefined) advertisement.popupDelay = parseInt(popupDelay) || 3000;
+    if (popupDuration !== undefined) advertisement.popupDuration = parseInt(popupDuration) || 0;
+
+    // Auto-set isPopup if placement is popup
+    if (placement === 'popup') {
+      advertisement.isPopup = true;
     }
 
     // ✅ FIXED: Handle new media file upload
@@ -491,16 +549,187 @@ const deleteAdvertisement = async (req, res) => {
     });
   }
 };
-//export all modules
+
+// ================= NEW: Popup Advertisement Management =================
+
+// ✅ NEW: Get popup advertisements for admin management
+const getPopupAdvertisements = async (req, res) => {
+  try {
+    console.log('🎪 Admin fetching popup advertisements...');
+    console.log('🎪 Environment:', process.env.NODE_ENV);
+    
+    const popupAds = await Advertisement.find({
+      $or: [
+        { isPopup: true },
+        { placement: 'popup' }
+      ]
+    }).sort({ createdAt: -1 });
+    
+    console.log(`✅ Found ${popupAds.length} popup advertisements`);
+    
+    // ✅ Generate proper media URLs for each popup ad
+    const adsWithUrls = popupAds.map((ad, index) => {
+      const adObj = ad.toObject();
+      const mediaUrl = generateMediaUrl(adObj.mediaUrl);
+      
+      console.log(`🎪 Popup Ad ${index + 1}: "${ad.title}"`);
+      console.log(`   Original: ${adObj.mediaUrl}`);
+      console.log(`   Final URL: ${mediaUrl}`);
+      
+      return {
+        ...adObj,
+        mediaUrl: mediaUrl,
+        _timestamp: Date.now(),
+        _environment: process.env.NODE_ENV || 'development'
+      };
+    });
+    
+    console.log(`📤 Returning ${adsWithUrls.length} popup advertisements`);
+    
+    res.json({
+      success: true,
+      count: adsWithUrls.length,
+      advertisements: adsWithUrls,
+      environment: process.env.NODE_ENV || 'development'
+    });
+  } catch (error) {
+    console.error('❌ Error fetching popup advertisements:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Error fetching popup advertisements", 
+      error: error.message 
+    });
+  }
+};
+
+// ✅ NEW: Create popup advertisement
+const createPopupAdvertisement = async (req, res) => {
+  try {
+    console.log('🎪 Admin creating popup advertisement...');
+    console.log('🎪 Environment:', process.env.NODE_ENV);
+    console.log('📎 File info:', req.file ? {
+      filename: req.file.filename,
+      mimetype: req.file.mimetype,
+      destination: req.file.destination,
+      path: req.file.path
+    } : 'No file uploaded');
+
+    // ✅ CRITICAL FIX: Require media file
+    if (!req.file) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Media file is required' 
+      });
+    }
+
+    const { 
+      title, 
+      content, 
+      link, 
+      isActive, 
+      featured,
+      popupFrequency,
+      popupDelay,
+      popupDuration,
+      targetAudience
+    } = req.body;
+
+    // ✅ CRITICAL FIX: Validate required fields
+    if (!title || !content) {
+      // Clean up uploaded file if validation fails
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(400).json({ 
+        success: false,
+        message: 'Title and content are required' 
+      });
+    }
+
+    // ✅ FIXED: Store clean relative path without double uploads/
+    const isVideo = req.file.mimetype.startsWith('video/');
+    const subfolder = isVideo ? 'videos' : 'images';
+    
+    // Store path as: advertisements/videos/filename or advertisements/images/filename
+    const cleanMediaUrl = `advertisements/${subfolder}/${req.file.filename}`;
+    const mediaType = isVideo ? 'video' : 'image';
+    
+    console.log('✅ Admin storing clean popup media path:', cleanMediaUrl);
+
+    const advertisement = new Advertisement({
+      title,
+      content,
+      mediaUrl: cleanMediaUrl, // Clean relative path
+      mediaType: mediaType,
+      placement: 'popup', // Force popup placement
+      isPopup: true, // Force popup flag
+      isActive: isActive === "true" || isActive === true,
+      link: link || '',
+      featured: featured === "true" || featured === true,
+      targetAudience: targetAudience || 'all',
+      // ✅ NEW: Popup-specific settings
+      popupFrequency: popupFrequency || 'daily',
+      popupDelay: parseInt(popupDelay) || 3000,
+      popupDuration: parseInt(popupDuration) || 0,
+    });
+
+    const createdAd = await advertisement.save();
+    console.log('✅ Popup advertisement created successfully');
+
+    // Return with production-ready URL
+    const responseAd = {
+      ...createdAd.toObject(),
+      mediaUrl: generateMediaUrl(createdAd.mediaUrl),
+      _timestamp: Date.now()
+    };
+
+    res.status(201).json({
+      success: true,
+      message: "Popup advertisement created successfully",
+      advertisement: responseAd
+    });
+  } catch (error) {
+    console.error('❌ Error creating popup advertisement:', error);
+    
+    // ✅ CRITICAL: Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      try {
+        fs.unlinkSync(req.file.path);
+        console.log('🧹 Cleaned up uploaded file after error');
+      } catch (cleanupError) {
+        console.error('❌ File cleanup error:', cleanupError);
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false,
+      message: "Error creating popup advertisement", 
+      error: error.message 
+    });
+  }
+};
+
+// ✅ CLEANED UP EXPORTS - Remove duplicate category functions since they exist in categoryController.js
 module.exports = {
+  // Dashboard
   getDashboardStats,
+  
+  // User Management
   getUsers,
   deleteUser,
+  
+  // Job Management
   getJobs,
   updateJobStatus,
   deleteJob,
+  
+  // Advertisement Management (Enhanced with Popup Support)
   getAdvertisements,
   createAdvertisement,
   updateAdvertisement,
-  deleteAdvertisement
+  deleteAdvertisement,
+  
+  // NEW: Popup Advertisement Management
+  getPopupAdvertisements,
+  createPopupAdvertisement
 };

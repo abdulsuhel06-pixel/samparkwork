@@ -53,8 +53,30 @@ const advertisementSchema = new mongoose.Schema(
     },
     placement: {
       type: String,
-      enum: ["homepage", "sidebar", "banner"],
+      enum: ["homepage", "sidebar", "banner", "popup"], // ✅ FIXED: Includes popup
       default: "homepage",
+    },
+    // ✅ Popup-specific fields
+    isPopup: {
+      type: Boolean,
+      default: false,
+    },
+    popupFrequency: {
+      type: String,
+      enum: ["once", "daily", "weekly", "always"],
+      default: "daily",
+    },
+    popupDelay: {
+      type: Number,
+      default: 3000, // 3 seconds delay
+      min: 0,
+      max: 30000 // Max 30 seconds
+    },
+    popupDuration: {
+      type: Number,
+      default: 0, // 0 means no auto-close
+      min: 0,
+      max: 60000 // Max 60 seconds
     },
     isActive: {
       type: Boolean,
@@ -69,6 +91,15 @@ const advertisementSchema = new mongoose.Schema(
       default: 0,
     },
     impressionCount: {
+      type: Number,
+      default: 0,
+    },
+    // ✅ Popup-specific analytics
+    popupShownCount: {
+      type: Number,
+      default: 0,
+    },
+    popupClickCount: {
       type: Number,
       default: 0,
     },
@@ -103,6 +134,12 @@ advertisementSchema.pre('save', function(next) {
     this.mediaUrl = cleanPath;
     console.log('✅ Final cleaned mediaUrl:', this.mediaUrl);
   }
+
+  // ✅ Auto-set isPopup based on placement
+  if (this.placement === 'popup') {
+    this.isPopup = true;
+  }
+  
   next();
 });
 

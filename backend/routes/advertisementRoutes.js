@@ -72,6 +72,99 @@ router.use((req, res, next) => {
   next();
 });
 
+// ✅ NEW: Get popup advertisements (public route)
+router.get('/popup', async (req, res) => {
+  try {
+    console.log('🎪 GET /api/advertisements/popup - Fetching popup ads');
+    console.log('🎪 Environment:', process.env.NODE_ENV);
+    
+    // Get active popup advertisements
+    const popupAds = await Advertisement.find({ 
+      isActive: true,
+      $or: [
+        { isPopup: true },
+        { placement: 'popup' }
+      ]
+    }).sort({ featured: -1, createdAt: -1 }).limit(5);
+
+    console.log(`✅ Found ${popupAds.length} popup advertisements`);
+
+    // ✅ Generate proper URLs
+    const adsWithUrls = popupAds.map((ad, index) => {
+      const adObj = ad.toObject();
+      const mediaUrl = generateMediaUrl(adObj.mediaUrl);
+      
+      console.log(`🎪 Popup Ad ${index + 1}: "${ad.title}"`);
+      console.log(`   Original: ${adObj.mediaUrl}`);
+      console.log(`   Final URL: ${mediaUrl}`);
+      
+      return {
+        ...adObj,
+        mediaUrl: mediaUrl,
+        _timestamp: Date.now(),
+        _environment: process.env.NODE_ENV || 'development'
+      };
+    });
+
+    console.log(`📤 Returning ${adsWithUrls.length} popup advertisements`);
+    res.json(adsWithUrls);
+  } catch (error) {
+    console.error('❌ Error fetching popup advertisements:', error);
+    res.status(500).json({ 
+      message: 'Error fetching popup advertisements', 
+      error: error.message 
+    });
+  }
+});
+
+// ✅ NEW: Track popup impression
+router.post('/:id/popup-impression', async (req, res) => {
+  try {
+    const ad = await Advertisement.findById(req.params.id);
+    if (!ad) {
+      return res.status(404).json({ message: 'Advertisement not found' });
+    }
+
+    ad.impressionCount += 1;
+    ad.popupShownCount += 1;
+    await ad.save();
+
+    console.log(`📊 Popup impression tracked for: ${ad.title}`);
+    res.json({ 
+      message: 'Popup impression tracked successfully',
+      impressionCount: ad.impressionCount,
+      popupShownCount: ad.popupShownCount
+    });
+  } catch (error) {
+    console.error('❌ Error tracking popup impression:', error);
+    res.status(500).json({ message: 'Error tracking impression', error: error.message });
+  }
+});
+
+// ✅ NEW: Track popup click
+router.post('/:id/popup-click', async (req, res) => {
+  try {
+    const ad = await Advertisement.findById(req.params.id);
+    if (!ad) {
+      return res.status(404).json({ message: 'Advertisement not found' });
+    }
+
+    ad.clickCount += 1;
+    ad.popupClickCount += 1;
+    await ad.save();
+
+    console.log(`👆 Popup click tracked for: ${ad.title}`);
+    res.json({ 
+      message: 'Popup click tracked successfully',
+      clickCount: ad.clickCount,
+      popupClickCount: ad.popupClickCount
+    });
+  } catch (error) {
+    console.error('❌ Error tracking popup click:', error);
+    res.status(500).json({ message: 'Error tracking click', error: error.message });
+  }
+});
+
 // ✅ Get all advertisements (public route) - PRODUCTION READY
 router.get('/', async (req, res) => {
   try {
@@ -161,7 +254,7 @@ router.post('/', protect, isAdmin, uploadAdvertisement.single('media'), async (r
       return res.status(400).json({ message: 'Media file is required' });
     }
 
-    const { title, content, targetAudience, link, placement, isActive, featured } = req.body;
+    const { title, content, targetAudience, link, placement, isActive, featured, isPopup, popupFrequency, popupDelay, popupDuration } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ message: 'Title and content are required' });
@@ -185,7 +278,12 @@ router.post('/', protect, isAdmin, uploadAdvertisement.single('media'), async (r
       link: link || '',
       placement: placement || 'homepage',
       isActive: isActive !== undefined ? isActive === 'true' || isActive === true : true,
-      featured: featured !== undefined ? featured === 'true' || featured === true : false
+      featured: featured !== undefined ? featured === 'true' || featured === true : false,
+      // ✅ NEW: Popup-specific fields
+      isPopup: isPopup === 'true' || isPopup === true || placement === 'popup',
+      popupFrequency: popupFrequency || 'daily',
+      popupDelay: parseInt(popupDelay) || 3000,
+      popupDuration: parseInt(popupDuration) || 0,
     });
 
     const savedAd = await advertisement.save();
@@ -222,7 +320,7 @@ router.put('/:id', protect, isAdmin, uploadAdvertisement.single('media'), async 
       return res.status(404).json({ message: 'Advertisement not found' });
     }
 
-    const { title, content, targetAudience, link, placement, isActive, featured } = req.body;
+    const { title, content, targetAudience, link, placement, isActive, featured, isPopup, popupFrequency, popupDelay, popupDuration } = req.body;
     const updateData = {};
 
     if (title) updateData.title = title;
@@ -232,6 +330,15 @@ router.put('/:id', protect, isAdmin, uploadAdvertisement.single('media'), async 
     if (placement) updateData.placement = placement;
     if (isActive !== undefined) updateData.isActive = isActive === 'true' || isActive === true;
     if (featured !== undefined) updateData.featured = featured === 'true' || featured === true;
+    
+    // ✅ NEW: Update popup-specific fields
+    if (isPopup !== undefined) updateData.isPopup = isPopup === 'true' || isPopup === true;
+    if (popupFrequency) updateData.popupFrequency = popupFrequency;
+    if (popupDelay !== undefined) updateData.popupDelay = parseInt(popupDelay) || 3000;
+    if (popupDuration !== undefined) updateData.popupDuration = parseInt(popupDuration) || 0;
+
+    // Auto-set isPopup if placement is popup
+    if (placement === 'popup') updateData.isPopup = true;
 
     if (req.file) {
       // Delete old file
@@ -333,10 +440,14 @@ router.get('/:id/analytics', protect, isAdmin, async (req, res) => {
     const analytics = {
       impressions: ad.impressionCount || 0,
       clicks: ad.clickCount || 0,
+      popupShown: ad.popupShownCount || 0,
+      popupClicks: ad.popupClickCount || 0,
       ctr: ad.impressionCount > 0 ? ((ad.clickCount || 0) / ad.impressionCount * 100).toFixed(2) : 0,
+      popupCtr: ad.popupShownCount > 0 ? ((ad.popupClickCount || 0) / ad.popupShownCount * 100).toFixed(2) : 0,
       createdAt: ad.createdAt,
       isActive: ad.isActive,
-      featured: ad.featured
+      featured: ad.featured,
+      isPopup: ad.isPopup
     };
 
     res.json(analytics);
