@@ -24,7 +24,8 @@ import Applications from './pages/Applications.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
 import TermsConditions from './pages/TermsConditions.jsx';
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx';
-
+// ✅ NEW: Import PopupAdvertisement component
+import PopupAdvertisement from './components/PopupAdvertisement.jsx';
 
 const Protected = ({ children }) => {
   const { user, loading } = useAuth();
@@ -197,19 +198,21 @@ const AppContent = () => {
         <Route path="/sign-in" element={<Login />} />
         <Route path="/sign-up" element={<Signup />} />
 
-        {/* Add these routes to your existing routes */}
-<Route path="/terms" element={<TermsConditions />} />
-<Route path="/privacy" element={<PrivacyPolicy />} />
-<Route path="/terms-conditions" element={<TermsConditions />} />
-<Route path="/privacy-policy" element={<PrivacyPolicy />} />
-<Route path="/terms-and-conditions" element={<TermsConditions />} />
-
+        {/* Legal Routes */}
+        <Route path="/terms" element={<TermsConditions />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms-conditions" element={<TermsConditions />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsConditions />} />
         
         {/* Catch-all Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       
       {isHomePage && <Footer />}
+      
+      {/* ✅ NEW: Global Popup Advertisement Component */}
+      <PopupAdvertisement />
       
       <style>{`
         @keyframes spin {
@@ -284,6 +287,16 @@ const AppContent = () => {
             min-height: 50vh;
             padding: 20px;
           }
+        }
+
+        /* ✅ NEW: Popup Advertisement Global Styles */
+        body.popup-open {
+          overflow: hidden;
+        }
+
+        /* ✅ Ensure popup appears above everything */
+        .popup-advertisement-overlay {
+          z-index: 99999 !important;
         }
       `}</style>
     </>

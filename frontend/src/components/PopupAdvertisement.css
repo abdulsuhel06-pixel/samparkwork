@@ -1,0 +1,660 @@
+/* ✅ POPUP ADVERTISEMENT STYLES - COMPLETE & ROBUST WITH WORKING CLOSE BUTTON */
+
+/* ===== CSS VARIABLES ===== */
+:root {
+  --popup-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --popup-primary-hover: linear-gradient(135deg, #5a6fd8 0%, #684a8f 100%);
+  --popup-secondary: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  --popup-success: #10b981;
+  --popup-warning: #f59e0b;
+  --popup-error: #ef4444;
+  --popup-dark: #1f2937;
+  --popup-gray: #6b7280;
+  --popup-light: #f9fafb;
+  --popup-white: #ffffff;
+  --popup-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --popup-shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
+  --popup-border-radius: 16px;
+  --popup-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --popup-backdrop: rgba(0, 0, 0, 0.6);
+  --popup-z-index: 9999;
+}
+
+/* ===== MAIN OVERLAY ===== */
+.popup-advertisement-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: var(--popup-backdrop);
+  backdrop-filter: blur(8px) saturate(180%);
+  -webkit-backdrop-filter: blur(8px) saturate(180%);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--popup-z-index) !important;
+  padding: 20px;
+  
+  /* ✅ INITIAL STATE */
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.95);
+  transition: var(--popup-transition);
+}
+
+/* ✅ VISIBLE STATE */
+.popup-advertisement-overlay.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: scale(1) !important;
+}
+
+/* ===== ADAPTIVE MAIN CONTAINER ===== */
+.popup-advertisement-container {
+  position: relative !important;
+  background: var(--popup-white);
+  border-radius: var(--popup-border-radius);
+  box-shadow: var(--popup-shadow);
+  overflow: hidden;
+  width: 100%;
+  max-height: 90vh;
+  
+  /* ✅ DEFAULT SIZING */
+  max-width: 500px;
+  
+  /* ✅ ENHANCED TRANSFORMS */
+  transform: scale(0.9) translateY(30px);
+  transition: var(--popup-transition);
+  
+  /* ✅ MODERN BACKDROP */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-clip: padding-box;
+}
+
+/* ✅ ENHANCED ADAPTIVE CONTAINERS */
+
+/* Portrait Images (Tall like your poster) - OPTIMIZED FOR FULL DISPLAY */
+.popup-advertisement-container.portrait {
+  max-width: 480px;
+  max-height: 85vh;
+}
+
+/* Landscape Images (Wide) */
+.popup-advertisement-container.landscape {
+  max-width: 600px;
+  max-height: 80vh;
+}
+
+/* Square Images */
+.popup-advertisement-container.square {
+  max-width: 450px;
+  max-height: 80vh;
+}
+
+/* Video Content */
+.popup-advertisement-container.video {
+  max-width: 550px;
+  max-height: 85vh;
+}
+
+/* ✅ VISIBLE CONTAINER */
+.popup-advertisement-overlay.visible .popup-advertisement-container {
+  transform: scale(1) translateY(0);
+}
+
+/* ===== 🔴 GUARANTEED WORKING CLOSE BUTTON ===== */
+.popup-close-btn {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  width: 36px !important;
+  height: 36px !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(10px);
+  border: none !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  z-index: 99999 !important; /* ✅ MAXIMUM Z-INDEX */
+  color: white !important;
+  transition: var(--popup-transition);
+  outline: none !important;
+  pointer-events: auto !important; /* ✅ FORCE CLICKABLE */
+  user-select: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+}
+
+.popup-close-btn:hover {
+  background: rgba(0, 0, 0, 0.9) !important;
+  transform: scale(1.1) !important;
+}
+
+.popup-close-btn:active {
+  transform: scale(0.95) !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* ✅ FORCE CLOSE BUTTON ICON VISIBILITY */
+.popup-close-btn svg,
+.popup-close-btn * {
+  pointer-events: none !important;
+  z-index: inherit !important;
+}
+
+/* ===== AUTO-CLOSE TIMER BADGE ===== */
+.popup-timer-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(239, 68, 68, 0.9);
+  backdrop-filter: blur(10px);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 10000; /* ✅ BELOW CLOSE BUTTON */
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  letter-spacing: 0.5px;
+  animation: timerPulse 1s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+/* ===== MAIN CONTENT ===== */
+.popup-ad-content {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--popup-border-radius);
+  transition: var(--popup-transition);
+  position: relative; /* ✅ ENSURE PROPER STACKING */
+}
+
+.popup-ad-content.clickable {
+  cursor: pointer;
+}
+
+.popup-ad-content.clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--popup-shadow-lg);
+}
+
+/* ===== ENHANCED MEDIA SECTION FOR FULL IMAGE DISPLAY ===== */
+.popup-ad-media {
+  position: relative;
+  background: var(--popup-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  
+  /* ✅ DEFAULT HEIGHT */
+  height: 240px;
+}
+
+/* ✅ ENHANCED ADAPTIVE MEDIA HEIGHTS FOR BETTER DISPLAY */
+
+/* Portrait Media - Perfect for your poster with full visibility */
+.popup-ad-media.portrait {
+  height: 500px;
+  max-height: 70vh;
+}
+
+/* Landscape Media - Standard wide container */
+.popup-ad-media.landscape {
+  height: 280px;
+  max-height: 50vh;
+}
+
+/* Square Media - Balanced container */
+.popup-ad-media.square {
+  height: 320px;
+  max-height: 55vh;
+}
+
+/* Video Media - Optimized for video content */
+.popup-ad-media.video {
+  height: 300px;
+  max-height: 55vh;
+}
+
+/* ✅ IMAGE CONTAINER */
+.popup-image-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.popup-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+/* ✅ SMART IMAGE FITTING RULES */
+
+/* Portrait images - show full image without cropping */
+.popup-image.portrait {
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Landscape images - can use cover for better visual impact */
+.popup-image.landscape {
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Square images - contain to show full content */
+.popup-image.square {
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Default fallback - use contain for safety */
+.popup-image {
+  object-fit: contain;
+  object-position: center;
+}
+
+.popup-ad-content.clickable:hover .popup-image {
+  transform: scale(1.02);
+}
+
+/* ===== LOADING STATE ===== */
+.popup-image-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-gradient {
+  width: 100%;
+  height: 100%;
+  background: var(--popup-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-content {
+  text-align: center;
+  color: white;
+}
+
+.loading-spinner {
+  margin-bottom: 16px;
+}
+
+.spinner-ring {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* ===== ERROR STATE ===== */
+.popup-image-error {
+  width: 100%;
+  height: 100%;
+}
+
+.error-gradient {
+  width: 100%;
+  height: 100%;
+  background: var(--popup-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-content {
+  text-align: center;
+  color: white;
+  padding: 20px;
+}
+
+.error-icon {
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+.error-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.error-subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.error-message {
+  font-size: 13px;
+  opacity: 0.8;
+  margin-bottom: 16px;
+}
+
+.retry-btn {
+  background: rgba(255,255,255,0.2) !important;
+  border: 1px solid rgba(255,255,255,0.3) !important;
+  color: white !important;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer !important;
+  transition: all 0.2s ease;
+  pointer-events: auto !important;
+}
+
+.retry-btn:hover {
+  background: rgba(255,255,255,0.3) !important;
+  transform: translateY(-1px);
+}
+
+/* ===== VIDEO SECTION ===== */
+.popup-video-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #000;
+  overflow: hidden;
+}
+
+.popup-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* ===== INFO SECTION ===== */
+.popup-ad-info {
+  padding: 24px;
+  text-align: center;
+  background: var(--popup-white);
+  position: relative; /* ✅ ENSURE PROPER STACKING */
+}
+
+.popup-ad-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--popup-dark);
+  margin: 0 0 12px 0;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+}
+
+.popup-ad-description {
+  font-size: 15px;
+  color: var(--popup-gray);
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ✅ CTA BUTTON */
+.popup-cta-btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--popup-primary);
+  color: white;
+  border: none !important;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer !important;
+  transition: var(--popup-transition);
+  text-decoration: none;
+  letter-spacing: -0.025em;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  pointer-events: auto !important;
+}
+
+.popup-cta-btn:hover {
+  background: var(--popup-primary-hover) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== BRAND BADGE ===== */
+.popup-brand-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.8;
+  z-index: 1000; /* ✅ ENSURE VISIBILITY */
+}
+
+/* ===== MOBILE RESPONSIVENESS ===== */
+@media (max-width: 768px) {
+  .popup-advertisement-overlay {
+    padding: 16px;
+  }
+  
+  .popup-advertisement-container {
+    max-width: 100%;
+    margin: 0 auto;
+    border-radius: 12px;
+    max-height: 85vh;
+  }
+  
+  .popup-advertisement-container.portrait {
+    max-width: 100%;
+    max-height: 90vh;
+  }
+  
+  .popup-advertisement-container.landscape {
+    max-width: 100%;
+    max-height: 80vh;
+  }
+  
+  .popup-ad-media {
+    height: 240px;
+  }
+  
+  .popup-ad-media.portrait {
+    height: 400px;
+    max-height: 60vh;
+  }
+  
+  .popup-ad-media.landscape {
+    height: 260px;
+    max-height: 45vh;
+  }
+  
+  .popup-ad-media.square {
+    height: 280px;
+    max-height: 50vh;
+  }
+  
+  .popup-ad-info {
+    padding: 20px 16px;
+  }
+  
+  .popup-ad-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  
+  .popup-ad-description {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  
+  .popup-cta-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  /* ✅ MOBILE CLOSE BUTTON - GUARANTEED WORKING */
+  .popup-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+  }
+  
+  .popup-timer-badge {
+    top: 10px;
+    left: 10px;
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .popup-advertisement-overlay {
+    padding: 12px;
+  }
+  
+  .popup-advertisement-container {
+    border-radius: 8px;
+    max-height: 80vh;
+  }
+  
+  .popup-ad-media {
+    height: 220px;
+  }
+  
+  .popup-ad-media.portrait {
+    height: 350px;
+    max-height: 55vh;
+  }
+  
+  .popup-ad-info {
+    padding: 16px 12px;
+  }
+  
+  .popup-ad-title {
+    font-size: 16px;
+  }
+  
+  .popup-ad-description {
+    font-size: 13px;
+  }
+}
+
+/* ===== LANDSCAPE MOBILE ===== */
+@media (max-height: 500px) and (orientation: landscape) {
+  .popup-advertisement-container {
+    max-height: 95vh;
+  }
+  
+  .popup-ad-media {
+    height: 160px;
+  }
+  
+  .popup-ad-media.portrait {
+    height: 200px;
+  }
+  
+  .popup-ad-info {
+    padding: 12px;
+  }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+.popup-advertisement-overlay {
+  contain: layout style paint;
+  will-change: opacity, visibility, transform;
+}
+
+.popup-advertisement-container {
+  contain: layout style paint;
+  will-change: transform, box-shadow;
+}
+
+.popup-image,
+.popup-video {
+  contain: layout style paint size;
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  .popup-advertisement-overlay,
+  .popup-advertisement-container,
+  .popup-close-btn,
+  .popup-cta-btn,
+  .popup-image,
+  .popup-timer-badge {
+    transition: none;
+    animation: none;
+  }
+  
+  .spinner-ring {
+    animation: none;
+  }
+}
+
+/* ===== FOCUS STYLES ===== */
+.popup-close-btn:focus-visible,
+.popup-cta-btn:focus-visible,
+.retry-btn:focus-visible {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px;
+}
+
+/* ===== 🔴 FINAL SAFETY OVERRIDES FOR CLOSE BUTTON ===== */
+.popup-close-btn,
+.popup-close-btn:hover,
+.popup-close-btn:active,
+.popup-close-btn:focus {
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: absolute !important;
+  display: flex !important;
+}
+
+/* ✅ ENSURE CLOSE BUTTON IS ALWAYS ON TOP */
+.popup-advertisement-container > .popup-close-btn {
+  z-index: 99999 !important;
+}

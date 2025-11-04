@@ -155,7 +155,7 @@ export const getNetworkInfo = () => {
   };
 };
 
-// ✅ ALL YOUR EXISTING API HELPERS + NEW FORGOT PASSWORD ENDPOINTS
+// ✅ ALL YOUR EXISTING API HELPERS + NEW POPUP ADVERTISEMENT ENDPOINTS
 export const apiHelpers = {
   // AUTH ENDPOINTS
   login: async (credentials) => {
@@ -451,6 +451,61 @@ resetPassword: async (email, newPassword, resetToken) => {
     console.log('👆 API: Tracking ad click:', adId);
     const response = await api.post(`/api/advertisements/${adId}/click`);
     console.log('✅ API: Ad click tracked:', response.data);
+    return response.data;
+  },
+
+  // ✅ NEW: POPUP ADVERTISEMENT ENDPOINTS
+  getPopupAdvertisements: async () => {
+    console.log('🎪 API: Getting popup advertisements');
+    const response = await api.get('/api/advertisements/popup');
+    console.log('✅ API: Popup advertisements response:', response.data);
+    return response.data;
+  },
+
+  trackPopupImpression: async (adId) => {
+    console.log('👁️ API: Tracking popup impression:', adId);
+    const response = await api.post(`/api/advertisements/${adId}/popup-impression`);
+    console.log('✅ API: Popup impression tracked:', response.data);
+    return response.data;
+  },
+
+  trackPopupClick: async (adId) => {
+    console.log('👆 API: Tracking popup click:', adId);
+    const response = await api.post(`/api/advertisements/${adId}/popup-click`);
+    console.log('✅ API: Popup click tracked:', response.data);
+    return response.data;
+  },
+
+  // ✅ NEW: ADMIN POPUP ADVERTISEMENT MANAGEMENT
+  getAdminPopupAdvertisements: async () => {
+    console.log('🎪 API: Getting admin popup advertisements');
+    const response = await api.get('/api/admin/popup-advertisements');
+    console.log('✅ API: Admin popup advertisements response:', response.data);
+    return response.data;
+  },
+
+  createPopupAdvertisement: async (formData) => {
+    console.log('🎪 API: Creating popup advertisement');
+    const response = await api.post('/api/admin/popup-advertisements', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    console.log('✅ API: Popup advertisement created:', response.data);
+    return response.data;
+  },
+
+  updatePopupAdvertisement: async (adId, formData) => {
+    console.log('🎪 API: Updating popup advertisement:', adId);
+    const response = await api.put(`/api/admin/popup-advertisements/${adId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    console.log('✅ API: Popup advertisement updated:', response.data);
+    return response.data;
+  },
+
+  deletePopupAdvertisement: async (adId) => {
+    console.log('🎪 API: Deleting popup advertisement:', adId);
+    const response = await api.delete(`/api/admin/popup-advertisements/${adId}`);
+    console.log('✅ API: Popup advertisement deleted:', response.data);
     return response.data;
   },
 
@@ -1352,5 +1407,5 @@ export default api;
 // ✅ EXPORT BASE URLS FOR OTHER COMPONENTS
 export { API_BASE_URL, SOCKET_URL };
 
-console.log('✅ API service fully initialized with FORGOT PASSWORD endpoints added! 🎉');
-console.log('🔑 Forgot password system now ready to use!');
+console.log('✅ API service fully initialized with POPUP ADVERTISEMENT endpoints added! 🎉');
+console.log('🎪 Popup advertisement system now ready to use!');

@@ -2044,3 +2044,45 @@ body.modal-open {
 .beautiful-modal {
   will-change: transform;
 }
+/* ✅ NEW: Popup Advertisement Specific Styles */
+/* ✅ FIX: Popup Advertisement Card Styling */
+.popup-ad-card {
+  border: 2px solid #3b82f6 !important;
+  position: relative;
+}
+
+.popup-ad-card .ad-media {
+  height: 200px !important; /* ✅ FIX: Limit image height */
+  overflow: hidden;
+}
+
+.popup-ad-card .ad-media img {
+  width: 100% !important;
+  height: 200px !important; /* ✅ FIX: Fixed height */
+  object-fit: cover !important; /* ✅ FIX: Proper image scaling */
+  object-position: center !important;
+}
+
+.popup-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 2;
+}
+
+/* ✅ FIX: Responsive admin card sizing */
+@media (max-width: 768px) {
+  .popup-ad-card .ad-media {
+    height: 150px !important;
+  }
+  
+  .popup-ad-card .ad-media img {
+    height: 150px !important;
+  }
+}

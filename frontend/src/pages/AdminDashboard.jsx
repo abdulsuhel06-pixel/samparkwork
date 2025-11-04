@@ -6,7 +6,7 @@ import {
   BarChart3, Users, Briefcase, Tag, Megaphone, Plus, Search, Edit, Trash2,
   Eye, EyeOff, Download, Menu, X, Save, Star, Image, Video, Play,
   AlertCircle, CheckCircle, AlertTriangle, RefreshCw, MapPin, Calendar,
-  Filter, DollarSign, User, Home, LogOut, Settings
+  Filter, DollarSign, User, Home, LogOut, Settings, Clock, Bell
 } from "lucide-react";
 import "./AdminDashboard.css";
 
@@ -15,7 +15,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState({
-    stats: false, categories: false, users: false, jobs: false, ads: false
+    stats: false, categories: false, users: false, jobs: false, ads: false, popupAds: false
   });
   
   const [stats, setStats] = useState({});
@@ -23,6 +23,8 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState([]);
   const [jobs, setJobs] = useState([]);
   const [ads, setAds] = useState([]);
+  // ✅ NEW: Popup advertisement state
+  const [popupAds, setPopupAds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [alert, setAlert] = useState({ show: false, type: '', message: '' });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -34,9 +36,13 @@ const AdminDashboard = () => {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showJobModal, setShowJobModal] = useState(false);
   const [showAdModal, setShowAdModal] = useState(false);
+  // ✅ NEW: Popup advertisement modal state
+  const [showPopupAdModal, setShowPopupAdModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editingJob, setEditingJob] = useState(null);
   const [editingAd, setEditingAd] = useState(null);
+  // ✅ NEW: Popup advertisement editing state
+  const [editingPopupAd, setEditingPopupAd] = useState(null);
 
   // Form states
   const [categoryForm, setCategoryForm] = useState({
@@ -53,6 +59,21 @@ const AdminDashboard = () => {
     link: '', isActive: true, featured: false
   });
 
+  // ✅ NEW: Popup advertisement form state
+  const [popupAdForm, setPopupAdForm] = useState({
+    title: '', 
+    content: '', 
+    media: null, 
+    mediaType: '', 
+    link: '', 
+    isActive: true, 
+    featured: false,
+    popupFrequency: 'daily',
+    popupDelay: 3000,
+    popupDuration: 0,
+    targetAudience: 'all'
+  });
+
   const token = localStorage.getItem("wn_token");
 
   // ✅ FIXED: Constants with dependent dropdown support
@@ -65,8 +86,12 @@ const AdminDashboard = () => {
   };
   
   const jobStatuses = ['active', 'closed', 'draft'];
-  const placements = ['homepage', 'sidebar', 'banner'];
+  const placements = ['homepage', 'sidebar', 'banner', 'popup'];
   const budgetTypes = ['Fixed', 'Hourly'];
+
+  // ✅ NEW: Popup advertisement constants
+  const popupFrequencies = ['once', 'daily', 'weekly', 'always'];
+  const targetAudiences = ['all', 'job-seekers', 'employers', 'professionals'];
 
   // ✅ HELPER: Get parent categories for selected industry
   const getParentCategories = (industry) => {
@@ -99,6 +124,8 @@ const AdminDashboard = () => {
     if (modalType === 'category') setShowCategoryModal(true);
     if (modalType === 'job') setShowJobModal(true);
     if (modalType === 'ad') setShowAdModal(true);
+    // ✅ NEW: Popup advertisement modal
+    if (modalType === 'popup-ad') setShowPopupAdModal(true);
   };
 
   const closeModal = (modalType) => {
@@ -130,9 +157,9 @@ const AdminDashboard = () => {
     };
   }, []);
 
-  // ✅ FIXED: Get media URL for both categories and advertisements 
+  // ✅ FIXED: Simplified and stable image URL function
   const getImageUrl = (item) => {
-    console.log('🎬 [getImageUrl] Processing item:', {
+    console.log('🖼️ [getImageUrl] Processing item:', {
       id: item._id,
       title: item.title || item.name,
       mediaUrl: item.mediaUrl || item.imageUrl,
@@ -143,27 +170,23 @@ const AdminDashboard = () => {
     const urlSource = item.mediaUrl || item.imageUrl;
     
     if (!urlSource) {
-      console.warn('🎬 [getImageUrl] No media URL found');
+      console.warn('🖼️ [getImageUrl] No media URL found');
       return null;
     }
     
     // If already a full URL, return as is
     if (urlSource.startsWith('http://') || urlSource.startsWith('https://')) {
-      console.log('🎬 [getImageUrl] Using existing full URL:', urlSource);
+      console.log('🖼️ [getImageUrl] Using existing full URL:', urlSource);
       return urlSource;
     }
     
-    // ✅ FIXED: Force HTTPS in production to prevent mixed content
-    const isProduction = process.env.NODE_ENV === 'production' || 
-                        window.location.hostname !== 'localhost' ||
-                        window.location.hostname === 'samparkworkwebsite.vercel.app' ||
-                        window.location.hostname === 'samparkwork.vercel.app' ||
-                        window.location.hostname === 'www.samparkwork.in' ||
-                        window.location.hostname === 'samparkwork.in';
+    // ✅ FIXED: Simplified environment detection
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1';
     
-    const baseUrl = isProduction 
-      ? 'https://samparkwork-backend.onrender.com' 
-      : 'http://localhost:5000';
+    const baseUrl = isLocalhost 
+      ? 'http://localhost:5000'
+      : 'https://samparkwork-backend.onrender.com';
     
     // ✅ CRITICAL: Ensure proper path construction
     let finalPath = urlSource;
@@ -175,8 +198,8 @@ const AdminDashboard = () => {
     
     const finalUrl = `${baseUrl}${finalPath}`;
     
-    console.log('🎬 [getImageUrl] Generated URL:', {
-      environment: isProduction ? 'PRODUCTION' : 'DEVELOPMENT',
+    console.log('🖼️ [getImageUrl] Generated URL:', {
+      environment: isLocalhost ? 'DEVELOPMENT' : 'PRODUCTION',
       hostname: window.location.hostname,
       baseUrl,
       originalPath: urlSource,
@@ -201,6 +224,7 @@ const AdminDashboard = () => {
     const handleImageLoad = () => {
       console.log('✅ Image loaded successfully:', src);
       setImageLoaded(true);
+      setImageFailed(false);
     };
 
     if (!src || imageFailed) {
@@ -219,15 +243,24 @@ const AdminDashboard = () => {
             fontSize: '14px',
             fontWeight: '500',
             border: '2px dashed #e2e8f0',
-            borderRadius: '8px'
+            borderRadius: '8px',
+            minHeight: '200px'
           }}
           {...props}
         >
           <Image size={32} style={{ marginBottom: '8px' }} />
-          <span>No Image</span>
-          {src && <small style={{ marginTop: '4px', fontSize: '10px', textAlign: 'center' }}>
-            Failed: {src.substring(0, 50)}...
-          </small>}
+          <span>Image Unavailable</span>
+          {src && (
+            <small style={{ 
+              marginTop: '4px', 
+              fontSize: '10px', 
+              textAlign: 'center',
+              maxWidth: '90%',
+              wordBreak: 'break-all'
+            }}>
+              Failed: {src}
+            </small>
+          )}
         </div>
       );
     }
@@ -277,6 +310,8 @@ const AdminDashboard = () => {
       if (activeTab === 'users') fetchUsers();
       if (activeTab === 'jobs') fetchJobs();
       if (activeTab === 'ads') fetchAds();
+      // ✅ NEW: Fetch popup ads
+      if (activeTab === 'popup-ads') fetchPopupAds();
     }
   }, [token, activeTab]);
 
@@ -367,6 +402,39 @@ const AdminDashboard = () => {
     }
   };
 
+  // ✅ NEW: Fetch popup advertisements
+  const fetchPopupAds = async () => {
+    try {
+      setLoadingState('popupAds', true);
+      console.log('🎪 Fetching popup advertisements...');
+      
+      // First, try to get popup ads from regular ads endpoint
+      const { data } = await api.get("/api/advertisements/popup");
+      console.log('🎪 Popup ads response:', data);
+      
+      if (Array.isArray(data)) {
+        console.log(`✅ Found ${data.length} popup advertisements`);
+        setPopupAds(data);
+      } else {
+        console.warn('⚠️ Unexpected popup ads response format:', data);
+        setPopupAds([]);
+      }
+    } catch (error) {
+      console.error("❌ Error fetching popup advertisements:", error);
+      // Fallback: filter from regular ads
+      try {
+        const regularAds = ads.filter(ad => ad.isPopup === true || ad.placement === 'popup');
+        setPopupAds(regularAds);
+        console.log(`📊 Fallback: Found ${regularAds.length} popup ads from regular ads`);
+      } catch (fallbackError) {
+        console.error("❌ Fallback failed:", fallbackError);
+        setPopupAds([]);
+      }
+    } finally {
+      setLoadingState('popupAds', false);
+    }
+  };
+
   const showAlert = (type, message) => {
     setAlert({ show: true, type, message });
     setTimeout(() => setAlert({ show: false, type: '', message: '' }), 4000);
@@ -378,6 +446,7 @@ const AdminDashboard = () => {
     if (activeTab === 'users') fetchUsers();
     if (activeTab === 'jobs') fetchJobs();
     if (activeTab === 'ads') fetchAds();
+    if (activeTab === 'popup-ads') fetchPopupAds();
     showAlert('success', 'Data refreshed successfully!');
   };
 
@@ -442,6 +511,20 @@ const AdminDashboard = () => {
       setAdForm(prev => ({ ...prev, [name]: file, mediaType: mediaType }));
     } else {
       setAdForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    }
+  };
+
+  // ✅ NEW: Popup advertisement form change handler
+  const handlePopupAdChange = (e) => {
+    const { name, value, type, checked, files } = e.target;
+    if (type === 'file' && files[0]) {
+      const file = files[0];
+      const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+      setPopupAdForm(prev => ({ ...prev, [name]: file, mediaType: mediaType }));
+    } else if (type === 'number') {
+      setPopupAdForm(prev => ({ ...prev, [name]: parseInt(value) || 0 }));
+    } else {
+      setPopupAdForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     }
   };
 
@@ -638,6 +721,84 @@ const AdminDashboard = () => {
     }
   };
 
+  // ✅ NEW: Popup advertisement submission
+  const submitPopupAd = async () => {
+    if (!popupAdForm.title.trim() || !popupAdForm.content.trim()) {
+      showAlert('error', 'Please fill all required fields');
+      return;
+    }
+
+    // Require media file for new popup advertisements
+    if (!editingPopupAd && !popupAdForm.media) {
+      showAlert('error', 'Media file is required for new popup advertisements');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('🎪 [submitPopupAd] Starting popup advertisement submission...');
+      
+      const formData = new FormData();
+      
+      // Append all form fields
+      formData.append('title', popupAdForm.title.trim());
+      formData.append('content', popupAdForm.content.trim());
+      formData.append('placement', 'popup'); // Force popup placement
+      formData.append('isActive', popupAdForm.isActive.toString());
+      formData.append('featured', popupAdForm.featured.toString());
+      formData.append('link', popupAdForm.link?.trim() || '');
+      formData.append('isPopup', 'true'); // Force popup flag
+      formData.append('popupFrequency', popupAdForm.popupFrequency);
+      formData.append('popupDelay', popupAdForm.popupDelay.toString());
+      formData.append('popupDuration', popupAdForm.popupDuration.toString());
+      formData.append('targetAudience', popupAdForm.targetAudience);
+      
+      if (popupAdForm.media) {
+        formData.append('media', popupAdForm.media);
+        console.log('📎 [submitPopupAd] Media file appended:', popupAdForm.media.name);
+      }
+
+      if (editingPopupAd) {
+        console.log('🎪 [submitPopupAd] Updating popup advertisement:', editingPopupAd._id);
+        await api.put(`/api/advertisements/${editingPopupAd._id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 60000
+        });
+        showAlert('success', 'Popup advertisement updated successfully!');
+      } else {
+        console.log('🎪 [submitPopupAd] Creating new popup advertisement...');
+        await api.post('/api/advertisements', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 60000
+        });
+        showAlert('success', 'Popup advertisement created successfully!');
+      }
+
+      await fetchPopupAds();
+      await fetchStats();
+      closeModal('popup-ad');
+    } catch (error) {
+      console.error('❌ [submitPopupAd] Popup advertisement submission error:', error);
+      
+      let errorMessage = 'Failed to save popup advertisement';
+      if (error.response?.status === 400) {
+        errorMessage = error.response.data?.message || 'Invalid data provided. Please check all fields.';
+      } else if (error.response?.status === 413) {
+        errorMessage = 'File too large. Please select a smaller file.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      showAlert('error', errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const closeModalAndResetForm = (type) => {
     if (type === 'category') {
       setShowCategoryModal(false);
@@ -651,6 +812,14 @@ const AdminDashboard = () => {
       setShowAdModal(false);
       setAdForm({ title: '', content: '', media: null, mediaType: '', placement: 'homepage', link: '', isActive: true, featured: false });
       setEditingAd(null);
+    } else if (type === 'popup-ad') {
+      // ✅ NEW: Popup advertisement modal reset
+      setShowPopupAdModal(false);
+      setPopupAdForm({
+        title: '', content: '', media: null, mediaType: '', link: '', isActive: true, featured: false,
+        popupFrequency: 'daily', popupDelay: 3000, popupDuration: 0, targetAudience: 'all'
+      });
+      setEditingPopupAd(null);
     }
   };
 
@@ -682,11 +851,29 @@ const AdminDashboard = () => {
     openModal('ad');
   };
 
+  // ✅ NEW: Open edit popup advertisement
+  const openEditPopupAd = (ad) => {
+    setEditingPopupAd(ad);
+    setPopupAdForm({
+      title: ad.title, content: ad.content, media: null, mediaType: ad.mediaType,
+      link: ad.link || '', isActive: ad.isActive, featured: ad.featured || false,
+      popupFrequency: ad.popupFrequency || 'daily',
+      popupDelay: ad.popupDelay || 3000,
+      popupDuration: ad.popupDuration || 0,
+      targetAudience: ad.targetAudience || 'all'
+    });
+    openModal('popup-ad');
+  };
+
   const handleDelete = async (type, id, name) => {
     const itemName = name || 'item';
     if (window.confirm(`⚠️ Are you sure you want to delete "${itemName}"?\n\nThis action cannot be undone.`)) {
       try {
-        await api.delete(`/api/admin/${type}/${id}`);
+        if (type === 'popup-advertisements') {
+          await api.delete(`/api/advertisements/${id}`);
+        } else {
+          await api.delete(`/api/admin/${type}/${id}`);
+        }
         
         if (type === 'categories') {
           setCategories(categories.filter(item => item._id !== id));
@@ -696,6 +883,8 @@ const AdminDashboard = () => {
           setJobs(jobs.filter(item => item._id !== id));
         } else if (type === 'advertisements') {
           setAds(ads.filter(item => item._id !== id));
+        } else if (type === 'popup-advertisements') {
+          setPopupAds(popupAds.filter(item => item._id !== id));
         }
         
         await fetchStats();
@@ -1198,6 +1387,177 @@ const AdminDashboard = () => {
     );
   };
 
+  // ✅ NEW: Popup advertisements rendering
+  const renderPopupAds = () => {
+    return (
+      <div className="beautiful-section-content">
+        <div className="beautiful-page-header">
+          <div className="page-header-content">
+            <div className="page-title-section">
+              <h1>Popup Advertisements</h1>
+              <p>Manage popup advertisements shown to users</p>
+            </div>
+            <div className="page-header-actions">
+              <button className="beautiful-filter-btn"><Filter size={18} />Filter</button>
+              <button className="beautiful-primary-btn" onClick={() => openModal('popup-ad')}>
+                <Plus size={18} />Create Popup Ad
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {dataLoading.popupAds ? <LoadingSpinner /> : popupAds.length === 0 ? (
+          <div className="beautiful-empty-state">
+            <div className="empty-icon"><Bell size={64} /></div>
+            <h3>No popup advertisements found</h3>
+            <p>Create your first popup advertisement to engage users when they visit your site.</p>
+            <button className="beautiful-primary-btn" onClick={() => openModal('popup-ad')}>
+              <Plus size={18} />Create First Popup Ad
+            </button>
+          </div>
+        ) : (
+          <div className="beautiful-ads-grid">
+            {popupAds.map(ad => (
+              <div key={ad._id} className="beautiful-ad-card popup-ad-card">
+                <div className="ad-media">
+                  {ad.mediaType === 'video' ? (
+                    <div className="video-container" style={{ position: 'relative', width: '100%', height: '200px', backgroundColor: '#000' }}>
+                      <video 
+                        src={getImageUrl(ad)}
+                        controls
+                        preload="metadata"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          objectPosition: 'center'
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <FallbackImage 
+                      src={getImageUrl(ad)}
+                      alt={ad.title}
+                      className="ad-media-img"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center'
+                      }}
+                    />
+                  )}
+                  
+                  {ad.featured && (
+                    <div className="featured-badge"><Star size={14} />Featured</div>
+                  )}
+
+                  <div className="popup-badge">
+                    <Bell size={12} />POPUP
+                  </div>
+
+                  <div className="ad-quick-actions">
+                    <button 
+                      className="quick-edit-btn"
+                      onClick={() => openEditPopupAd(ad)}
+                      title="Edit Popup Advertisement"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button 
+                      className="quick-delete-btn"
+                      onClick={() => handleDelete('popup-advertisements', ad._id, ad.title)}
+                      title="Delete Popup Advertisement"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="ad-content">
+                  <h3>{ad.title || 'Untitled Popup Ad'}</h3>
+                  <p>{ad.content || 'No content'}</p>
+                  
+                  <div className="popup-ad-details">
+                    <div className="detail-row">
+                      <Clock size={14} />
+                      <span>Frequency: {ad.popupFrequency || 'daily'}</span>
+                    </div>
+                    <div className="detail-row">
+                      <Clock size={14} />
+                      <span>Delay: {ad.popupDelay || 3000}ms</span>
+                    </div>
+                    <div className="detail-row">
+                      <User size={14} />
+                      <span>Target: {ad.targetAudience || 'all'}</span>
+                    </div>
+                  </div>
+
+                  <div className="popup-ad-stats">
+                    <div className="stat-item">
+                      <span className="stat-label">Shown:</span>
+                      <span className="stat-value">{ad.popupShownCount || 0}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">Clicked:</span>
+                      <span className="stat-value">{ad.popupClickCount || 0}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">CTR:</span>
+                      <span className="stat-value">
+                        {ad.popupShownCount > 0 
+                          ? ((ad.popupClickCount || 0) / ad.popupShownCount * 100).toFixed(1)
+                          : '0'
+                        }%
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="ad-meta">
+                    <span className={`media-badge ${ad.mediaType || 'image'}`}>
+                      {ad.mediaType === 'video' ? (
+                        <><Video size={12} />Video</>
+                      ) : (
+                        <><Image size={12} />Image</>
+                      )}
+                    </span>
+                    <span className={`status-badge ${ad.isActive ? 'active' : 'inactive'}`}>
+                      {ad.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  
+                  <div className="ad-footer">
+                    <span className="ad-date">
+                      <Calendar size={14} />
+                      {ad.createdAt ? new Date(ad.createdAt).toLocaleDateString() : 'Unknown'}
+                    </span>
+                    
+                    <div className="ad-actions">
+                      <button 
+                        className="beautiful-action-btn edit" 
+                        onClick={() => openEditPopupAd(ad)}
+                        title="Edit Popup Advertisement"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button 
+                        className="beautiful-action-btn delete" 
+                        onClick={() => handleDelete('popup-advertisements', ad._id, ad.title)}
+                        title="Delete Popup Advertisement"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="beautiful-admin-dashboard">
       {/* Alert System */}
@@ -1249,7 +1609,9 @@ const AdminDashboard = () => {
               { key: 'categories', label: 'Categories', icon: Tag },
               { key: 'users', label: 'Users', icon: Users },
               { key: 'jobs', label: 'Jobs', icon: Briefcase },
-              { key: 'ads', label: 'Advertisements', icon: Megaphone }
+              { key: 'ads', label: 'Advertisements', icon: Megaphone },
+              // ✅ NEW: Popup Ads navigation
+              { key: 'popup-ads', label: 'Popup Ads', icon: Bell }
             ].map(({ key, label, icon: Icon }) => (
               <button key={key} className={`nav-item ${activeTab === key ? 'active' : ''}`}
                 onClick={() => handleTabChange(key)} title={sidebarCollapsed ? label : ''}>
@@ -1287,6 +1649,8 @@ const AdminDashboard = () => {
           {activeTab === 'users' && renderUsers()}
           {activeTab === 'jobs' && renderJobs()}
           {activeTab === 'ads' && renderAds()}
+          {/* ✅ NEW: Popup ads content */}
+          {activeTab === 'popup-ads' && renderPopupAds()}
         </main>
       </div>
 
@@ -1560,6 +1924,123 @@ const AdminDashboard = () => {
                   <>
                     <Save size={16} />
                     {editingAd ? 'Update Advertisement' : 'Create Advertisement'}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ NEW: Popup Advertisement Modal */}
+      {showPopupAdModal && (
+        <div className="beautiful-modal-overlay">
+          <div className="beautiful-modal large">
+            <div className="modal-header">
+              <h3>{editingPopupAd ? 'Edit Popup Advertisement' : 'Create New Popup Advertisement'}</h3>
+              <button className="modal-close" onClick={() => closeModal('popup-ad')}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Advertisement Title *</label>
+                <input type="text" name="title" value={popupAdForm.title} onChange={handlePopupAdChange}
+                  placeholder="Enter popup advertisement title" required />
+              </div>
+              <div className="form-group">
+                <label>Content *</label>
+                <textarea name="content" value={popupAdForm.content} onChange={handlePopupAdChange}
+                  rows="4" placeholder="Enter popup advertisement content" required />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Target Audience</label>
+                  <select name="targetAudience" value={popupAdForm.targetAudience} onChange={handlePopupAdChange}>
+                    {targetAudiences.map(audience => (
+                      <option key={audience} value={audience}>
+                        {audience.charAt(0).toUpperCase() + audience.slice(1).replace('-', ' ')}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Show Frequency</label>
+                  <select name="popupFrequency" value={popupAdForm.popupFrequency} onChange={handlePopupAdChange}>
+                    {popupFrequencies.map(frequency => (
+                      <option key={frequency} value={frequency}>
+                        {frequency.charAt(0).toUpperCase() + frequency.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Show Delay (milliseconds)</label>
+                  <input type="number" name="popupDelay" value={popupAdForm.popupDelay} onChange={handlePopupAdChange}
+                    placeholder="3000" min="0" max="30000" step="1000" />
+                  <small>Delay before showing popup (0-30 seconds)</small>
+                </div>
+                <div className="form-group">
+                  <label>Auto Close (milliseconds)</label>
+                  <input type="number" name="popupDuration" value={popupAdForm.popupDuration} onChange={handlePopupAdChange}
+                    placeholder="0" min="0" max="60000" step="1000" />
+                  <small>Auto-close after time (0 = manual close only)</small>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Popup Media {!editingPopupAd && '*'}</label>
+                <input type="file" name="media" accept="image/*,video/*" onChange={handlePopupAdChange}
+                  required={!editingPopupAd} />
+                <small>
+                  Supported formats: Images (JPEG, PNG, GIF, WebP) | Videos (MP4, AVI, MKV, MOV, WMV, FLV, WebM)
+                </small>
+                {popupAdForm.mediaType && (
+                  <div className="media-type-indicator">
+                    {popupAdForm.mediaType === 'video' ? (
+                      <><Video size={12} /> Video Selected</>
+                    ) : (
+                      <><Image size={12} /> Image Selected</>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="form-group">
+                <label>Link (Optional)</label>
+                <input type="url" name="link" value={popupAdForm.link} onChange={handlePopupAdChange}
+                  placeholder="https://example.com" />
+              </div>
+              <div className="form-checkboxes">
+                <div className="form-checkbox">
+                  <input type="checkbox" name="isActive" id="popupIsActive" checked={popupAdForm.isActive}
+                    onChange={handlePopupAdChange} />
+                  <label htmlFor="popupIsActive">Activate popup advertisement immediately</label>
+                </div>
+                <div className="form-checkbox">
+                  <input type="checkbox" name="featured" id="popupFeatured" checked={popupAdForm.featured}
+                    onChange={handlePopupAdChange} />
+                  <label htmlFor="popupFeatured">
+                    <Star size={14} />
+                    Mark as Featured (Priority)
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="beautiful-secondary-btn" onClick={() => closeModal('popup-ad')} disabled={loading}>
+                Cancel
+              </button>
+              <button className="beautiful-primary-btn" onClick={submitPopupAd} disabled={loading}>
+                {loading ? (
+                  <>
+                    <div className="spinner"></div>
+                    {editingPopupAd ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  <>
+                    <Save size={16} />
+                    {editingPopupAd ? 'Update Popup Ad' : 'Create Popup Ad'}
                   </>
                 )}
               </button>

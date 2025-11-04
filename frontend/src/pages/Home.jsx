@@ -3,6 +3,7 @@ import Hero from '../components/Hero';
 import AdvertisementShowcase from '../components/AdvertisementShowcase';
 import JobManagement from '../components/JobManagement';
 import FeaturedCategories from '../components/FeaturedCategories';
+import PopupAdvertisement from '../components/PopupAdvertisement';
 
 const Home = () => {
   return (
@@ -11,6 +12,9 @@ const Home = () => {
       <AdvertisementShowcase />
       <JobManagement />
       <FeaturedCategories />
+      
+      {/* ✅ Popup Advertisement System - Automatically manages display */}
+      <PopupAdvertisement />
     </>
   );
 };
