@@ -337,7 +337,7 @@ const AdvertisementShowcase = () => {
     <section className="advertisement-showcase">
       <div className="container">
         <div className="showcase-header">
-          <h2 className="showcase-title">Advertisements</h2>
+          <h2 className="showcase-title">Watch how to Signup and update your Profile</h2>
         </div>
 
         <div className="carousel-wrapper">
