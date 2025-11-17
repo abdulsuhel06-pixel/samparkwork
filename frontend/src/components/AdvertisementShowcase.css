@@ -1,14 +1,11 @@
-/* ===== MOBILE-FIRST ADVERTISEMENT SHOWCASE - PERFECT BALANCE ===== */
+/* ===== MOBILE-FIRST ADVERTISEMENT SHOWCASE ===== */
 
-/* ===== BASE MOBILE STYLES (320px+) ===== */
 .advertisement-showcase {
   padding: 1.5rem 0 2rem;
   background: #ffffff;
   min-height: auto;
   border-top: 1px solid #e2e8f0;
   border-bottom: 1px solid #e2e8f0;
-  
-  /* ✅ CRITICAL FIX: Lower z-index to stay below Hero section */
   position: relative;
   z-index: 5;
 }
@@ -18,24 +15,6 @@
   max-width: 100%;
   margin: 0 auto;
   padding: 0 1rem;
-  position: relative;
-  z-index: 1;
-}
-
-/* ===== HEADER SECTION ===== */
-.showcase-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.showcase-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-  line-height: 1.2;
   position: relative;
   z-index: 1;
 }
@@ -60,7 +39,7 @@
   z-index: 1;
 }
 
-/* ===== NAVIGATION BUTTONS - HIDDEN ON MOBILE ===== */
+/* ===== NAVIGATION BUTTONS ===== */
 .carousel-btn {
   display: none;
   position: absolute;
@@ -88,14 +67,13 @@
   right: 1rem;
 }
 
-/* ✅ PERFECT ADVERTISEMENT DISPLAY - ORIGINAL DIMENSIONS WITH MOBILE FIXES */
+/* ===== ADVERTISEMENT DISPLAY ===== */
 .ad-display {
   position: relative;
   width: 100%;
-  /* ✅ RESTORED: Original container sizing */
   aspect-ratio: 16/9;
-  min-height: 250px; /* ✅ RESTORED: Original mobile height */
-  max-height: 70vh; /* ✅ RESTORED: Original max height */
+  min-height: 250px;
+  max-height: 70vh;
   cursor: default;
   overflow: hidden;
   background: transparent;
@@ -108,7 +86,7 @@
   cursor: pointer;
 }
 
-/* ✅ PERFECT MEDIA CONTAINER - MOBILE OPTIMIZED */
+/* ===== MEDIA CONTAINER ===== */
 .ad-media {
   position: absolute;
   top: 0;
@@ -119,26 +97,21 @@
   padding: 0;
   background: transparent;
   overflow: hidden;
-  border: none;
-  outline: none;
   z-index: 1;
 }
 
-/* ✅ BULLETPROOF IMAGE COVERAGE - MOBILE OPTIMIZED */
+/* ===== IMAGE STYLES ===== */
 .ad-image {
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  /* ✅ CRITICAL FIX: Better object fitting for mobile */
   object-fit: cover !important;
   object-position: center !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
-  outline: none !important;
-  background: transparent !important;
   display: block !important;
   z-index: 1;
 }
@@ -150,35 +123,10 @@
   width: 100%;
   height: 100%;
   background: transparent;
-  margin: 0;
-  padding: 0;
-  border: none;
-  outline: none;
   z-index: 1;
 }
 
-.image-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  color: #64748b;
-  background: #f8fafc;
-  border: 2px dashed #cbd5e0;
-  margin: 0;
-  padding: 1rem;
-  z-index: 1;
-}
-
-.image-placeholder span {
-  margin-top: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-/* ✅ BULLETPROOF VIDEO CONTAINER */
+/* ===== VIDEO CONTAINER ===== */
 .video-container {
   position: absolute;
   top: 0;
@@ -187,62 +135,164 @@
   height: 100%;
   margin: 0;
   padding: 0;
-  background: transparent;
+  background: #000;
   overflow: hidden;
-  border: none;
-  outline: none;
   z-index: 1;
 }
 
-/* ✅ BULLETPROOF VIDEO ELEMENT - MOBILE OPTIMIZED */
+/* ===== VIDEO ELEMENT ===== */
 .ad-video {
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  /* ✅ CRITICAL FIX: Better object fitting for mobile */
-  object-fit: cover !important;
+  object-fit: contain !important; /* ✅ CHANGED: Shows full video without cropping */
   object-position: center !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
-  outline: none !important;
   display: block !important;
-  background: transparent !important;
-  box-sizing: border-box !important;
+  background: #000 !important;
   z-index: 1;
 }
 
-/* ✅ REMOVE ALL BROWSER VIDEO CONTROLS STYLING */
-.ad-video::-webkit-media-controls {
-  display: none !important;
+/* ✅ CUSTOM VIDEO CONTROLS */
+.custom-video-controls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
-.ad-video::-webkit-media-controls-panel {
-  display: none !important;
+.custom-video-controls.visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
-.ad-video::-webkit-media-controls-play-button {
-  display: none !important;
+.custom-video-controls.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
-.ad-video::-webkit-media-controls-start-playback-button {
-  display: none !important;
+/* ✅ CENTER PLAY BUTTON OVERLAY */
+.video-overlay-center {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  z-index: 2;
+  pointer-events: auto;
 }
 
-/* ✅ CUSTOM CONTROLS OVERLAY */
-.ad-video[controls] {
-  background: transparent !important;
+.play-button-large {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #374151;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
 }
 
-.ad-video[controls]::-webkit-media-controls {
+.play-button-large:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 1);
+}
+
+/* ✅ BOTTOM CONTROL BAR */
+.video-controls-bar {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  padding: 2rem 1rem 0.5rem;
+  z-index: 3;
+  pointer-events: auto;
+}
+
+/* ✅ PROGRESS BAR */
+.video-progress-container {
+  width: 100%;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+}
+
+.video-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.video-progress-fill {
+  height: 100%;
+  background: #3b82f6;
+  transition: width 0.1s linear;
+  border-radius: 2px;
+}
+
+/* ✅ CONTROL BUTTONS */
+.video-controls-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.controls-left,
+.controls-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.control-btn {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.control-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.video-time {
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 0 0.5rem;
 }
 
 /* ✅ VIDEO LOADING STATE */
@@ -276,57 +326,6 @@
   color: #64748b;
   font-size: 0.875rem;
   margin: 0;
-  text-align: center;
-}
-
-/* ✅ TRANSPARENT VIDEO OVERLAY */
-.video-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  z-index: 4;
-  pointer-events: auto;
-}
-
-.video-overlay:active {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.play-button {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 50%;
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #374151;
-  margin-bottom: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-  border: none;
-  outline: none;
-}
-
-.play-button:hover {
-  background: rgba(255, 255, 255, 1);
-  transform: scale(1.05);
-}
-
-.play-text {
-  color: #ffffff;
-  font-weight: 600;
-  font-size: 0.875rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 /* ✅ VIDEO ERROR DISPLAY */
@@ -342,7 +341,6 @@
   text-align: center;
   padding: 2rem;
   border: 2px dashed #fecaca;
-  margin: 0;
   position: absolute;
   top: 0;
   left: 0;
@@ -368,27 +366,21 @@
   line-height: 1.4;
 }
 
-/* ===== CONTENT OVERLAY - NON-INTRUSIVE ===== */
+/* ===== CONTENT OVERLAY ===== */
 .ad-overlay {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(
-    transparent 0%,
-    transparent 100%
-  );
+  background: linear-gradient(transparent 0%, transparent 100%);
   color: #000000;
   padding: 3rem 1rem 1rem;
   z-index: 3;
   pointer-events: none;
-  border: none;
-  margin: 0;
 }
 
 .ad-content {
   width: 100%;
-  max-width: 100%;
   pointer-events: auto;
 }
 
@@ -424,7 +416,6 @@
   font-size: 0.875rem;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
   min-height: 44px;
-  pointer-events: auto;
 }
 
 .ad-cta:active {
@@ -432,7 +423,7 @@
   box-shadow: 0 1px 4px rgba(59, 130, 246, 0.4);
 }
 
-/* ===== INDICATORS - PERFECTLY SIZED - ✅ CRITICAL FIX ===== */
+/* ===== INDICATORS ===== */
 .carousel-indicators {
   display: flex;
   justify-content: center;
@@ -440,19 +431,11 @@
   gap: 0.5rem;
   margin-bottom: 1rem;
   padding: 0.5rem 1rem;
-  
-  /* ✅ CRITICAL FIX: Lower z-index to prevent Hero text overlay */
   position: relative;
   z-index: 2;
-  
-  /* ✅ ADDED: Container scoping to prevent spillover */
-  max-width: 100%;
-  overflow: visible;
 }
 
-/* ✅ PERFECT INDICATOR BUTTONS - MOBILE OPTIMIZED */
 .indicator {
-  /* ✅ VISUAL DOT SIZE */
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -460,25 +443,16 @@
   background: transparent;
   cursor: pointer;
   transition: all 0.2s ease;
-  
-  /* ✅ MOBILE-FRIENDLY TOUCH TARGET */
   min-height: 32px;
   min-width: 32px;
-  
-  /* ✅ CENTERING */
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  
-  /* ✅ CRITICAL FIX: Keep indicators below Hero content */
   z-index: 1;
-  
-  /* ✅ TOUCH PADDING */
   padding: 8px;
 }
 
-/* ✅ ACTUAL VISIBLE DOT */
 .indicator::before {
   content: '';
   width: 8px;
@@ -499,7 +473,6 @@
   transform: scale(1.2);
 }
 
-/* ✅ HOVER EFFECTS FOR NON-TOUCH DEVICES */
 @media (hover: hover) and (pointer: fine) {
   .indicator:hover::before {
     background: #3b82f6;
@@ -534,8 +507,6 @@
   padding: 3rem 1rem;
   text-align: center;
   background: #ffffff;
-  position: relative;
-  z-index: 1;
 }
 
 .loading-spinner {
@@ -568,8 +539,6 @@
   max-width: 400px;
   margin: 0 auto;
   background: #ffffff;
-  position: relative;
-  z-index: 1;
 }
 
 .error-icon {
@@ -607,19 +576,20 @@
   background: #b91c1c;
 }
 
-/* ===== RESPONSIVE DESIGN - MOBILE SPECIFIC FIXES ===== */
+/* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 767px) {
-  /* ✅ MOBILE SPECIFIC: Slightly better fit for small screens */
   .ad-display {
-    min-height: 200px; /* ✅ Slightly shorter for mobile */
-    max-height: 60vh; /* ✅ More reasonable mobile height */
+    min-height: 200px;
+    max-height: 60vh;
   }
   
-  /* ✅ MOBILE: Better image/video fitting */
-  .ad-image,
-  .ad-video {
-    /* ✅ CRITICAL: Better mobile content fitting */
-    object-position: center center !important;
+  .video-time {
+    font-size: 0.75rem;
+  }
+  
+  .control-btn {
+    min-width: 36px;
+    min-height: 36px;
   }
 }
 
@@ -630,34 +600,6 @@
   
   .ad-display {
     min-height: 280px;
-  }
-  
-  .showcase-title {
-    font-size: 1.75rem;
-  }
-  
-  .ad-title {
-    font-size: 1.25rem;
-  }
-  
-  .ad-description {
-    font-size: 0.9rem;
-  }
-  
-  .play-button {
-    width: 64px;
-    height: 64px;
-  }
-  
-  /* ✅ SLIGHTLY LARGER INDICATORS FOR BIGGER PHONES */
-  .indicator {
-    min-height: 36px;
-    min-width: 36px;
-  }
-  
-  .indicator::before {
-    width: 10px;
-    height: 10px;
   }
 }
 
@@ -671,18 +613,13 @@
     padding: 0 2rem;
   }
   
-  .showcase-title {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
-  
   .carousel-container {
     border-radius: 16px;
     margin-bottom: 1.5rem;
   }
   
   .ad-display {
-    min-height: 350px; /* ✅ RESTORED: Good tablet/desktop height */
+    min-height: 350px;
   }
   
   .carousel-btn {
@@ -697,61 +634,13 @@
     border-color: #3b82f6;
   }
   
-  .ad-image {
-    transition: transform 0.3s ease;
-  }
-  
-  .ad-display:hover .ad-image {
-    transform: scale(1.02);
-  }
-  
   .ad-overlay {
     padding: 2.5rem 2rem 1.5rem;
-  }
-  
-  .ad-title {
-    font-size: 1.4rem;
-    margin-bottom: 0.75rem;
-  }
-  
-  .ad-description {
-    font-size: 1rem;
-    margin-bottom: 1.25rem;
-    -webkit-line-clamp: 3;
-  }
-  
-  .ad-cta {
-    padding: 0.875rem 2rem;
-    font-size: 0.9rem;
   }
   
   .ad-cta:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-  }
-  
-  .play-button {
-    width: 72px;
-    height: 72px;
-  }
-  
-  .video-overlay:hover .play-button {
-    transform: scale(1.05);
-  }
-  
-  /* ✅ TABLET INDICATORS */
-  .carousel-indicators {
-    gap: 0.75rem;
-  }
-  
-  .indicator {
-    min-height: 40px;
-    min-width: 40px;
-  }
-  
-  .indicator::before {
-    width: 10px;
-    height: 10px;
   }
 }
 
@@ -761,66 +650,22 @@
   }
   
   .ad-display {
-    min-height: 400px; /* ✅ RESTORED: Desktop height */
+    min-height: 400px;
   }
   
   .carousel-btn {
     width: 52px;
     height: 52px;
   }
-  
-  .prev-btn {
-    left: 1.5rem;
-  }
-  
-  .next-btn {
-    right: 1.5rem;
-  }
-  
-  .ad-overlay {
-    padding: 3rem 2.5rem 2rem;
-  }
-  
-  .ad-title {
-    font-size: 1.6rem;
-  }
-  
-  .ad-description {
-    font-size: 1.05rem;
-  }
-  
-  /* ✅ DESKTOP INDICATORS */
-  .indicator {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  .indicator::before {
-    width: 12px;
-    height: 12px;
-  }
 }
 
 @media (min-width: 1280px) {
   .ad-display {
-    min-height: 450px; /* ✅ RESTORED: Large desktop height */
-  }
-  
-  .showcase-title {
-    font-size: 2.25rem;
-  }
-  
-  .ad-title {
-    font-size: 1.75rem;
-  }
-  
-  .ad-description {
-    font-size: 1.1rem;
-    max-width: 600px;
+    min-height: 450px;
   }
 }
 
-/* ===== ACCESSIBILITY & PERFORMANCE ===== */
+/* ===== ACCESSIBILITY ===== */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -828,33 +673,6 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-@media (hover: none) and (pointer: coarse) {
-  .ad-display:hover .ad-image {
-    transform: none;
-  }
-  
-  .carousel-btn:hover {
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.95);
-  }
-  
-  .video-overlay:hover .play-button {
-    transform: none;
-  }
-  
-  .ad-cta:hover {
-    transform: none;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-  }
-}
-
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .ad-image,
-  .ad-video {
-    image-rendering: -webkit-optimize-contrast;
   }
 }
 
@@ -867,7 +685,8 @@
   .carousel-btn,
   .carousel-indicators,
   .progress-bar,
-  .ad-cta {
+  .ad-cta,
+  .custom-video-controls {
     display: none !important;
   }
 }
@@ -875,18 +694,55 @@
 .carousel-btn:focus,
 .indicator:focus,
 .ad-cta:focus,
-.retry-button:focus {
+.retry-button:focus,
+.control-btn:focus {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
+/* ===== HEADER SECTION - CUSTOMIZABLE TITLE ===== */
+.showcase-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
 
-@media (prefers-reduced-data: reduce) {
-  .ad-image,
-  .ad-video {
-    filter: none;
+.showcase-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.3;
+  position: relative;
+  z-index: 1;
+  padding: 0 1rem;
+}
+
+@media (min-width: 480px) {
+  .showcase-title {
+    font-size: 1.75rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .showcase-header {
+    margin-bottom: 2rem;
   }
   
-  .video-overlay {
-    background: rgba(0, 0, 0, 0.7);
+  .showcase-title {
+    font-size: 2rem;
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .showcase-title {
+    font-size: 2.25rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .showcase-title {
+    font-size: 2.5rem;
   }
 }

@@ -1,14 +1,20 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Play, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertCircle, Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
 import api, { getMediaUrl, getNetworkInfo } from '../services/api';
 import './AdvertisementShowcase.css';
 
-// ✅ MOBILE COMPATIBLE VIDEO PLAYER with comprehensive error handling
+// ✅ CUSTOM VIDEO PLAYER with Admin Dashboard-style controls
 const VideoPlayer = React.memo(({ src, poster, title }) => {
   const videoRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [showControls, setShowControls] = useState(true);
+  const controlsTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (videoRef.current && src && !error) {
@@ -16,35 +22,16 @@ const VideoPlayer = React.memo(({ src, poster, title }) => {
       setError(false);
       
       const video = videoRef.current;
+      video.muted = true;
       
       const handleCanPlay = () => {
         setIsLoading(false);
+        setDuration(video.duration);
         console.log('✅ Video ready to play:', src);
-        
-        // ✅ MOBILE COMPATIBLE: Enhanced autoplay handling
-        const playPromise = video.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-              console.log('✅ Video autoplay successful');
-            })
-            .catch(error => {
-              console.warn('⚠️ Video autoplay blocked by browser policy (normal on mobile)');
-              setIsPlaying(false);
-            });
-        }
       };
 
       const handleError = (e) => {
         console.error('❌ Video failed to load:', src);
-        console.error('❌ Video error details:', {
-          error: e.target.error,
-          networkState: e.target.networkState,
-          readyState: e.target.readyState,
-          src: src,
-          networkInfo: getNetworkInfo()
-        });
         setError(true);
         setIsLoading(false);
       };
@@ -55,37 +42,116 @@ const VideoPlayer = React.memo(({ src, poster, title }) => {
         setError(false);
       };
 
-      const handleLoadedData = () => {
-        console.log('📊 Video data loaded:', src);
+      const handleTimeUpdate = () => {
+        setCurrentTime(video.currentTime);
+        setProgress((video.currentTime / video.duration) * 100 || 0);
+      };
+
+      const handleEnded = () => {
+        setIsPlaying(false);
+        setProgress(0);
+        setCurrentTime(0);
       };
 
       video.addEventListener('canplay', handleCanPlay);
       video.addEventListener('error', handleError);
       video.addEventListener('loadstart', handleLoadStart);
-      video.addEventListener('loadeddata', handleLoadedData);
+      video.addEventListener('timeupdate', handleTimeUpdate);
+      video.addEventListener('ended', handleEnded);
       
       return () => {
         video.removeEventListener('canplay', handleCanPlay);
         video.removeEventListener('error', handleError);
         video.removeEventListener('loadstart', handleLoadStart);
-        video.removeEventListener('loadeddata', handleLoadedData);
+        video.removeEventListener('timeupdate', handleTimeUpdate);
+        video.removeEventListener('ended', handleEnded);
       };
     }
   }, [src, error]);
 
-  const handlePlayClick = useCallback(() => {
+  useEffect(() => {
+    if (isPlaying) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+    } else {
+      setShowControls(true);
+    }
+
+    return () => {
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
+    };
+  }, [isPlaying]);
+
+  const handleMouseMove = () => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    if (isPlaying) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+    }
+  };
+
+  const togglePlayPause = useCallback(() => {
     if (videoRef.current) {
-      videoRef.current.play()
-        .then(() => {
-          setIsPlaying(true);
-          console.log('✅ Manual video play successful');
-        })
-        .catch(err => {
-          console.error('❌ Manual video play failed:', err);
-          setError(true);
+      if (isPlaying) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        videoRef.current.play()
+          .then(() => {
+            setIsPlaying(true);
+            console.log('✅ Video play successful');
+          })
+          .catch(err => {
+            console.error('❌ Video play failed:', err);
+            setError(true);
+          });
+      }
+    }
+  }, [isPlaying]);
+
+  const toggleMute = useCallback(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  }, [isMuted]);
+
+  const toggleFullscreen = useCallback(() => {
+    if (videoRef.current) {
+      if (!document.fullscreenElement) {
+        videoRef.current.requestFullscreen().catch(err => {
+          console.error('❌ Fullscreen error:', err);
         });
+      } else {
+        document.exitFullscreen();
+      }
     }
   }, []);
+
+  const handleProgressClick = useCallback((e) => {
+    if (videoRef.current) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      const newTime = pos * duration;
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+      setProgress(pos * 100);
+    }
+  }, [duration]);
+
+  const formatTime = (seconds) => {
+    if (isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   if (error) {
     return (
@@ -93,44 +159,95 @@ const VideoPlayer = React.memo(({ src, poster, title }) => {
         <AlertCircle size={48} className="error-icon" />
         <p>Video unavailable</p>
         <small>Failed to load: {title}</small>
-        <small>Network: {getNetworkInfo().isMobile ? 'Mobile' : 'Desktop'}</small>
-        <small>URL: {src}</small>
       </div>
     );
   }
 
   return (
-    <div className="video-container">
+    <div 
+      className="video-container" 
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => isPlaying && setShowControls(false)}
+    >
       {isLoading && (
         <div className="video-loading">
           <div className="loading-spinner"></div>
           <p>Loading video...</p>
         </div>
       )}
+      
       <video
         ref={videoRef}
         src={src}
         poster={poster}
-        muted
+        muted={isMuted}
         loop
-        playsInline  // ✅ CRITICAL for mobile compatibility
-        controls
-        preload="metadata"  // ✅ MOBILE OPTIMIZED: Faster loading
+        playsInline
+        preload="metadata"
         className="ad-video"
         style={{ display: isLoading ? 'none' : 'block' }}
-        onLoadStart={() => console.log('🎥 Video element loading:', src)}
-        onCanPlay={() => console.log('✅ Video element can play:', src)}
-        onError={(e) => {
-          console.error('❌ Video element error:', e);
-          console.error('❌ Video src causing error:', src);
-        }}
+        onClick={togglePlayPause}
       />
-      {!isPlaying && !isLoading && (
-        <div className="video-overlay" onClick={handlePlayClick}>
-          <div className="play-button">
-            <Play size={24} />
+
+      {/* ✅ CUSTOM VIDEO CONTROLS */}
+      {!isLoading && (
+        <div className={`custom-video-controls ${showControls || !isPlaying ? 'visible' : 'hidden'}`}>
+          {/* Play/Pause Overlay Button */}
+          {!isPlaying && (
+            <div className="video-overlay-center" onClick={togglePlayPause}>
+              <div className="play-button-large">
+                <Play size={48} />
+              </div>
+            </div>
+          )}
+
+          {/* Bottom Control Bar */}
+          <div className="video-controls-bar">
+            {/* Progress Bar */}
+            <div className="video-progress-container" onClick={handleProgressClick}>
+              <div className="video-progress-bar">
+                <div 
+                  className="video-progress-fill" 
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Control Buttons */}
+            <div className="video-controls-buttons">
+              <div className="controls-left">
+                <button 
+                  className="control-btn" 
+                  onClick={togglePlayPause}
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+                </button>
+
+                <button 
+                  className="control-btn" 
+                  onClick={toggleMute}
+                  aria-label={isMuted ? 'Unmute' : 'Mute'}
+                >
+                  {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                </button>
+
+                <div className="video-time">
+                  {formatTime(currentTime)} / {formatTime(duration)}
+                </div>
+              </div>
+
+              <div className="controls-right">
+                <button 
+                  className="control-btn" 
+                  onClick={toggleFullscreen}
+                  aria-label="Fullscreen"
+                >
+                  <Maximize size={20} />
+                </button>
+              </div>
+            </div>
           </div>
-          <span className="play-text">Tap to play</span>
         </div>
       )}
     </div>
@@ -146,7 +263,6 @@ const AdvertisementShowcase = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const intervalRef = useRef(null);
 
-  // ✅ OPTIMIZATION: Memoize the fetchAds function
   const fetchAds = useCallback(async () => {
     try {
       setLoading(true);
@@ -161,13 +277,6 @@ const AdvertisementShowcase = () => {
         }
       });
       
-      console.log('📊 Advertisement API Response:', {
-        status: response.status,
-        dataType: typeof response.data,
-        isArray: Array.isArray(response.data),
-        count: Array.isArray(response.data) ? response.data.length : 'N/A'
-      });
-      
       let adsData = [];
       if (Array.isArray(response.data)) {
         adsData = response.data;
@@ -177,28 +286,19 @@ const AdvertisementShowcase = () => {
         adsData = response.data.advertisements || response.data.data || [];
       }
 
-      // ✅ CRITICAL FIX: Process media URLs with enhanced debugging
-      console.log('🔍 Processing advertisements for HTTPS compatibility:');
       adsData = adsData.map((ad, index) => {
-        // ✅ FIXED: Use getMediaUrl helper for HTTPS compatibility
         const processedAd = {
           ...ad,
           mediaUrl: getMediaUrl(ad.mediaUrl),
           poster: ad.poster ? getMediaUrl(ad.poster) : null
         };
         
-        console.log(`  🎬 Advertisement #${index + 1}: "${ad.title}"`);
-        console.log(`     Type: ${ad.mediaType}`);
-        console.log(`     Original URL: ${ad.mediaUrl}`);
-        console.log(`     Processed URL: ${processedAd.mediaUrl}`);
-        console.log(`     HTTPS Check: ${processedAd.mediaUrl?.startsWith('https://') ? '✅' : '❌'}`);
-        console.log(`     Network: ${getNetworkInfo().isMobile ? 'Mobile' : 'Desktop'}`);
-        
+        console.log(`🎬 Advertisement #${index + 1}: "${ad.title}" (${ad.mediaType})`);
         return processedAd;
       });
 
       setAds(adsData);
-      console.log(`✅ Successfully loaded ${adsData.length} advertisements with HTTPS URLs`);
+      console.log(`✅ Successfully loaded ${adsData.length} advertisements`);
       
     } catch (error) {
       console.error('❌ Failed to fetch advertisements:', error);
@@ -226,7 +326,6 @@ const AdvertisementShowcase = () => {
     fetchAds();
   }, [fetchAds]);
 
-  // ✅ OPTIMIZATION: Better interval management
   useEffect(() => {
     if (ads.length > 1) {
       const startInterval = () => {
@@ -235,7 +334,7 @@ const AdvertisementShowcase = () => {
         }
         intervalRef.current = setInterval(() => {
           setCurrentSlide((prev) => (prev + 1) % ads.length);
-        }, 10000); // 10 seconds per slide
+        }, 10000);
       };
 
       startInterval();
@@ -249,20 +348,16 @@ const AdvertisementShowcase = () => {
     }
   }, [ads.length]);
 
-  // ✅ OPTIMIZATION: Memoize handlers
   const handleAdClick = useCallback(async (ad) => {
     try {
-      // Track click
       await api.post(`/api/advertisements/${ad._id}/click`);
       console.log('✅ Ad click tracked:', ad.title);
       
-      // Open link if exists
       if (ad.link) {
         window.open(ad.link, '_blank', 'noopener,noreferrer');
       }
     } catch (error) {
       console.error('❌ Error tracking ad click:', error);
-      // Still open link even if tracking fails
       if (ad.link) {
         window.open(ad.link, '_blank', 'noopener,noreferrer');
       }
@@ -281,42 +376,27 @@ const AdvertisementShowcase = () => {
     setCurrentSlide(index);
   }, []);
 
-  // Loading state
   if (loading) {
     return (
       <section className="advertisement-showcase">
         <div className="container">
-          <div className="showcase-header">
-            <h2 className="showcase-title">Advertisements</h2>
-          </div>
           <div className="loading-container">
             <div className="loading-spinner"></div>
             <p className="loading-text">Loading advertisements...</p>
-            <small className="network-info">
-              {getNetworkInfo().isMobile ? '📱 Mobile Network' : '💻 Desktop'}
-            </small>
           </div>
         </div>
       </section>
     );
   }
 
-  // Error state
   if (error) {
     return (
       <section className="advertisement-showcase">
         <div className="container">
-          <div className="showcase-header">
-            <h2 className="showcase-title">Advertisements</h2>
-          </div>
           <div className="error-container">
             <AlertCircle size={48} className="error-icon" />
             <h3>Unable to Load Advertisements</h3>
             <p>{error}</p>
-            <small className="network-info">
-              Network: {getNetworkInfo().isMobile ? '📱 Mobile' : '💻 Desktop'} | 
-              IP: {getNetworkInfo().hostname}
-            </small>
             <button className="retry-button" onClick={fetchAds}>
               Try Again
             </button>
@@ -326,7 +406,6 @@ const AdvertisementShowcase = () => {
     );
   }
 
-  // No ads state 
   if (ads.length === 0) {
     return null;
   }
@@ -336,13 +415,15 @@ const AdvertisementShowcase = () => {
   return (
     <section className="advertisement-showcase">
       <div className="container">
-        <div className="showcase-header">
-          <h2 className="showcase-title">Watch how to Signup and update your Profile</h2>
-        </div>
-
+        {/* ✅ NEW: CUSTOMIZABLE TITLE SECTION - Displays title from Admin Dashboard */}
+        {currentAd.title && (
+          <div className="showcase-header">
+            <h2 className="showcase-title">{currentAd.title}</h2>
+          </div>
+        )}
+        
         <div className="carousel-wrapper">
           <div className="carousel-container">
-            {/* Navigation arrows */}
             {ads.length > 1 && (
               <>
                 <button 
@@ -363,15 +444,14 @@ const AdvertisementShowcase = () => {
               </>
             )}
 
-            {/* Advertisement display */}
             <div 
-              className={`ad-display ${currentAd.link ? 'clickable' : ''}`}
-              onClick={() => currentAd.link && handleAdClick(currentAd)}
+              className={`ad-display ${currentAd.link && currentAd.mediaType !== 'video' ? 'clickable' : ''}`}
+              onClick={() => currentAd.link && currentAd.mediaType !== 'video' && handleAdClick(currentAd)}
             >
               <div className="ad-media">
                 {currentAd.mediaType === 'video' ? (
                   <VideoPlayer 
-                    key={`${currentAd._id}-${currentSlide}`} // Force re-render on slide change
+                    key={`${currentAd._id}-${currentSlide}`}
                     src={currentAd.mediaUrl} 
                     poster={currentAd.poster}
                     title={currentAd.title}
@@ -383,47 +463,15 @@ const AdvertisementShowcase = () => {
                       alt={currentAd.title || 'Advertisement'}
                       className="ad-image"
                       loading="lazy"
-                      onLoad={() => console.log('✅ Ad image loaded successfully:', currentAd.title, currentAd.mediaUrl)}
-                      onError={(e) => {
-                        console.error('❌ Ad image failed to load:', currentAd.title);
-                        console.error('❌ Failed URL:', currentAd.mediaUrl);
-                        console.error('❌ Network info:', getNetworkInfo());
-                        e.target.style.display = 'none';
-                        const placeholder = e.target.parentNode.querySelector('.image-placeholder');
-                        if (placeholder) placeholder.style.display = 'flex';
-                      }}
                     />
-                    <div className="image-placeholder" style={{ display: 'none' }}>
-                      <AlertCircle size={48} />
-                      <span>Image unavailable</span>
-                      <small>{currentAd.mediaUrl}</small>
-                    </div>
                   </div>
                 )}
               </div>
               
-              {/* Content overlay */}
-              <div className="ad-overlay">
-                <div className="ad-content">
-                  <h3 className="ad-title">{currentAd.title}</h3>
-                  <p className="ad-description">{currentAd.content}</p>
-                  {currentAd.link && (
-                    <button 
-                      className="ad-cta"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAdClick(currentAd);
-                      }}
-                    >
-                      Learn More →
-                    </button>
-                  )}
-                </div>
-              </div>
+              {/* ✅ NO OVERLAY on video - title is above, not inside */}
             </div>
           </div>
 
-          {/* Slide indicators */}
           {ads.length > 1 && (
             <div className="carousel-indicators">
               {ads.map((_, index) => (
@@ -437,7 +485,6 @@ const AdvertisementShowcase = () => {
             </div>
           )}
 
-          {/* Progress bar */}
           {ads.length > 1 && (
             <div className="progress-bar">
               <div 
